@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Nutrition Tracker</string>
+    <string name="food_search_bar_placeholder">Search Food</string>
+    <string name="macronutrients_protein">Protein</string>
+    <string name="macronutrients_carbs">Carbs</string>
+    <string name="macronutrients_fat">Fat</string>
+</resources>

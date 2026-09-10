@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Nutrisi</string>
+    <string name="food_search_bar_placeholder">Cari makanan</string>
+    <string name="macronutrients_protein">Protein</string>
+    <string name="macronutrients_carbs">Karbohidrat</string>
+    <string name="macronutrients_fat">Lemak</string>
+</resources>
