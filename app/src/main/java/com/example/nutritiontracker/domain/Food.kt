@@ -6,10 +6,10 @@ import com.example.nutritiontracker.R
 /*
     Label came from (string resource)
 */
-enum class MacroType(label: Int) {
+enum class MacroType(val label: Int) {
     PROTEIN(R.string.macronutrients_protein),
-    CARBS(R.string.macronutrients_carbs), FAT(R.string.macronutrients_fat),
-    CALORIES(0);
+    CARBS(R.string.macronutrients_carbs),
+    FAT(R.string.macronutrients_fat),
 }
 
 data class MacroNutrients(
