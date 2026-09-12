@@ -5,4 +5,6 @@
     <string name="macronutrients_protein">Protein</string>
     <string name="macronutrients_carbs">Karbohidrat</string>
     <string name="macronutrients_fat">Lemak</string>
+    <string name="total_calories">kkal</string>
+    <string name="add_to_consume_log">Tambah ke Catatan</string>
 </resources>

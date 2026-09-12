@@ -4,4 +4,6 @@
     <string name="macronutrients_protein">Protein</string>
     <string name="macronutrients_carbs">Carbs</string>
     <string name="macronutrients_fat">Fat</string>
+    <string name="total_calories">kcal</string>
+    <string name="add_to_consume_log">Add to Consume Log</string>
 </resources>

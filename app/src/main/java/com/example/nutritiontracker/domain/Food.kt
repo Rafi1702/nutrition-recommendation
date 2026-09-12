@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.domain
 
 import com.example.nutritiontracker.R
+import kotlin.math.roundToInt
 
 
 /*
@@ -17,8 +18,15 @@ data class MacroNutrients(
     val serveValue: Double
 )
 
+/*
+    The macros should be based on enum order
+    to correctly calculate totalCalories
+*/
 data class Food(
     val id: String,
     val name: String,
     val macros: List<MacroNutrients>
-)
+){
+    val totalCalories: Int
+        get() = (macros[0].serveValue * 4 + macros[1].serveValue * 4 + macros[2].serveValue * 9).roundToInt()
+}
