@@ -6,4 +6,5 @@
     <string name="macronutrients_fat">Fat</string>
     <string name="total_calories">kcal</string>
     <string name="add_to_consume_log">Add to Consume Log</string>
+    <string name="food_recommendation_list">Food Recommendation</string>
 </resources>

@@ -7,4 +7,5 @@
     <string name="macronutrients_fat">Lemak</string>
     <string name="total_calories">kkal</string>
     <string name="add_to_consume_log">Tambah ke Catatan</string>
+    <string name="food_recommendation_list">Rekomendasi makanan</string>
 </resources>

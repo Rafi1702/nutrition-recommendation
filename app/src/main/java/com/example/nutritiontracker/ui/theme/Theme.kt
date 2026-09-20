@@ -1,21 +1,13 @@
 package com.example.nutritiontracker.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.view.WindowCompat
 
 @Composable
 fun NutritionTrackerTheme(
@@ -33,12 +25,11 @@ fun NutritionTrackerTheme(
         else -> LightColorScheme
     }
 
-    var currentTypography by remember { mutableStateOf(AppTypography) }
 
-    CompositionLocalProvider(LocalTypography provides currentTypography) {
+    CompositionLocalProvider(LocalTypography provides typography, LocalScreenSize provides screenSize) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = currentTypography,
+            typography = typography,
             content = content
         )
     }
