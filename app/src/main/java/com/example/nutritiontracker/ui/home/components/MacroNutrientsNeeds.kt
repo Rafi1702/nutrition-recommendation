@@ -25,12 +25,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import com.example.nutritiontracker.domain.MacroType
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.withStyle
 
 @Composable
-internal fun MacroNutrientsNeed(label: String, current: Float, target: Float, unit: String) {
+internal fun MacroNutrientsNeed(label: MacroType, current: Float, target: Float, unit: String) {
+    val macroIndicatorColors = when (label) {
+        MacroType.PROTEIN -> colorScheme.tertiary
+        MacroType.FAT, MacroType.CARBS -> colorScheme.secondary
+    }
+
     Card(
         modifier = Modifier
             .width(120.dp)
@@ -55,7 +61,7 @@ internal fun MacroNutrientsNeed(label: String, current: Float, target: Float, un
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(label)
+                    Text(label.name)
                     Icon(
                         Icons.Default.Fastfood,
                         "${label}-icon",
@@ -80,6 +86,7 @@ internal fun MacroNutrientsNeed(label: String, current: Float, target: Float, un
                 Text("Sisa ${(target - current).toInt()}$unit")
                 LinearProgressIndicator(
                     progress = { current / target },
+                    color = macroIndicatorColors,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
