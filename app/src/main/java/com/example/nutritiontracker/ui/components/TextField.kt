@@ -1,7 +1,6 @@
 package com.example.nutritiontracker.ui.components
 
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,9 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,8 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.colorScheme
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.runningFold
 import androidx.compose.material3.TextField as M3TextField
 
 @Preview(name = "TextField", showBackground = true)
@@ -196,9 +191,9 @@ fun TextField(
 }
 
 @Composable
-fun<T> TextFormField(
+fun TextFormField(
     state: TextFieldState,
-    properties: FieldProperties<T>,
+    properties: FieldProperties<CharSequence>,
     modifier: Modifier = Modifier,
     label: String = "Label",
     cornerRadius: Dp = 8.dp,
@@ -209,7 +204,8 @@ fun<T> TextFormField(
     isError: Boolean? = null,
 ) {
     val (validator, errorMessage) = properties
-    val isSecure = validator is PasswordValidator
+    val isSecure = validator is PasswordValidator || validator is MatchValidator
+
     TextField(
         state = state,
         modifier = modifier,
@@ -228,8 +224,9 @@ fun<T> TextFormField(
 @Composable
 fun TextFormField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldPair<CharSequence>,
-    formBuilder: FormBuilder<CharSequence>,
+    fieldName: String,
+    fieldProperties: FieldProperties<CharSequence>,
+    formBuilder: FormBuilder,
     initialValue: String = "",
     label: String = "Label",
     cornerRadius: Dp = 8.dp,
@@ -237,37 +234,30 @@ fun TextFormField(
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
+    effectKey: Any? = Unit,
 ) {
     val state = rememberTextFieldState(initialValue)
-    val (name, properties) = fieldProperties
 
-    LaunchedEffect(Unit) {
-        formBuilder.addField(name, properties)
-        snapshotFlow { state.text.toString() }
-            .runningFold(Pair("", state.text.toString())) { acc, current ->
-                Pair(acc.second, current)
-            }
-            .drop(1)
-            .collect { (previousText, currentText) ->
-                val currentRegisteredProperties = formBuilder.fieldRegistry[name]
-
-                currentRegisteredProperties?.let { properties ->
-                    properties.errorMessage.value = properties.validator.validate(currentText)
-                    properties.isDirty.value = previousText != currentText
-
-                    Log.d("[DEBUG]", "previous text: $previousText, current text: $currentText")
-                }
-            }
+    val boundProperties = remember(fieldProperties, state) {
+        fieldProperties.copy(
+            valueProvider = { state.text } 
+        )
     }
+    RegisterFormListener(
+        form = formBuilder,
+        name = fieldName,
+        fieldProperties = fieldProperties,
+        valueProvider = boundProperties.valueProvider as () -> CharSequence,
+        effectKey = effectKey
+    )
 
     DisposableEffect(Unit) {
-        onDispose { formBuilder.removeField(name) }
+        onDispose { formBuilder.removeField(fieldName) }
     }
-
 
     TextFormField(
         state = state,
-        properties = formBuilder.fieldRegistry[name] ?: properties,
+        properties = formBuilder.getField(fieldName) ?: fieldProperties,
         modifier = modifier,
         label = label,
         cornerRadius = cornerRadius,
@@ -275,6 +265,6 @@ fun TextFormField(
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-        isError = formBuilder.fieldRegistry[name]?.isDirty?.value
+        isError = formBuilder.fieldRegistry[fieldName]?.isDirty?.value
     )
 }

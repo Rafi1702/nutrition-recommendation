@@ -5,35 +5,46 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.runningFold
 
-typealias FieldPair<T> = Pair<String, FieldProperties<T>>
 
-data class FieldProperties<T>(
+data class FieldProperties<T : Any>(
     val validator: FieldValidator<T>,
     val errorMessage: MutableState<String?> = mutableStateOf(null),
     val isDirty: MutableState<Boolean?> = mutableStateOf(null),
     val isRequired: Boolean = false,
+    val valueProvider: (() -> T)? = null
 )
 
-class FormBuilder<T> {
-    val fieldRegistry = mutableStateMapOf<String, FieldProperties<T>>()
+class FormBuilder {
+    val fieldRegistry = mutableStateMapOf<String, FieldProperties<*>>()
 
     val isValid: Boolean by derivedStateOf {
         fieldRegistry.values.filter { it.isRequired }
             .all { it.errorMessage.value == null && it.isDirty.value == true }
     }
 
-    fun addField(name: String, field: FieldProperties<T>) {
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> getField(key: String): FieldProperties<T>? {
+        val properties = fieldRegistry[key] ?: return null
+
+        return properties as FieldProperties<T>?
+    }
+
+    fun <T : Any> addField(name: String, field: FieldProperties<T>) {
         fieldRegistry[name] = field
     }
 
@@ -47,18 +58,48 @@ class FormBuilder<T> {
 }
 
 @Composable
-fun <T> rememberFormBuilder(): FormBuilder<T> {
+fun rememberFormBuilder(): FormBuilder {
     return remember { FormBuilder() }
+}
+
+@Composable
+fun <T : Any> RegisterFormListener(
+    form: FormBuilder,
+    name: String,
+    fieldProperties: FieldProperties<T>,
+    effectKey: Any? = Unit,
+    valueProvider: () -> T,
+) {
+    LaunchedEffect(effectKey) {
+        form.addField(name, fieldProperties)
+        snapshotFlow { valueProvider() }
+            .runningFold(Pair(valueProvider(), valueProvider())) { acc, current ->
+                Pair(acc.second, current)
+            }
+            .drop(1)
+            .collect { (previous, current) ->
+
+                @Suppress("UNCHECKED_CAST")
+                val currentRegisteredProperties = form.fieldRegistry[name] as? FieldProperties<T>
+
+                currentRegisteredProperties?.let { properties ->
+                    properties.errorMessage.value = properties.validator.validate(current)
+                    properties.isDirty.value = previous != current
+
+                    Log.d("[DEBUG]", "previous text: $previous, current text: $current")
+                }
+            }
+    }
 }
 
 
 @Composable
-fun <T> Form(
+fun Form(
     modifier: Modifier = Modifier,
     verticalSpacing: Dp = 8.dp,
-    child: @Composable ((isValid: Boolean, form: FormBuilder<T>) -> Unit)? = null
+    child: @Composable ((isValid: Boolean, form: FormBuilder) -> Unit)? = null
 ) {
-    val builder = rememberFormBuilder<T>()
+    val builder = rememberFormBuilder()
 
     DisposableEffect(Unit) {
         onDispose { builder.clear() }
@@ -73,7 +114,7 @@ fun <T> Form(
     }
 }
 
-abstract class FieldValidator<in T> {
+abstract class FieldValidator<T : Any?> {
     abstract fun validate(value: T): String?
 }
 
@@ -96,6 +137,28 @@ class PasswordValidator : FieldValidator<CharSequence>() {
             value.length < 8 -> "Password must be at least 8 characters"
             else -> null
         }
+    }
+}
+
+class CheckRequiredValidator : FieldValidator<Boolean>() {
+    override fun validate(value: Boolean): String? {
+        return if (value) null else "Must be checked"
+    }
+}
+
+class MatchValidator(
+    private val form: FormBuilder,
+    private val targetFieldKey: String,
+) :
+    FieldValidator<CharSequence>() {
+    override fun validate(value: CharSequence): String? {
+        val targetProps = form.getField<CharSequence>(targetFieldKey)
+
+        val targetValue = targetProps?.valueProvider?.invoke()
+
+        Log.d("[MATCH_VALIDATOR]", "$targetValue")
+
+        return if (value.toString() != targetValue.toString()) "Passwords do not match" else null
     }
 }
 
