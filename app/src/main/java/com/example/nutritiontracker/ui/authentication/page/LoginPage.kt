@@ -100,8 +100,7 @@ private fun SignUpContent() {
                     ),
                     isRequired = true
                 ),
-
-                )
+            )
         }
     }
 }

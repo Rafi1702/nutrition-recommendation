@@ -62,33 +62,61 @@ fun rememberFormBuilder(): FormBuilder {
     return remember { FormBuilder() }
 }
 
+private data class ValidationState<T>(
+    val value: T,
+    val error: String?
+)
+
 @Composable
 fun <T : Any> RegisterFormListener(
     form: FormBuilder,
     name: String,
     fieldProperties: FieldProperties<T>,
     effectKey: Any? = Unit,
-    valueProvider: () -> T,
 ) {
     LaunchedEffect(effectKey) {
         form.addField(name, fieldProperties)
-        snapshotFlow { valueProvider() }
-            .runningFold(Pair(valueProvider(), valueProvider())) { acc, current ->
-                Pair(acc.second, current)
-            }
-            .drop(1)
-            .collect { (previous, current) ->
+
+        fieldProperties.valueProvider?.let { valueProvider ->
+            snapshotFlow {
+                val currentValue = valueProvider()
 
                 @Suppress("UNCHECKED_CAST")
-                val currentRegisteredProperties = form.fieldRegistry[name] as? FieldProperties<T>
-
-                currentRegisteredProperties?.let { properties ->
-                    properties.errorMessage.value = properties.validator.validate(current)
-                    properties.isDirty.value = previous != current
-
-                    Log.d("[DEBUG]", "previous text: $previous, current text: $current")
-                }
+                val registeredProps = form.fieldRegistry[name] as? FieldProperties<T>
+                val validator = registeredProps?.validator ?: fieldProperties.validator
+                ValidationState(currentValue, validator.validate(currentValue))
             }
+                .runningFold(
+                    Pair(
+                        ValidationState(
+                            valueProvider(),
+                            fieldProperties.validator.validate(valueProvider())
+                        ),
+                        ValidationState(
+                            valueProvider(),
+                            fieldProperties.validator.validate(valueProvider())
+                        )
+                    )
+                ) { acc, current ->
+                    Pair(acc.second, current)
+                }
+                .drop(1)
+                .collect { (previous, current) ->
+                    @Suppress("UNCHECKED_CAST")
+                    val currentRegisteredProperties =
+                        form.fieldRegistry[name] as? FieldProperties<T>
+
+                    currentRegisteredProperties?.let { properties ->
+                        properties.errorMessage.value = current.error
+                        properties.isDirty.value = previous.value != current.value
+
+                        Log.d(
+                            "[FORM_LISTENER]",
+                            "field: $name, previous: ${previous.value}, current: ${current.value}, error: ${current.error}"
+                        )
+                    }
+                }
+        }
     }
 }
 
@@ -149,16 +177,19 @@ class CheckRequiredValidator : FieldValidator<Boolean>() {
 class MatchValidator(
     private val form: FormBuilder,
     private val targetFieldKey: String,
-) :
-    FieldValidator<CharSequence>() {
+    private val customErrorMessage: String = "Passwords do not match"
+) : FieldValidator<CharSequence>() {
     override fun validate(value: CharSequence): String? {
         val targetProps = form.getField<CharSequence>(targetFieldKey)
-
         val targetValue = targetProps?.valueProvider?.invoke()
 
-        Log.d("[MATCH_VALIDATOR]", "$targetValue")
+        Log.d("[MATCH_VALIDATOR]", "targetValue: $targetValue, currentValue: $value")
 
-        return if (value.toString() != targetValue.toString()) "Passwords do not match" else null
+        if (value.isBlank()) {
+            return "Password confirmation cannot be empty"
+        }
+
+        return if (value.toString() != targetValue?.toString()) customErrorMessage else null
     }
 }
 

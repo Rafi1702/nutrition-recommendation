@@ -28,7 +28,6 @@ fun CheckBoxForm(
         form = form,
         name = name,
         fieldProperties = fieldProperties,
-        valueProvider = { isChecked }
     )
 
     DisposableEffect(Unit) {

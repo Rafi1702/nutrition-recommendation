@@ -202,16 +202,18 @@ fun TextFormField(
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
     isError: Boolean? = null,
+    isSecure: Boolean? = null,
 ) {
     val (validator, errorMessage) = properties
-    val isSecure = validator is PasswordValidator || validator is MatchValidator
+    val resolvedIsSecure =
+        isSecure ?: (validator is PasswordValidator || validator is MatchValidator)
 
     TextField(
         state = state,
         modifier = modifier,
         label = label,
         errorMessage = errorMessage.value,
-        isSecure = isSecure,
+        isSecure = resolvedIsSecure,
         cornerRadius = cornerRadius,
         borderColor = borderColor,
         backgroundColor = backgroundColor,
@@ -234,30 +236,30 @@ fun TextFormField(
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
+    isSecure: Boolean? = null,
     effectKey: Any? = Unit,
 ) {
     val state = rememberTextFieldState(initialValue)
 
     val boundProperties = remember(fieldProperties, state) {
         fieldProperties.copy(
-            valueProvider = { state.text } 
+            valueProvider = { state.text }
         )
     }
     RegisterFormListener(
         form = formBuilder,
         name = fieldName,
-        fieldProperties = fieldProperties,
-        valueProvider = boundProperties.valueProvider as () -> CharSequence,
+        fieldProperties = boundProperties,
         effectKey = effectKey
     )
 
-    DisposableEffect(Unit) {
+    DisposableEffect(fieldName) {
         onDispose { formBuilder.removeField(fieldName) }
     }
 
     TextFormField(
         state = state,
-        properties = formBuilder.getField(fieldName) ?: fieldProperties,
+        properties = formBuilder.getField(fieldName) ?: boundProperties,
         modifier = modifier,
         label = label,
         cornerRadius = cornerRadius,
@@ -265,6 +267,7 @@ fun TextFormField(
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-        isError = formBuilder.fieldRegistry[fieldName]?.isDirty?.value
+        isError = formBuilder.fieldRegistry[fieldName]?.isDirty?.value,
+        isSecure = isSecure
     )
 }
