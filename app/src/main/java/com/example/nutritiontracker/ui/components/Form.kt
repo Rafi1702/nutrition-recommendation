@@ -33,6 +33,7 @@ class FormBuilder {
     val fieldRegistry = mutableStateMapOf<String, FieldProperties<*>>()
 
     val isValid: Boolean by derivedStateOf {
+        if(fieldRegistry.isEmpty()) return@derivedStateOf false
         fieldRegistry.values.filter { it.isRequired }
             .all { it.errorMessage.value == null && it.isDirty.value == true }
     }
