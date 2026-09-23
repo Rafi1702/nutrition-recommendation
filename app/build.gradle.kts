@@ -6,15 +6,15 @@ plugins {
 android {
     namespace = "com.example.nutritiontracker"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
+        version = release(37) {
+            minorApiLevel = 0
         }
     }
 
     defaultConfig {
         applicationId = "com.example.nutritiontracker"
         minSdk = 24
-        targetSdk = 36
+        this.targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.kotlin.reflect)

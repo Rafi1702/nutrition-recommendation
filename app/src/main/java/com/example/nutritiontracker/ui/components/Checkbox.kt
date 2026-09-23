@@ -24,10 +24,16 @@ fun CheckBoxForm(
 
     var isChecked by remember { mutableStateOf(false) }
 
+    val boundProperties = remember(fieldProperties, isChecked) {
+        fieldProperties.copy(
+            valueProvider = { isChecked}
+        )
+    }
+
     RegisterFormListener(
         form = form,
         name = name,
-        fieldProperties = fieldProperties,
+        fieldProperties = boundProperties,
     )
 
     DisposableEffect(Unit) {
