@@ -9,8 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.authentication.page.LoginPage
 import com.example.nutritiontracker.ui.home.page.HomePath
-import com.example.nutritiontracker.ui.home.page.homeGraph
-
+import com.example.nutritiontracker.ui.home.page.MainPage
 
 @Composable
 fun AppNavigation(
@@ -25,10 +24,11 @@ fun AppNavigation(
     ) {
         composable(AuthPath.AUTH) {
             LoginPage(modifier = modifier, onNavigateToHome = {
-                navController.navigate(route = HomePath.HOME)
+                navController.navigate(route = HomePath.BASE_HOME_PATH)
             })
         }
-
-        homeGraph(navController = navController)
+        composable(HomePath.BASE_HOME_PATH){
+            MainPage()
+        }
     }
 }

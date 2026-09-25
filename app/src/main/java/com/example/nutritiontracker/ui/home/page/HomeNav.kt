@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.home.page
 
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -11,14 +12,10 @@ object HomePath{
     const val HOME = "/"
     const val CONSUME_LOG = "/consume"
 }
-fun NavGraphBuilder.homeGraph(navController: NavHostController) {
+fun NavGraphBuilder.homeGraph(modifier: Modifier = Modifier, navController: NavHostController) {
     navigation(route = HomePath.BASE_HOME_PATH, startDestination = HomePath.HOME) {
         composable(route = HomePath.HOME) {
-            HomePage(
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
+            Home (modifier = modifier)
         }
         composable(route = HomePath.CONSUME_LOG) {
             ConsumeLogs()

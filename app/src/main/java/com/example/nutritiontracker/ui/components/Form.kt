@@ -38,10 +38,10 @@ class FormBuilder {
             .all { it.errorMessage.value == null && it.isDirty.value == true }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Any> getField(key: String): FieldProperties<T>? {
-        val properties = fieldRegistry[key] ?: return null
 
+    @Suppress("UNCHECKED_CAST")
+    inline fun <reified T : Any> getField(key: String): FieldProperties<T>? {
+        val properties = fieldRegistry[key] ?: return null
         return properties as FieldProperties<T>?
     }
 
@@ -55,6 +55,19 @@ class FormBuilder {
 
     fun clear() {
         fieldRegistry.clear()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> getValidator(key: String): FieldValidator<T>? {
+        val properties = fieldRegistry[key] as? FieldProperties<T>
+        return properties?.validator
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun updateFieldState(name: String, errorMessage: String?, isDirty: Boolean) {
+        val properties = fieldRegistry[name] as? FieldProperties<Any> ?: return
+        properties.errorMessage.value = errorMessage
+        properties.isDirty.value = isDirty
     }
 }
 
@@ -77,47 +90,30 @@ fun <T : Any> RegisterFormListener(
 ) {
     LaunchedEffect(effectKey) {
         form.addField(name, fieldProperties)
+        val valueProvider = fieldProperties.valueProvider ?: return@LaunchedEffect
 
-        fieldProperties.valueProvider?.let { valueProvider ->
-            snapshotFlow {
-                val currentValue = valueProvider()
-
-                @Suppress("UNCHECKED_CAST")
-                val registeredProps = form.fieldRegistry[name] as? FieldProperties<T>
-                val validator = registeredProps?.validator ?: fieldProperties.validator
-                ValidationState(currentValue, validator.validate(currentValue))
-            }
-                .runningFold(
-                    Pair(
-                        ValidationState(
-                            valueProvider(),
-                            fieldProperties.validator.validate(valueProvider())
-                        ),
-                        ValidationState(
-                            valueProvider(),
-                            fieldProperties.validator.validate(valueProvider())
-                        )
-                    )
-                ) { acc, current ->
-                    Pair(acc.second, current)
-                }
-                .drop(1)
-                .collect { (previous, current) ->
-                    @Suppress("UNCHECKED_CAST")
-                    val currentRegisteredProperties =
-                        form.fieldRegistry[name] as? FieldProperties<T>
-
-                    currentRegisteredProperties?.let { properties ->
-                        properties.errorMessage.value = current.error
-                        properties.isDirty.value = previous.value != current.value
-
-                        Log.d(
-                            "[FORM_LISTENER]",
-                            "field: $name, previous: ${previous.value}, current: ${current.value}, error: ${current.error}"
-                        )
-                    }
-                }
+        snapshotFlow {
+            val currentValue = valueProvider()
+            val validator = form.getValidator(name) ?: fieldProperties.validator
+            ValidationState(currentValue, validator.validate(currentValue))
         }
+            .runningFold(
+                Pair(
+                    ValidationState(valueProvider(), fieldProperties.validator.validate(valueProvider())),
+                    ValidationState(valueProvider(), fieldProperties.validator.validate(valueProvider()))
+                )
+            ) { acc, current ->
+                Pair(acc.second, current)
+            }
+            .drop(1)
+            .collect { (previous, current) ->
+                form.updateFieldState(name, current.error, previous.value != current.value)
+
+                Log.d(
+                    "[FORM_LISTENER]",
+                    "field: $name, previous: ${previous.value}, current: ${current.value}, error: ${current.error}"
+                )
+            }
     }
 }
 

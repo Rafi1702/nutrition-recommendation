@@ -26,7 +26,7 @@ fun CheckBoxForm(
 
     val boundProperties = remember(fieldProperties, isChecked) {
         fieldProperties.copy(
-            valueProvider = { isChecked}
+            valueProvider = { isChecked }
         )
     }
 

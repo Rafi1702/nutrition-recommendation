@@ -2,7 +2,9 @@ package com.example.nutritiontracker.ui.theme
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.example.nutritiontracker.domain.MacroType
 
 val PrimaryLight = Color(0xFF2E7D32)     // Hijau Tua yang segar
 val OnPrimaryLight = Color(0xFFFFFFFF)
@@ -75,3 +77,28 @@ internal val LightColorScheme = lightColorScheme(
     onBackground = OnBackgroundLight,
     onSurface = OnSurfaceLight
 )
+
+data class MacroColors(
+    val main: Color,
+    val container: Color,
+    val onContainer: Color
+)
+
+@Composable
+fun MacroType.colors(): MacroColors = when (this) {
+    MacroType.PROTEIN -> MacroColors(
+        main = colorScheme.tertiary,
+        container = colorScheme.tertiaryContainer,
+        onContainer = colorScheme.onTertiaryContainer
+    )
+    MacroType.CARBS -> MacroColors(
+        main = colorScheme.primary,
+        container = colorScheme.primaryContainer,
+        onContainer = colorScheme.onPrimaryContainer
+    )
+    MacroType.FAT -> MacroColors(
+        main = colorScheme.secondary,
+        container = colorScheme.secondaryContainer,
+        onContainer = colorScheme.onSecondaryContainer
+    )
+}

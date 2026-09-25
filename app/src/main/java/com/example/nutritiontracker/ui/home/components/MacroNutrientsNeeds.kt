@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.domain.MacroType
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
+import com.example.nutritiontracker.ui.theme.colors
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.withStyle
 
@@ -76,11 +77,7 @@ internal fun MacroNutrientsNeed(
     unit: String,
     modifier: Modifier = Modifier
 ) {
-    val (accentColor, trackColor) = when (label) {
-        MacroType.PROTEIN -> colorScheme.tertiary to colorScheme.tertiaryContainer
-        MacroType.CARBS -> colorScheme.primary to colorScheme.primaryContainer
-        MacroType.FAT -> colorScheme.secondary to colorScheme.secondaryContainer
-    }
+    val macroColors = label.colors()
 
     Card(
         modifier = modifier
@@ -97,7 +94,7 @@ internal fun MacroNutrientsNeed(
             Box(
                 modifier = Modifier
                     .width(6.dp)
-                    .background(accentColor)
+                    .background(macroColors.main)
                     .fillMaxHeight()
             )
             Column(
@@ -120,7 +117,7 @@ internal fun MacroNutrientsNeed(
                         imageVector = Icons.Default.Fastfood,
                         contentDescription = "${label.name}-icon",
                         modifier = Modifier.size(16.dp),
-                        tint = accentColor
+                        tint = macroColors.main
                     )
                 }
                 Text(text = buildAnnotatedString {
@@ -145,8 +142,8 @@ internal fun MacroNutrientsNeed(
                 )
                 LinearProgressIndicator(
                     progress = { (current / target).coerceIn(0f, 1f) },
-                    color = accentColor,
-                    trackColor = trackColor,
+                    color = macroColors.main,
+                    trackColor = macroColors.container,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(6.dp)

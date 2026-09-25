@@ -37,6 +37,7 @@ import com.example.nutritiontracker.domain.MacroType
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
+import com.example.nutritiontracker.ui.theme.colors
 import com.example.nutritiontracker.ui.theme.typography
 import kotlin.math.roundToInt
 
@@ -145,15 +146,11 @@ internal fun FoodCard(
                     ) {
                         macros.forEach { macro ->
                             val (type, serve) = macro
-                            val (chipBg, chipFg) = when (type) {
-                                MacroType.PROTEIN -> colorScheme.tertiaryContainer to colorScheme.onTertiaryContainer
-                                MacroType.CARBS -> colorScheme.primaryContainer to colorScheme.onPrimaryContainer
-                                MacroType.FAT -> colorScheme.secondaryContainer to colorScheme.onSecondaryContainer
-                            }
+                            val macroColors = type.colors()
                             Chip(
                                 radius = 12.dp,
-                                color = chipBg,
-                                contentColor = chipFg
+                                color = macroColors.container,
+                                contentColor = macroColors.onContainer
                             ) {
                                 Text(
                                     text = "${serve.roundToInt()}g ${stringResource(type.label)}",
