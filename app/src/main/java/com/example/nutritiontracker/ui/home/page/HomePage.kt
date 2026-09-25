@@ -15,12 +15,11 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,11 +29,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.datasource.remote.MOCK_FOODS
 import com.example.nutritiontracker.domain.Food
@@ -48,16 +50,13 @@ import com.example.nutritiontracker.ui.utils.Debounce
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun HomePage(
+fun MainPage(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit = {}
 ) {
-    var recommendationFoods by remember { mutableStateOf(MOCK_FOODS) }
-    Debounce("User Needs") {
-        getFoods()
-    }
+
+    val bottomBarNavController = rememberNavController()
 
     BackHandler {
         onNavigateBack()
@@ -70,41 +69,68 @@ fun HomePage(
             })
         },
         bottomBar = {
-            BottomAppBar {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.Home, contentDescription = "HOME_ICON")
-                    }
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.Person, contentDescription = "PROFILE_ICON")
-                    }
-                }
-            }
+            BottomNavBar(navController = bottomBarNavController)
         }
     ) { innerPadding ->
-        Surface(
-            modifier = modifier
-                .padding(innerPadding),
-            color = colorScheme.surface
+        NavHost(
+            navController = bottomBarNavController,
+            startDestination = HomePath.BASE_HOME_PATH
         ) {
-            LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
-                item {
-                    UserNeedsCard()
-
-                }
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    UserNeedSection()
-                }
-
-                recommendedFoodSection(recommendationFoods)
-            }
+            homeGraph(
+                modifier = Modifier.padding(innerPadding),
+                navController = bottomBarNavController
+            )
         }
     }
+}
 
+
+@Preview
+@Composable
+private fun BottomNavBar(navController: NavHostController = rememberNavController()) {
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    val currentRoute = navBackStackEntry?.destination?.route
+    NavigationBar(containerColor = colorScheme.surfaceContainer) {
+        NavigationBarItem(selected = currentRoute == HomePath.HOME, onClick = {
+
+        }, icon = {
+            Icon(Icons.Default.Home, contentDescription = "navigation_home")
+        })
+
+        NavigationBarItem(selected = currentRoute == HomePath.CONSUME_LOG, onClick = {}, icon = {
+            Icon(Icons.Default.Home, contentDescription = "navigation_home")
+        })
+    }
+}
+
+@Preview
+@Composable
+internal fun Home(modifier: Modifier = Modifier) {
+    var recommendationFoods by remember { mutableStateOf(MOCK_FOODS) }
+
+    Debounce("User Needs") {
+        getFoods()
+    }
+
+    Surface(
+        modifier = modifier,
+        color = colorScheme.surface
+    ) {
+        LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
+            item {
+                UserNeedsCard()
+
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                UserNeedSection()
+            }
+
+            recommendedFoodSection(recommendationFoods)
+        }
+    }
 }
 
 
