@@ -15,12 +15,11 @@ import com.example.nutritiontracker.ui.home.page.MainPage
 fun AppNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = AuthPath.AUTH
+    startDestination: String = HomePath.BASE_HOME_PATH
 ) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        route = AuthPath.BASE_AUTH_PATH,
     ) {
         composable(AuthPath.AUTH) {
             LoginPage(modifier = modifier, onNavigateToHome = {

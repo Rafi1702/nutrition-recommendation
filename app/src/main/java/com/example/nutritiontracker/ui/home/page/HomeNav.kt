@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.home.page
 
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController

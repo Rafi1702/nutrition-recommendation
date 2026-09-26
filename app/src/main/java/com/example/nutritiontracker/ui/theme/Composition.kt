@@ -5,6 +5,8 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 
 val LocalTypography = compositionLocalOf { phoneTypography }
 
@@ -25,5 +27,7 @@ val LocalScreenSize = compositionLocalOf { ScreenSize.MOBILE }
 val screenSize: ScreenSize
     @Composable
     get() = rememberScreenSize()
+
+val LocalNavController = compositionLocalOf<NavHostController?> { null }
 
 
