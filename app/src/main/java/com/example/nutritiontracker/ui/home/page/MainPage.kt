@@ -81,12 +81,12 @@ private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
 
         Row {
             if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
-            Home(
+            HomePage(
                 modifier = Modifier
                     .weight(2f)
                     .padding(padding)
             )
-            ConsumeLogs(
+            ConsumeLogPage(
                 modifier = Modifier
                     .weight(2f)
                     .fillMaxHeight()

@@ -7,4 +7,9 @@
     <string name="total_calories">kcal</string>
     <string name="add_to_consume_log">Add to Consume Log</string>
     <string name="food_recommendation_list">Food Recommendation</string>
+    <string name="today_macro_nutrition_needs">Today nutrition</string>
+    <string name="user_needs_card_recorded_daily_nutrition">Recorded</string>
+    <string name="user_needs_card_recorded_daily_energy">Daily Energy</string>
+    <string name="user_needs_card_recorded_achieved_percentage">Achieved</string>
+    <string name="target" translatable="false">Target</string>
 </resources>

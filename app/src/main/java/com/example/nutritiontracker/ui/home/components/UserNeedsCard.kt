@@ -75,7 +75,7 @@ internal fun UserNeedsCard(modifier: Modifier = Modifier) {
                             tint = colorScheme.secondary
                         )
                         Text(
-                            text = "Energi Harian",
+                            text = stringResource(R.string.user_needs_card_recorded_daily_energy),
                             style = typography.titleMedium.copy(
                                 color = colorScheme.onSurface,
                                 fontWeight = FontWeight.SemiBold
@@ -100,7 +100,7 @@ internal fun UserNeedsCard(modifier: Modifier = Modifier) {
                         contentColor = colorScheme.onPrimaryContainer
                     ) {
                         Text(
-                            text = "72.5% Tercapai",
+                            text = "72.5% ${stringResource(R.string.user_needs_card_recorded_achieved_percentage)}",
                             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
                             style = typography.labelSmall.copy(fontWeight = FontWeight.Medium)
                         )
@@ -122,7 +122,7 @@ internal fun UserNeedsCard(modifier: Modifier = Modifier) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Tercatat",
+                                    text = stringResource(R.string.user_needs_card_recorded_daily_nutrition),
                                     style = typography.labelMedium.copy(
                                         color = colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.SemiBold

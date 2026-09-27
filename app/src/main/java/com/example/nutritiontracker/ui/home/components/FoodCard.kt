@@ -63,7 +63,7 @@ private fun FoodCardPreview() {
 internal fun FoodCard(
     food: Food,
     modifier: Modifier = Modifier,
-    onAddClick: () -> Unit = {}
+    onAddClick: (() -> Unit)? = null
 ) {
     val (_, name, macros) = food
     val totalCaloriesLabel = stringResource(R.string.total_calories)
@@ -162,25 +162,26 @@ internal fun FoodCard(
                     }
                 }
             }
-
-            FilledTonalButton(
-                onClick = onAddClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = colorScheme.primary,
-                    contentColor = colorScheme.onPrimary
-                )
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AddCircleOutline,
-                        contentDescription = "add"
+            onAddClick?.let{
+                FilledTonalButton(
+                    onClick = onAddClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = colorScheme.primary,
+                        contentColor = colorScheme.onPrimary
                     )
-                    Text(text = stringResource(R.string.add_to_consume_log))
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircleOutline,
+                            contentDescription = "add"
+                        )
+                        Text(text = stringResource(R.string.add_to_consume_log))
+                    }
                 }
             }
         }

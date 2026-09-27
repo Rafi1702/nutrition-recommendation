@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.example.nutritiontracker.domain.MacroType
 
-val PrimaryLight = Color(0xFF2E7D32)     // Hijau Tua yang segar
+val PrimaryLight = Color(0xFF2E7D32)
 val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFA5D6A7)
 val OnPrimaryContainerLight = Color(0xFF002106)
@@ -91,11 +91,13 @@ fun MacroType.colors(): MacroColors = when (this) {
         container = colorScheme.tertiaryContainer,
         onContainer = colorScheme.onTertiaryContainer
     )
+
     MacroType.CARBS -> MacroColors(
         main = colorScheme.primary,
         container = colorScheme.primaryContainer,
         onContainer = colorScheme.onPrimaryContainer
     )
+
     MacroType.FAT -> MacroColors(
         main = colorScheme.secondary,
         container = colorScheme.secondaryContainer,

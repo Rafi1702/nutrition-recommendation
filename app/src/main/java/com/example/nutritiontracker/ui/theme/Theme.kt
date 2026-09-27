@@ -1,6 +1,6 @@
 package com.example.nutritiontracker.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+    import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,6 +21,7 @@ fun NutritionTrackerTheme(
 //        darkTheme -> DarkColorScheme
 //        else -> LightColorScheme
 //    }
+    val colorScheme = LocalColorScheme.current
 
     CompositionLocalProvider(
         LocalTypography provides typography,
