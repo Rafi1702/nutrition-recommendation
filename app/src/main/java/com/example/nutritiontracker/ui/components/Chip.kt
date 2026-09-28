@@ -7,6 +7,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.colorScheme
@@ -17,13 +18,15 @@ import com.example.nutritiontracker.ui.theme.typography
 internal fun Chip(
     modifier: Modifier = Modifier,
     radius: Dp? = null,
-    content: @Composable () -> Unit
+    color: Color = colorScheme.primaryContainer,
+    contentColor: Color = colorScheme.onPrimaryContainer,
+    content: @Composable () -> Unit,
 ) {
     Surface(
         modifier = modifier,
         shape = if (radius != null) RoundedCornerShape(radius) else AssistChipDefaults.shape,
-        color = colorScheme.primary,
-        contentColor = colorScheme.onPrimary,
+        color = color,
+        contentColor = contentColor,
         content = content
     )
 }

@@ -5,7 +5,15 @@
     <string name="macronutrients_protein">Protein</string>
     <string name="macronutrients_carbs">Karbohidrat</string>
     <string name="macronutrients_fat">Lemak</string>
-    <string name="total_calories">kkal</string>
+    <string name="total_calories_unit">kkal</string>
     <string name="add_to_consume_log">Tambah ke Catatan</string>
-    <string name="food_recommendation_list">Rekomendasi makanan</string>
+    <string name="food_recommendation_list">Rekomendasi Makanan</string>
+    <string name="today_macro_nutrition_needs">Nutrisi Hari Ini</string>
+    <string name="user_needs_card_recorded_daily_nutrition">Tercatat</string>
+    <string name="user_needs_card_recorded_daily_energy">Energi Harian</string>
+    <string name="user_needs_card_recorded_achieved_percentage">Tercapai</string>
+    <string name="macronutrients_short_fat">L</string>
+    <string name="macronutrients_short_carbs">K</string>
+    <string name="food_recommendation_section_home">Rekomendasi Makanan Untukmu</string>
+    <string name="food_recommendation_section_home_sub">Dipilih khusus untuk menutupi defisit protein harianmu.</string>
 </resources>

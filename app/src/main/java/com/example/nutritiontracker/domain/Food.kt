@@ -26,7 +26,15 @@ data class Food(
     val id: String,
     val name: String,
     val macros: List<MacroNutrients>
-){
+) {
     val totalCalories: Int
         get() = (macros[0].serveValue * 4 + macros[1].serveValue * 4 + macros[2].serveValue * 9).roundToInt()
+
+    operator fun get(macroType: MacroType): MacroNutrients {
+        return when (macroType) {
+            MacroType.PROTEIN -> macros[0]
+            MacroType.CARBS -> macros[1]
+            MacroType.FAT -> macros[2]
+        }
+    }
 }
