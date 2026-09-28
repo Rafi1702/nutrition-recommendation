@@ -53,15 +53,11 @@ fun MainPage(
             topBar = {
                 AdaptiveTopBar()
             },
-            bottomBar = {
-                BottomNavBar()
-            }
         ) { innerPadding ->
             MainLayout(padding = innerPadding)
         }
     }
 }
-
 
 @Composable
 private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
@@ -78,7 +74,6 @@ private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
             )
         }
     } else {
-
         Row {
             if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
             HomePage(
@@ -86,16 +81,46 @@ private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
                     .weight(2f)
                     .padding(padding)
             )
-            ConsumeLogPage(
-                modifier = Modifier
-                    .weight(2f)
-                    .fillMaxHeight()
-                    .padding(padding)
-            )
+
             if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
+
+
+//@Composable
+//private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
+//    val navController = LocalNavController.current
+//
+//    if (navController != null) {
+//        NavHost(
+//            navController = navController,
+//            startDestination = HomePath.BASE_HOME_PATH
+//        ) {
+//            homeGraph(
+//                modifier = Modifier.padding(padding),
+//                navController = navController
+//            )
+//        }
+//    } else {
+//
+//        Row {
+//            if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
+//            HomePage(
+//                modifier = Modifier
+//                    .weight(2f)
+//                    .padding(padding)
+//            )
+//            ConsumeLogPage(
+//                modifier = Modifier
+//                    .weight(2f)
+//                    .fillMaxHeight()
+//                    .padding(padding)
+//            )
+//            if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
+//        }
+//    }
+//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview

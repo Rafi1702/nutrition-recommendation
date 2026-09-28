@@ -31,11 +31,13 @@ import com.example.nutritiontracker.ui.components.DatePicker
 import com.example.nutritiontracker.ui.home.components.ConsumeLogSurface
 import com.example.nutritiontracker.ui.home.components.FoodCard
 import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
+import com.example.nutritiontracker.ui.home.components.ShowMoreButton
 import com.example.nutritiontracker.ui.home.components.UserNeedsCard
+import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 internal fun HomePage(modifier: Modifier = Modifier) {
     var recommendationFoods by remember { mutableStateOf(MOCK_FOODS) }
@@ -47,9 +49,9 @@ internal fun HomePage(modifier: Modifier = Modifier) {
         LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
             item {
                 DatePicker()
-                Spacer(modifier = Modifier.height(16.dp))
             }
             item {
+                Spacer(modifier = Modifier.height(16.dp))
                 UserNeedsCard()
             }
 
@@ -58,13 +60,15 @@ internal fun HomePage(modifier: Modifier = Modifier) {
                 UserNeedSection()
             }
 
-            item{
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                RecommendedFoodSection()
+            }
+
+            item {
                 Spacer(modifier = Modifier.height(16.dp))
                 ConsumeLogSurface()
             }
-
-
-//            recommendedFoodSection(recommendationFoods)
         }
     }
 }
@@ -72,7 +76,10 @@ internal fun HomePage(modifier: Modifier = Modifier) {
 private fun LazyListScope.recommendedFoodSection(recommendationFoods: List<Food> = emptyList()) {
     item {
         Spacer(modifier = Modifier.height(16.dp))
-        Text(stringResource(R.string.food_recommendation_list), style = typography.labelLarge.copy(color = colorScheme.onSurface))
+        Text(
+            stringResource(R.string.food_recommendation_list),
+            style = typography.labelLarge.copy(color = colorScheme.onSurface)
+        )
         Spacer(modifier = Modifier.height(8.dp))
     }
     itemsIndexed(recommendationFoods, key = { _, item -> item.id }) { index, food ->
@@ -80,6 +87,32 @@ private fun LazyListScope.recommendedFoodSection(recommendationFoods: List<Food>
             Spacer(modifier = Modifier.height(8.dp))
         }
         FoodCard(food)
+    }
+}
+
+@Preview
+@Composable
+private fun RecommendedFoodSection(
+    modifier: Modifier = Modifier,
+    onSeeMoreClick: (() -> Unit)? = null
+) {
+    Row(modifier = modifier) {
+        Column(
+            Modifier.weight(.6f)
+        ) {
+            Text(
+                stringResource(R.string.food_recommendation_section_home),
+                style = typography.titleMedium.copy(colorScheme.onSurface)
+            )
+            Text(
+                stringResource(R.string.food_recommendation_section_home_sub),
+                style = typography.titleSmall.copy(colorScheme.onSurface.copy(alpha = .5f))
+            )
+        }
+
+        onSeeMoreClick?.let{
+            ShowMoreButton(minimumInteractive = true, onClick = onSeeMoreClick)
+        }
     }
 }
 
@@ -127,19 +160,4 @@ private fun UserNeedSection(modifier: Modifier = Modifier) {
             )
         }
     }
-}
-
-@Preview(
-    showBackground = true,
-    backgroundColor = 0xFF808080
-)
-@Composable
-private fun FoodCardPreview() {
-    FoodCard(food = MOCK_FOODS[0])
-}
-
-@Preview
-@Composable
-private fun UserCardPreview() {
-    UserNeedsCard()
 }

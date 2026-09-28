@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.ui.components
 
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,9 +16,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -129,10 +138,20 @@ fun TextField(
         backgroundColor
     }
 
+    val ignoredKeyEvent: (keyboardKey: KeyEvent) -> Boolean = remember {
+        { keyEvent ->
+            if (keyEvent.type == KeyEventType.KeyDown) {
+                keyEvent.key == Key.Spacebar || keyEvent.key == Key.Tab
+            } else {
+                false
+            }
+        }
+    }
+
     if (isSecure) {
         return SecureTextField(
             state = state,
-            modifier = modifier,
+            modifier = modifier.onKeyEvent(ignoredKeyEvent),
             label = { Text(text = label) },
             trailingIcon = trailingIcon,
             isError = errorMessage != null && isError == true,
@@ -162,7 +181,7 @@ fun TextField(
 
     M3TextField(
         state = state,
-        modifier = modifier,
+        modifier = modifier.onPreviewKeyEvent(ignoredKeyEvent),
         label = { Text(text = label) },
         trailingIcon = trailingIcon,
         isError = errorMessage != null && isError == true,
@@ -201,7 +220,6 @@ fun TextFormField(
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
-    isError: Boolean? = null,
     isSecure: Boolean? = null,
 ) {
     val (validator, errorMessage) = properties
@@ -219,7 +237,7 @@ fun TextFormField(
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-        isError = isError
+        isError = properties.isDirty.value
     )
 }
 
@@ -246,6 +264,7 @@ fun TextFormField(
             valueProvider = { state.text }
         )
     }
+
     RegisterFormListener(
         form = formBuilder,
         name = fieldName,
@@ -267,7 +286,6 @@ fun TextFormField(
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-        isError = formBuilder.fieldRegistry[fieldName]?.isDirty?.value,
         isSecure = isSecure
     )
 }

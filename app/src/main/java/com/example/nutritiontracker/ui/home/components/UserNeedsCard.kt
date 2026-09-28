@@ -197,7 +197,7 @@ internal fun EnergyConsumeIndicator(
     SubcomposeLayout(modifier = modifier) { constraints ->
         val textPlaceable = subcompose("text") {
             Text(
-                text = "550 ${stringResource(R.string.total_calories)}",
+                text = "550 ${stringResource(R.string.total_calories_unit)}",
                 style = typography.labelMedium.copy(
                     color = colorScheme.onSurface,
                     fontWeight = FontWeight.Bold

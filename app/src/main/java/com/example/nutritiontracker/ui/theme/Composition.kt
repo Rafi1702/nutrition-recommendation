@@ -28,6 +28,6 @@ val screenSize: ScreenSize
     @Composable
     get() = rememberScreenSize()
 
-val LocalNavController = compositionLocalOf<NavHostController?> { null }
+val LocalNavController = compositionLocalOf<NavHostController?> { error("No NavHostController Provided") }
 
 

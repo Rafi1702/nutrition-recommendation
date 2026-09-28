@@ -66,7 +66,7 @@ internal fun FoodCard(
     onAddClick: (() -> Unit)? = null
 ) {
     val (_, name, macros) = food
-    val totalCaloriesLabel = stringResource(R.string.total_calories)
+    val totalCaloriesLabel = stringResource(R.string.total_calories_unit)
 
     Card(
         modifier = modifier

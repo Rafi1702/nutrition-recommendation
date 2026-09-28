@@ -11,6 +11,7 @@ object HomePath {
     const val BASE_HOME_PATH = "/home"
     const val HOME = "/"
     const val CONSUME_LOG = "/consume"
+    const val FOOD_RECOMMENDATIONS = "/food_recommendation"
 }
 
 fun NavGraphBuilder.homeGraph(modifier: Modifier = Modifier, navController: NavHostController) {
@@ -18,8 +19,8 @@ fun NavGraphBuilder.homeGraph(modifier: Modifier = Modifier, navController: NavH
         composable(route = HomePath.HOME) {
             HomePage(modifier = modifier)
         }
-        composable(route = HomePath.CONSUME_LOG) {
-            ConsumeLogPage(modifier = modifier)
+        composable(route = HomePath.FOOD_RECOMMENDATIONS){
+
         }
     }
 }
