@@ -1,10 +1,11 @@
 package com.example.nutritiontracker.ui.home.page
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -44,7 +45,6 @@ fun MainPage(
         null
     }
 
-
     BackHandler {
         onNavigateBack()
     }
@@ -61,66 +61,39 @@ fun MainPage(
 
 @Composable
 private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
-    val navController = LocalNavController.current
 
-    if (navController != null) {
-        NavHost(
-            navController = navController,
-            startDestination = HomePath.BASE_HOME_PATH
-        ) {
-            homeGraph(
-                modifier = Modifier.padding(padding),
-                navController = navController
-            )
+
+    if (screenSize == ScreenSize.MOBILE) {
+        val navController = LocalNavController.current
+
+        navController?.let{
+            NavHost(
+                navController = navController,
+                startDestination = HomePath.BASE_HOME_PATH
+            ) {
+                homeGraph(
+                    modifier = Modifier.padding(padding),
+                    navController = navController
+                )
+            }
         }
     } else {
-        Row {
-            if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Spacer(modifier = Modifier.weight(.5f))
             HomePage(
                 modifier = Modifier
                     .weight(2f)
-                    .padding(padding)
             )
-
-            if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
+            FoodRecommendationsContent(modifier = Modifier.weight(2f))
+            Spacer(modifier = Modifier.weight(.5f))
         }
     }
 }
-
-
-//@Composable
-//private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
-//    val navController = LocalNavController.current
-//
-//    if (navController != null) {
-//        NavHost(
-//            navController = navController,
-//            startDestination = HomePath.BASE_HOME_PATH
-//        ) {
-//            homeGraph(
-//                modifier = Modifier.padding(padding),
-//                navController = navController
-//            )
-//        }
-//    } else {
-//
-//        Row {
-//            if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
-//            HomePage(
-//                modifier = Modifier
-//                    .weight(2f)
-//                    .padding(padding)
-//            )
-//            ConsumeLogPage(
-//                modifier = Modifier
-//                    .weight(2f)
-//                    .fillMaxHeight()
-//                    .padding(padding)
-//            )
-//            if (screenSize == ScreenSize.TABLET) Spacer(modifier = Modifier.weight(1f))
-//        }
-//    }
-//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
@@ -157,7 +130,7 @@ private fun BottomNavBar(
     val navBackStackEntry = LocalNavController.current?.currentBackStackEntryAsState()?.value
     val currentRoute = navBackStackEntry?.destination?.route
 
-    if (navController != null) {
+    navController?.let{
         NavigationBar(containerColor = colorScheme.surfaceContainer) {
             NavigationBarItem(selected = currentRoute == HomePath.HOME, onClick = {
                 navController.navigate(HomePath.HOME) {

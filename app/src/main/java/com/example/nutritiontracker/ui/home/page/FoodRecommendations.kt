@@ -29,7 +29,11 @@ internal fun FoodRecommendationsContent(
     LaunchedEffect(Unit) {
         //TODO Call FoodRecommendation URL
     }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = paddingValues) {
+    LazyColumn(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = paddingValues
+    ) {
         items(MOCK_FOODS) { food ->
             FoodCard(food)
         }
