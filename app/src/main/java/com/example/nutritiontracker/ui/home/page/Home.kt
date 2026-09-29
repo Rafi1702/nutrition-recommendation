@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.MacroType
 import com.example.nutritiontracker.ui.components.DatePicker
+import com.example.nutritiontracker.ui.food.page.FoodPath
 import com.example.nutritiontracker.ui.home.components.ConsumeLogSurface
 import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
 import com.example.nutritiontracker.ui.home.components.ShowMoreButton
@@ -27,6 +28,7 @@ import com.example.nutritiontracker.ui.home.components.UserNeedsCard
 import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+
 
 @Preview(showBackground = true)
 @Composable
@@ -55,7 +57,7 @@ internal fun HomePage(modifier: Modifier = Modifier) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     RecommendedFoodSection(onSeeMoreClick = {
-                        navController.navigate(HomePath.FOOD_RECOMMENDATIONS)
+                        navController.navigate(FoodPath.FOOD_RECOMMENDATIONS)
                     })
                 }
             }

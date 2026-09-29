@@ -133,9 +133,6 @@ fun DatePicker(
     val trackedMonth = rememberSaveable(selectedDate, stateSaver = DatePickerHolderSaver) {
         mutableStateOf(selectedDate)
     }
-    LaunchedEffect(trackedMonth) {
-        Log.d("[DATE_PICKER]", "tracked month value: $trackedMonth")
-    }
 
     LaunchedEffect(Unit) {
         val firstDateIndex = dates?.indexOfFirst { date ->

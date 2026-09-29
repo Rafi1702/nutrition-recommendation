@@ -1,4 +1,4 @@
-package com.example.nutritiontracker.ui.home.components
+package com.example.nutritiontracker.ui.food.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,8 +33,6 @@ import coil3.compose.SubcomposeAsyncImage
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.datasource.remote.MOCK_FOODS
 import com.example.nutritiontracker.domain.Food
-import com.example.nutritiontracker.domain.MacroNutrients
-import com.example.nutritiontracker.domain.MacroType
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
