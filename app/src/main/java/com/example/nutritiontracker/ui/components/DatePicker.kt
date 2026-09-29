@@ -21,12 +21,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import java.time.Instant
@@ -68,29 +71,48 @@ private fun formatDate(
     return DateTimeFormatter.ofPattern(formatter, locale)
 }
 
+private fun LocalDate.createDatePicker(): DatePickerHolder {
+    val currentDate = this.format(formatDate(currentFormatter)).split("-")
+    val year = currentDate[0]
+    val month = currentDate[1]
+    val day = currentDate[2]
+    val dayName = currentDate[3]
+    return DatePickerHolder(year = year, month = month, day = day, dayName = dayName)
+}
+
 @Composable
 private fun rememberDateBuild(
     year: Int = 2026,
-    formatter: String = currentFormatter,
+
     month: Int = 1,
 ): List<DatePickerHolder?>? {
-
     val dates = remember(year, month) {
         LocalDate.of(year, month, 1)
             .datesUntil(LocalDate.of(year + 1, month, 1))
             .map {
-                val currentDate = it.format(formatDate(formatter)).split("-")
-
-                val year = currentDate[0]
-                val month = currentDate[1]
-                val day = currentDate[2]
-                val dayName = currentDate[3]
-                DatePickerHolder(year = year, month = month, day = day, dayName = dayName)
+                it.createDatePicker()
             }
             .toList()
     }
     return dates
 }
+
+
+private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
+
+    save = { date ->
+        listOf(date.year, date.month, date.day, date.dayName)
+    },
+
+    restore = { restoredList ->
+        DatePickerHolder(
+            year = restoredList[0] as String,
+            month = restoredList[1] as String,
+            day = restoredList[2] as String,
+            dayName = restoredList[3] as String
+        )
+    }
+)
 
 @Preview(showBackground = true)
 @Composable
@@ -103,19 +125,19 @@ fun DatePicker(
     val dates = rememberDateBuild(year = year, month = month)
     val listState = rememberLazyListState()
     val snapFlingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
-    var trackedMonth by remember { mutableStateOf("") }
-
-    var selectedDate by remember {
+    var selectedDate by rememberSaveable(stateSaver = DatePickerHolderSaver) {
         mutableStateOf(
-            Instant.now().atZone(ZoneId.systemDefault()).format(formatDate()).toString()
+            Instant.now().atZone(ZoneId.systemDefault()).toLocalDate().createDatePicker()
         )
+    }
+    val trackedMonth = rememberSaveable(selectedDate, stateSaver = DatePickerHolderSaver) {
+        mutableStateOf(selectedDate)
     }
 
     LaunchedEffect(Unit) {
         val firstDateIndex = dates?.indexOfFirst { date ->
             date?.let {
-                val (year, month, day, dayName) = date
-                "$year-$month-$day-$dayName" == selectedDate
+                selectedDate == date
             } == true
         }
 
@@ -133,7 +155,7 @@ fun DatePicker(
                         val currentDate = dates[listState.firstVisibleItemIndex]
 
                         currentDate?.let {
-                            trackedMonth = currentDate.month
+                            trackedMonth.value = currentDate
                             Log.d("[DATE_PICKER]", "NOT SCROLLING")
                         }
                     }
@@ -143,7 +165,7 @@ fun DatePicker(
     }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         //TODO add dropdown button for selected month
-        Text(trackedMonth)
+        Text(trackedMonth.value.month)
         LazyRow(
             state = listState,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -153,10 +175,10 @@ fun DatePicker(
             dates?.let {
                 items(dates) { date ->
                     date?.let {
-                        val (year, month, day, dayName) = date
+                        val (_, _, day, dayName) = date
                         DateTimePickerCard(dayName = dayName, day = day, onTap = {
-                            selectedDate = "$year-$month-$day-$dayName"
-                        }, isActive = selectedDate == "$year-$month-$day-$dayName")
+                            selectedDate = date
+                        }, isActive = selectedDate == date)
                     }
                 }
             }
@@ -164,7 +186,6 @@ fun DatePicker(
     }
 }
 
-@Preview(name = "DatePickerCardNonActive", showBackground = true)
 @Composable
 private fun DateTimePickerCard(
     dayName: String = "Thu",
@@ -195,5 +216,5 @@ private fun DateTimePickerCard(
 @Preview(name = "DateTimePickerActive", showBackground = true)
 @Composable
 private fun DateTimePickerActive() {
-    DateTimePickerCard(isActive = true)
+    NutritionTrackerTheme { DateTimePickerCard(isActive = true) }
 }
