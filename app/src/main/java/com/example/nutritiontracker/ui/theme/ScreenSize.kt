@@ -1,14 +1,15 @@
 package com.example.nutritiontracker.ui.theme
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
 
-enum class ScreenSize {
-    MOBILE,
-    FOLDABLE,
-    TABLET,
+enum class ScreenSize(val maxWidthConstraint: Int) {
+    MOBILE(600),
+    FOLDABLE(1200),
+    TABLET(1600);
 }
 
 
@@ -20,10 +21,12 @@ internal fun rememberScreenSize(): ScreenSize {
     val screenWidthDp = configuration.screenWidthDp
 
     val customSizeClass = when {
-        screenWidthDp < 600 -> ScreenSize.MOBILE
-        screenWidthDp < 1200 -> ScreenSize.FOLDABLE
-        screenWidthDp < 1600 -> ScreenSize.TABLET
+        screenWidthDp < ScreenSize.MOBILE.maxWidthConstraint -> ScreenSize.MOBILE
+        screenWidthDp < ScreenSize.FOLDABLE.maxWidthConstraint -> ScreenSize.FOLDABLE
+        screenWidthDp < ScreenSize.TABLET.maxWidthConstraint -> ScreenSize.TABLET
         else -> ScreenSize.MOBILE
     }
+
+    Log.d("[SCREEN_SIZE]", "$customSizeClass")
     return customSizeClass
 }

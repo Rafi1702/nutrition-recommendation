@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.example.nutritiontracker.R
+import com.example.nutritiontracker.datasource.remote.MOCK_FOODS
 import com.example.nutritiontracker.domain.Food
 import com.example.nutritiontracker.domain.MacroNutrients
 import com.example.nutritiontracker.domain.MacroType
@@ -46,15 +47,7 @@ import kotlin.math.roundToInt
 private fun FoodCardPreview() {
     NutritionTrackerTheme {
         FoodCard(
-            food = Food(
-                id = "0",
-                name = "Nasi Goreng Ayam",
-                macros = listOf(
-                    MacroNutrients(type = MacroType.PROTEIN, serveValue = 18.0),
-                    MacroNutrients(type = MacroType.CARBS, serveValue = 45.0),
-                    MacroNutrients(type = MacroType.FAT, serveValue = 12.0)
-                )
-            )
+            food = MOCK_FOODS[0]
         )
     }
 }
