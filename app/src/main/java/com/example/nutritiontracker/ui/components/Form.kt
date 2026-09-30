@@ -8,7 +8,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -24,7 +23,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.runningFold
 
 
-data class FieldProperties<T : Any>(
+data class FieldProperties<T>(
     val validator: FieldValidator<T>,
     val errorMessage: MutableState<String?> = mutableStateOf(null),
     val isDirty: MutableState<Boolean?> = mutableStateOf(null),
@@ -108,7 +107,7 @@ fun <T : Any> RegisterFormListener(
                     ),
                     ValidationState(
                         valueProvider(),
-                        fieldProperties.validator.validate(valueProvider())
+                        valueProvider()?.let { fieldProperties.validator.validate(it) }
                     )
                 )
             ) { acc, current ->
@@ -153,16 +152,23 @@ fun Form(
 @Composable
 fun <T : Any> FieldRegister(
     fieldProperties: FieldProperties<T>,
+    valueProvider: (() -> T)? = null,
     name: String,
     content: @Composable (() -> Unit)?
 ) {
 
-    content?.let{
+    val boundProperties = remember {
+        fieldProperties.copy(
+            valueProvider = valueProvider
+        )
+    }
+
+    content?.let {
         val form = LocalForm.current
         RegisterFormListener(
             form = form,
             name = name,
-            fieldProperties = fieldProperties,
+            fieldProperties = boundProperties,
         )
 
         DisposableEffect(name) {

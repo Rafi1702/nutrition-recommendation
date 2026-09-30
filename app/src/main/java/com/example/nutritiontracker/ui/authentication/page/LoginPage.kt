@@ -41,6 +41,7 @@ import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.MatchValidator
 import com.example.nutritiontracker.ui.components.PasswordValidator
 import com.example.nutritiontracker.ui.components.TextFormField
+import com.example.nutritiontracker.ui.theme.LocalForm
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -111,10 +112,10 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
         contentColor = colorScheme.onSurfaceVariant,
         border = BorderStroke(1.dp, colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        Form(modifier = Modifier.padding(20.dp), verticalSpacing = 16.dp) { isValid, form ->
+        Form(modifier = Modifier.padding(20.dp), verticalSpacing = 16.dp) { isValid ->
+            val form = LocalForm.current
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                formBuilder = form,
                 label = "Password",
                 fieldName = "password_sign_up",
                 initialValue = "TESST",
@@ -126,7 +127,6 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
             )
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                formBuilder = form,
                 fieldName = "password_sign_up_confirm",
                 label = "Confirm password",
                 initialValue = "",
@@ -210,7 +210,8 @@ private fun SignInContent(
         contentColor = colorScheme.onSurfaceVariant,
         border = BorderStroke(1.dp, colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        Form(modifier = Modifier.padding(20.dp), verticalSpacing = 16.dp) { isValid, form ->
+        Form(modifier = Modifier.padding(20.dp), verticalSpacing = 16.dp) { isValid ->
+            val form = LocalForm.current
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldProperties = FieldProperties(
@@ -218,7 +219,6 @@ private fun SignInContent(
                     isRequired = true
                 ),
                 fieldName = "email",
-                formBuilder = form,
                 label = "Email",
                 backgroundColor = colorScheme.surface,
             )
@@ -230,7 +230,6 @@ private fun SignInContent(
                     isRequired = true,
                 ),
                 fieldName = "password",
-                formBuilder = form,
                 label = "Password",
                 backgroundColor = colorScheme.surface,
             )

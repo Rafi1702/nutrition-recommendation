@@ -17,4 +17,5 @@
     <string name="macronutrients_short_carbs">C</string>
     <string name="food_recommendation_section_home">Your Food Recommendation</string>
     <string name="food_recommendation_section_home_sub">Specially selected to cover your daily protein deficit.</string>
+    <string name="user_profile_demographic_information_section_title">DEMOGRAPHIC INFORMATION</string>
 </resources>

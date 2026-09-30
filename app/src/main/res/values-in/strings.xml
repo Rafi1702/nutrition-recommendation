@@ -16,4 +16,5 @@
     <string name="macronutrients_short_carbs">K</string>
     <string name="food_recommendation_section_home">Rekomendasi Makanan Untukmu</string>
     <string name="food_recommendation_section_home_sub">Dipilih khusus untuk menutupi defisit protein harianmu.</string>
+    <string name="user_profile_demographic_information_section_title">INFORMASI DEMOGRAFI</string>
 </resources>
