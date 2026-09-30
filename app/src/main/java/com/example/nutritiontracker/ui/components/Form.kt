@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.nutritiontracker.ui.theme.LocalForm
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.runningFold
 
@@ -99,8 +102,14 @@ fun <T : Any> RegisterFormListener(
         }
             .runningFold(
                 Pair(
-                    ValidationState(valueProvider(), fieldProperties.validator.validate(valueProvider())),
-                    ValidationState(valueProvider(), fieldProperties.validator.validate(valueProvider()))
+                    ValidationState(
+                        valueProvider(),
+                        fieldProperties.validator.validate(valueProvider())
+                    ),
+                    ValidationState(
+                        valueProvider(),
+                        fieldProperties.validator.validate(valueProvider())
+                    )
                 )
             ) { acc, current ->
                 Pair(acc.second, current)
@@ -122,7 +131,7 @@ fun <T : Any> RegisterFormListener(
 fun Form(
     modifier: Modifier = Modifier,
     verticalSpacing: Dp = 8.dp,
-    child: @Composable ((isValid: Boolean, form: FormBuilder) -> Unit)? = null
+    child: @Composable ((isValid: Boolean) -> Unit)? = null
 ) {
     val builder = rememberFormBuilder()
 
@@ -130,16 +139,41 @@ fun Form(
         onDispose { builder.clear() }
     }
 
-    return Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(verticalSpacing)
-    ) {
-        child?.invoke(builder.isValid, builder)
+    CompositionLocalProvider(LocalForm provides builder) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(verticalSpacing)
+        ) {
+            child?.invoke(builder.isValid)
+        }
     }
 }
 
-abstract class FieldValidator<T : Any?> {
+@Composable
+fun <T : Any> FieldRegister(
+    fieldProperties: FieldProperties<T>,
+    name: String,
+    content: @Composable (() -> Unit)?
+) {
+
+    content?.let{
+        val form = LocalForm.current
+        RegisterFormListener(
+            form = form,
+            name = name,
+            fieldProperties = fieldProperties,
+        )
+
+        DisposableEffect(name) {
+            onDispose { form.removeField(name) }
+        }
+
+        content.invoke()
+    }
+}
+
+abstract class FieldValidator<T> {
     abstract fun validate(value: T): String?
 }
 
