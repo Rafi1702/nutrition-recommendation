@@ -40,7 +40,7 @@ import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.MatchValidator
 import com.example.nutritiontracker.ui.components.PasswordValidator
-import com.example.nutritiontracker.ui.components.TextFormField
+import com.example.nutritiontracker.ui.components.textfield.TextFormField
 import com.example.nutritiontracker.ui.theme.LocalForm
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme

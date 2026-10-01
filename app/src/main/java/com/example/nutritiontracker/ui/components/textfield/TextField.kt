@@ -1,18 +1,23 @@
-package com.example.nutritiontracker.ui.components
+package com.example.nutritiontracker.ui.components.textfield
 
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldDecorator
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -24,12 +29,16 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.nutritiontracker.ui.components.FieldProperties
+import com.example.nutritiontracker.ui.components.FieldRegister
+import com.example.nutritiontracker.ui.components.PasswordValidator
 import com.example.nutritiontracker.ui.theme.LocalForm
 import com.example.nutritiontracker.ui.theme.colorScheme
 import androidx.compose.material3.TextField as M3TextField
@@ -123,20 +132,48 @@ fun TextField(
     suffix: @Composable (() -> Unit)? = null,
     errorMessage: String? = null,
     isError: Boolean? = null,
+    keyboardOptions: KeyboardOptions,
+    decorationBox: TextFieldDecorator? = null,
+    textStyle: TextStyle = LocalTextStyle.current,
 ) {
 
-    val resolvedBorderColor = if (borderColor == Color.Unspecified) {
-        colorScheme.onSurfaceVariant
+    // 1. Resolve warna secara ringkas
+    val resolvedBorderColor =
+        if (borderColor == Color.Unspecified) colorScheme.onSurfaceVariant else borderColor
+    val resolvedBackgroundColor =
+        if (backgroundColor == Color.Unspecified) colorScheme.surfaceVariant else backgroundColor
+
+    val textFieldColors = TextFieldDefaults.colors(
+        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent,
+        disabledIndicatorColor = Color.Transparent,
+        errorIndicatorColor = Color.Transparent,
+
+        focusedContainerColor = resolvedBackgroundColor,
+        unfocusedContainerColor = resolvedBackgroundColor,
+        disabledContainerColor = resolvedBackgroundColor,
+        errorContainerColor = resolvedBackgroundColor,
+
+        focusedLabelColor = resolvedBorderColor,
+        unfocusedLabelColor = resolvedBorderColor
+    )
+
+    val labelContent: (@Composable TextFieldLabelScope.() -> Unit)? = if (label.isNotBlank()) {
+        { Text(text = label) }
     } else {
-        borderColor
-    }
-    val resolvedBackgroundColor = if (backgroundColor == Color.Unspecified) {
-        colorScheme.surfaceVariant
-    } else {
-        backgroundColor
+        null
     }
 
-    val ignoredKeyEvent: (keyboardKey: KeyEvent) -> Boolean = remember {
+    val supportingTextContent: (@Composable () -> Unit)? =
+        if (errorMessage != null && isError == true) {
+            { Text(text = errorMessage) }
+        } else {
+            null
+        }
+
+    val hasError = errorMessage != null && isError == true
+
+    val ignoredKeyEvent: (keyEvent: KeyEvent) -> Boolean = remember {
         { keyEvent ->
             if (keyEvent.type == KeyEventType.KeyDown) {
                 keyEvent.key == Key.Spacebar || keyEvent.key == Key.Tab
@@ -146,72 +183,54 @@ fun TextField(
         }
     }
 
-    if (isSecure) {
-        return SecureTextField(
-            state = state,
-            modifier = modifier.onKeyEvent(ignoredKeyEvent),
-            label = { Text(text = label) },
-            trailingIcon = trailingIcon,
-            isError = errorMessage != null && isError == true,
-            supportingText = if (errorMessage != null && isError == true) {
-                { Text(text = errorMessage) }
-            } else {
-                null
-            },
-            suffix = suffix,
-            shape = RoundedCornerShape(cornerRadius),
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent,
+    when {
+        isSecure -> {
+            SecureTextField(
+                state = state,
+                modifier = modifier.onKeyEvent(ignoredKeyEvent),
+                label = labelContent,
+                trailingIcon = trailingIcon,
+                isError = hasError,
+                supportingText = supportingTextContent,
+                keyboardOptions = keyboardOptions,
+                suffix = suffix,
+                textStyle = textStyle,
+                shape = RoundedCornerShape(cornerRadius),
+                colors = textFieldColors,
+            )
+        }
 
-                focusedContainerColor = resolvedBackgroundColor,
-                unfocusedContainerColor = resolvedBackgroundColor,
-                disabledContainerColor = resolvedBackgroundColor,
-                errorContainerColor = resolvedBackgroundColor,
+        decorationBox != null -> {
+            BasicTextField(
+                state = state,
+                modifier = modifier,
+                decorator = decorationBox,
+                textStyle = textStyle
+            )
+        }
 
-                focusedLabelColor = resolvedBorderColor,
-                unfocusedLabelColor = resolvedBorderColor
-            ),
-        )
+        else -> {
+            M3TextField(
+                state = state,
+                modifier = modifier.onPreviewKeyEvent(ignoredKeyEvent),
+                label = labelContent,
+                trailingIcon = trailingIcon,
+                isError = hasError,
+                supportingText = supportingTextContent,
+                suffix = suffix,
+                shape = RoundedCornerShape(cornerRadius),
+                colors = textFieldColors,
+                textStyle = textStyle
+            )
+        }
     }
-
-    M3TextField(
-        state = state,
-        modifier = modifier.onPreviewKeyEvent(ignoredKeyEvent),
-        label = { Text(text = label) },
-        trailingIcon = trailingIcon,
-        isError = errorMessage != null && isError == true,
-        supportingText = if (errorMessage != null && isError == true) {
-            { Text(text = errorMessage) }
-        } else {
-            null
-        },
-        suffix = suffix,
-        shape = RoundedCornerShape(cornerRadius),
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            errorIndicatorColor = Color.Transparent,
-
-            focusedContainerColor = resolvedBackgroundColor,
-            unfocusedContainerColor = resolvedBackgroundColor,
-            disabledContainerColor = resolvedBackgroundColor,
-            errorContainerColor = resolvedBackgroundColor,
-
-            focusedLabelColor = resolvedBorderColor,
-            unfocusedLabelColor = resolvedBorderColor
-        )
-    )
 }
 
 @Composable
-fun TextFormField(
-    state: TextFieldState,
-    properties: FieldProperties<CharSequence>,
+fun <T> TextFormField(
     modifier: Modifier = Modifier,
+    state: TextFieldState,
+    properties: FieldProperties<T>,
     label: String = "Label",
     cornerRadius: Dp = 8.dp,
     borderColor: Color = Color.Unspecified,
@@ -219,10 +238,12 @@ fun TextFormField(
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
     isSecure: Boolean? = null,
+    keyboardOption: KeyboardOptions = KeyboardOptions(),
+    style: TextStyle = LocalTextStyle.current,
 ) {
-    val (validator, errorMessage) = properties
-    val resolvedIsSecure =
-        isSecure ?: (validator is PasswordValidator || validator is MatchValidator)
+    val (_, errorMessage) = properties
+    val resolvedIsSecure = isSecure ?: properties.validator.any { it is PasswordValidator }
+
 
     TextField(
         state = state,
@@ -235,7 +256,43 @@ fun TextFormField(
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-        isError = properties.isDirty.value
+        isError = properties.isDirty.value,
+        keyboardOptions = keyboardOption,
+    )
+}
+
+@Composable
+fun <T> TextFormField(
+    modifier: Modifier = Modifier,
+    state: TextFieldState,
+    properties: FieldProperties<T>,
+    label: String = "Label",
+    cornerRadius: Dp = 8.dp,
+    borderColor: Color = Color.Unspecified,
+    backgroundColor: Color = Color.Unspecified,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    suffix: @Composable (() -> Unit)? = null,
+    isSecure: Boolean? = null,
+    keyboardOption: KeyboardOptions = KeyboardOptions(),
+    decorationBox: TextFieldDecorator? = null,
+    textStyle: TextStyle = LocalTextStyle.current,
+) {
+    val (_, errorMessage) = properties
+    TextField(
+        state = state,
+        modifier = modifier,
+        label = label,
+        errorMessage = errorMessage.value,
+        isSecure = isSecure ?: false,
+        cornerRadius = cornerRadius,
+        borderColor = borderColor,
+        backgroundColor = backgroundColor,
+        suffix = suffix,
+        trailingIcon = trailingIcon,
+        isError = properties.isDirty.value,
+        keyboardOptions = keyboardOption,
+        decorationBox = decorationBox,
+        textStyle = textStyle
     )
 }
 
@@ -256,8 +313,7 @@ fun TextFormField(
     val state = rememberTextFieldState(initialValue)
 
     FieldRegister(
-        fieldProperties = fieldProperties,
-        valueProvider = { state.text },
+        fieldProperties = fieldProperties.copy(valueProvider = { state.text }),
         name = fieldName
     ) {
         TextFormField(

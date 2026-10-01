@@ -19,17 +19,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.LocalForm
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 
 
 data class FieldProperties<T>(
-    val validator: FieldValidator<T>,
+    val validator: List<FieldValidator<T>>,
     val errorMessage: MutableState<String?> = mutableStateOf(null),
     val isDirty: MutableState<Boolean?> = mutableStateOf(null),
     val isRequired: Boolean = false,
-    val valueProvider: (() -> T)? = null
-)
+    val valueProvider: (() -> T)? = null,
+    val transformer: ((T) -> T)? = null
+) {
+    constructor(
+        validator: FieldValidator<T>,
+        errorMessage: MutableState<String?> = mutableStateOf(null),
+        isDirty: MutableState<Boolean?> = mutableStateOf(null),
+        isRequired: Boolean = false,
+        valueProvider: (() -> T)? = null,
+        transformer: ((T) -> T)? = null
+    ) : this(
+        validator = listOf(validator),
+        errorMessage = errorMessage,
+        isDirty = isDirty,
+        isRequired = isRequired,
+        valueProvider = valueProvider
+    )
+}
 
 class FormBuilder {
     val fieldRegistry = mutableStateMapOf<String, FieldProperties<*>>()
@@ -40,14 +56,13 @@ class FormBuilder {
             .all { it.errorMessage.value == null && it.isDirty.value == true }
     }
 
-
     @Suppress("UNCHECKED_CAST")
-    inline fun <reified T : Any> getField(key: String): FieldProperties<T>? {
+    fun <T> getField(key: String): FieldProperties<T>? {
         val properties = fieldRegistry[key] ?: return null
         return properties as FieldProperties<T>?
     }
 
-    fun <T : Any> addField(name: String, field: FieldProperties<T>) {
+    fun <T> addField(name: String, field: FieldProperties<T>) {
         fieldRegistry[name] = field
     }
 
@@ -60,14 +75,17 @@ class FormBuilder {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> getValidator(key: String): FieldValidator<T>? {
+    fun <T> getValidator(key: String): List<FieldValidator<T>>? {
         val properties = fieldRegistry[key] as? FieldProperties<T>
         return properties?.validator
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun updateFieldState(name: String, errorMessage: String?, isDirty: Boolean) {
-        val properties = fieldRegistry[name] as? FieldProperties<Any> ?: return
+    fun updateFieldState(
+        name: String,
+        errorMessage: String?,
+        isDirty: Boolean
+    ) {
+        val properties = fieldRegistry[name] ?: return
         properties.errorMessage.value = errorMessage
         properties.isDirty.value = isDirty
     }
@@ -83,8 +101,21 @@ private data class ValidationState<T>(
     val error: String?
 )
 
+
+/**
+ * This function used for registering composable to the FormBuilder
+ * @param form is the instance of FormBuilder
+ * @param name the registered field name (must be unique for 1 Instance Form Composable)
+ * @param fieldProperties the properties of registered fields
+ * @param effectKey overriding key for LaunchedEffect
+Flow of the Observer (snapshot flow on Launched Effect). The snapshotFlow will observe mutableState in FormBuilder.
+there are no constraint to manage when the lambda going to execute. so if one of mutableState on FormBuilder is changing,
+it executes the action on snapshotFlow.
+Registered field into Form Builder -> find the first error -> accumulating the ValidationState into Pair that contain (previous, current)
+-> collected the Pair of ValidationState and then update fieldState value
+ * */
 @Composable
-fun <T : Any> RegisterFormListener(
+fun <T> RegisterFormListener(
     form: FormBuilder,
     name: String,
     fieldProperties: FieldProperties<T>,
@@ -92,39 +123,35 @@ fun <T : Any> RegisterFormListener(
 ) {
     LaunchedEffect(effectKey) {
         form.addField(name, fieldProperties)
-        val valueProvider = fieldProperties.valueProvider ?: return@LaunchedEffect
 
-        snapshotFlow {
-            val currentValue = valueProvider()
-            val validator = form.getValidator(name) ?: fieldProperties.validator
-            ValidationState(currentValue, validator.validate(currentValue))
-        }
-            .runningFold(
-                Pair(
-                    ValidationState(
-                        valueProvider(),
-                        fieldProperties.validator.validate(valueProvider())
-                    ),
-                    ValidationState(
-                        valueProvider(),
-                        valueProvider()?.let { fieldProperties.validator.validate(it) }
-                    )
+        val rawInitialValue = fieldProperties.valueProvider?.invoke() ?: return@LaunchedEffect
+        // Intercept initial value jika ada transformer
+        val initialValue = fieldProperties.transformer?.invoke(rawInitialValue) ?: rawInitialValue
+
+        snapshotFlow { fieldProperties.valueProvider.invoke() }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .collect { rawCurrentValue ->
+                val validators = form.getField<T>(name)?.validator ?: fieldProperties.validator
+
+                val currentValue = fieldProperties.transformer?.invoke(rawCurrentValue) ?: rawCurrentValue
+                val firstError = validators.firstNotNullOfOrNull { it.validate(currentValue) }
+
+                val isDirty = currentValue != initialValue
+
+                form.updateFieldState(
+                    name = name,
+                    errorMessage = firstError,
+                    isDirty = isDirty
                 )
-            ) { acc, current ->
-                Pair(acc.second, current)
-            }
-            .drop(1)
-            .collect { (previous, current) ->
-                form.updateFieldState(name, current.error, previous.value != current.value)
 
                 Log.d(
                     "[FORM_LISTENER]",
-                    "field: $name, previous: ${previous.value}, current: ${current.value}, error: ${current.error}"
+                    "field: $name, current: $currentValue, error: $firstError, isDirty: $isDirty"
                 )
             }
     }
 }
-
 
 @Composable
 fun Form(
@@ -150,25 +177,17 @@ fun Form(
 }
 
 @Composable
-fun <T : Any> FieldRegister(
+fun <T> FieldRegister(
     fieldProperties: FieldProperties<T>,
-    valueProvider: (() -> T)? = null,
     name: String,
     content: @Composable (() -> Unit)?
 ) {
-
-    val boundProperties = remember {
-        fieldProperties.copy(
-            valueProvider = valueProvider
-        )
-    }
-
     content?.let {
         val form = LocalForm.current
         RegisterFormListener(
             form = form,
             name = name,
-            fieldProperties = boundProperties,
+            fieldProperties = fieldProperties,
         )
 
         DisposableEffect(name) {
@@ -179,11 +198,11 @@ fun <T : Any> FieldRegister(
     }
 }
 
-abstract class FieldValidator<T> {
-    abstract fun validate(value: T): String?
+interface FieldValidator<T> {
+    fun validate(value: T): String?
 }
 
-class EmailValidator : FieldValidator<CharSequence>() {
+class EmailValidator : FieldValidator<CharSequence> {
     override fun validate(value: CharSequence): String? {
         Log.d("[DEBUG]", "EMAIL VALIDATOR $value")
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z|A-Z]{2,}$".toRegex()
@@ -195,7 +214,7 @@ class EmailValidator : FieldValidator<CharSequence>() {
     }
 }
 
-class PasswordValidator : FieldValidator<CharSequence>() {
+class PasswordValidator : FieldValidator<CharSequence> {
     override fun validate(value: CharSequence): String? {
         return when {
             value.isBlank() -> "Password cannot be empty"
@@ -205,9 +224,26 @@ class PasswordValidator : FieldValidator<CharSequence>() {
     }
 }
 
-class CheckRequiredValidator : FieldValidator<Boolean>() {
+class CheckRequiredValidator : FieldValidator<Boolean> {
     override fun validate(value: Boolean): String? {
         return if (value) null else "Must be checked"
+    }
+}
+
+class MockNumberValidator : FieldValidator<Number> {
+    override fun validate(value: Number): String? {
+        Log.d("[VALIDATOR]", "Number Validator: $value")
+        val isGreaterThanZero = when (value) {
+            is Int -> value > 0
+            is Long -> value > 0L
+            is Float -> value > 0f
+            is Double -> value > 0.0
+            is Short -> value > 0
+            is Byte -> value > 0
+            else -> value.toDouble() > 0.0
+        }
+
+        return if (isGreaterThanZero) null else "Value cannot less than zero"
     }
 }
 
@@ -215,7 +251,7 @@ class MatchValidator(
     private val form: FormBuilder,
     private val targetFieldKey: String,
     private val customErrorMessage: String = "Passwords do not match"
-) : FieldValidator<CharSequence>() {
+) : FieldValidator<CharSequence> {
     override fun validate(value: CharSequence): String? {
         val targetProps = form.getField<CharSequence>(targetFieldKey)
         val targetValue = targetProps?.valueProvider?.invoke()
@@ -229,5 +265,3 @@ class MatchValidator(
         return if (value.toString() != targetValue?.toString()) customErrorMessage else null
     }
 }
-
-

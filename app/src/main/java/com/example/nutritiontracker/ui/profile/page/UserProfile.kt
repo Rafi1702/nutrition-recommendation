@@ -27,8 +27,11 @@ import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
+import com.example.nutritiontracker.ui.components.MockNumberValidator
 import com.example.nutritiontracker.ui.components.OptionFieldValidator
 import com.example.nutritiontracker.ui.components.RowOptionForm
+import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
+import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
@@ -65,6 +68,7 @@ fun UserProfileContent(modifier: Modifier = Modifier) {
         verticalSpacing = 16.dp
     ) {
         DemographicSection()
+        MeasurementSection()
     }
 }
 
@@ -128,6 +132,58 @@ fun DemographicContent() {
         }
     }
 }
+
+@Composable
+private fun MeasurementSection() {
+    CardFormSection(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        cardHeaderProps = CardFormHeaderProps(
+            icon = Icons.Default.Info,
+            title = "2. PENGUKURAN"
+        )
+    ) {
+        MeasurementContent()
+    }
+}
+
+@Composable
+private fun MeasurementContent() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row {
+            NumberPickerField(
+                fieldProperties = FieldProperties(
+                    validator = MockNumberValidator(),
+                    isRequired = true
+                ),
+                initialValue = 0,
+                fieldName = "Age",
+                leadingIcon = {
+
+                }
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun MeasurementContentPreview() {
+    NutritionTrackerTheme {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row {
+                NumberPickerField(
+                    fieldProperties = FieldProperties(
+                        validator = MockNumberValidator(),
+                        isRequired = true
+                    ),
+                    initialValue = 0,
+                    fieldName = "Age",
+                )
+            }
+        }
+    }
+}
+
 
 
 @Composable

@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import com.example.nutritiontracker.ui.components.textfield.TextField
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -217,7 +218,6 @@ fun DatePickerField(){
             value = selectedDate,
             onValueChange = { },
             label = "Date",
-            isSecure =  false,
             trailingIcon = {
                 IconButton(onClick = { showDatePicker = !showDatePicker }) {
                     Icon(
@@ -253,6 +253,11 @@ fun DatePickerField(){
             }
         }
     }
+}
+
+@Composable
+fun DatePickerFormField(){
+
 }
 
 fun convertMillisToDate(millis: Long): String {

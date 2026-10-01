@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 
@@ -23,8 +22,7 @@ private fun OptionForm(
     val state = remember { mutableStateOf(initialValue) }
 
     FieldRegister(
-        fieldProperties = fieldProperties,
-        valueProvider = { state.value },
+        fieldProperties = fieldProperties.copy(valueProvider = { state.value }),
         name = fieldName
     ) {
         content.invoke(state)
@@ -89,7 +87,7 @@ fun RowOptionForm(
 }
 
 class OptionFieldValidator(private val errorMessage: String = "You have to select") :
-    FieldValidator<String>() {
+    FieldValidator<String> {
     override fun validate(value: String): String? {
         val message = when {
             value.isBlank() -> errorMessage
