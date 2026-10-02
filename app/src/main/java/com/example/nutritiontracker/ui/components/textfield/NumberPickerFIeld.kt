@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -38,12 +39,18 @@ import com.example.nutritiontracker.ui.theme.typography
 
 
 @Composable
-fun IncrementerAndDecrementerAction() {
-    Surface(shape = RoundedCornerShape(16.dp), color = colorScheme.onSurface, contentColor = colorScheme.inverseOnSurface) {
+fun IncrementerAndDecrementerAction(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = colorScheme.onSurface,
+        contentColor = colorScheme.inverseOnSurface
+    ) {
         Column(
             modifier = Modifier
                 .width(IntrinsicSize.Min)
-                .padding(8.dp)
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
                 Icons.Default.KeyboardArrowUp,
@@ -61,6 +68,7 @@ fun IncrementerAndDecrementerAction() {
 
 @Composable
 inline fun <reified T : Number?> NumberPickerField(
+    modifier: Modifier = Modifier,
     fieldProperties: FieldProperties<T>,
     initialValue: T,
     fieldName: String,
@@ -143,36 +151,49 @@ inline fun <reified T : Number?> NumberPickerField(
     ) {
         TextFormField(
             state = state,
-            modifier = Modifier.widthIn(max = 160.dp).heightIn(max = 120.dp),
+            modifier = modifier
+                .widthIn(max = 160.dp)
+                .heightIn(max = 120.dp),
             properties = LocalForm.current.getField(fieldName) ?: fieldProperties,
-            textStyle =   typography.displaySmall.copy(
+            textStyle = typography.displaySmall.copy(
                 color = colorScheme.onSurface,
 
-            ),
+                ),
             decorationBox = { innerTextField ->
-                Surface(shape = RoundedCornerShape(8.dp)){
-                    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)){
+                Surface(shape = RoundedCornerShape(8.dp)) {
+                    Column(
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
                         Text(label)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp),
+                                .height(IntrinsicSize.Min),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                innerTextField()
-                            }
+                            Row(modifier = Modifier.weight(2f)) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    innerTextField()
+                                }
 
-                            unit?.let{
-                                Box(modifier = Modifier.fillMaxHeight().weight(2f), contentAlignment = Alignment.BottomStart){
-                                    Text(unit)
+                                unit?.let {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .weight(2f),
+                                        contentAlignment = Alignment.CenterStart
+                                    ) {
+                                        Text(unit)
+                                    }
                                 }
                             }
-                            IncrementerAndDecrementerAction()
+                            IncrementerAndDecrementerAction(modifier = Modifier.weight(1f))
                         }
                     }
                 }

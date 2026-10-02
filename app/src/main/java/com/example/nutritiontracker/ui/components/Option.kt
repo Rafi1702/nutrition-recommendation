@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 
@@ -35,18 +36,30 @@ fun ColumnOptionForm(
     fieldName: String,
     initialValue: String = "",
     items: List<String> = emptyList(),
-    placeholder: @Composable ((String) -> Unit)? = null,
+    itemWeight: Float = 0f,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+    placeholder: @Composable ((String, String) -> Unit)? = null,
 ) {
     OptionForm(
         fieldProperties = fieldProperties,
         fieldName = fieldName,
         initialValue = initialValue
     ) { state ->
-        Column {
+        Column(verticalArrangement = verticalArrangement, horizontalAlignment = horizontalAlignment) {
             items.forEach { item ->
-                Box(modifier = Modifier.clickable { state.value = item }) {
-                    placeholder?.invoke(item)
-                }
+                ClickableBox(
+                    modifier = Modifier.then(
+                        if (itemWeight > 0f) {
+                            Modifier.weight(itemWeight)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                    onClick = {
+                        state.value = item
+                    }
+                ) { placeholder?.invoke(item, state.value) }
             }
         }
     }
@@ -69,20 +82,36 @@ fun RowOptionForm(
     ) { state ->
         Row(horizontalArrangement = horizontalArrangement) {
             items.forEach { item ->
-                Box(
-                    modifier = Modifier
-                        .clickable { state.value = item }
-                        .then(
-                            if (itemWeight > 0f) {
-                                Modifier.weight(itemWeight)
-                            } else {
-                                Modifier
-                            }
-                        )) {
+                ClickableBox(
+                    modifier = Modifier.then(
+                        if (itemWeight > 0f) {
+                            Modifier.weight(itemWeight)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                    onClick = {
+                        state.value = item
+                    }
+                ) {
                     placeholder?.invoke(item, state.value)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ClickableBox(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    content: @Composable (() -> Unit)
+) {
+    Box(
+        modifier = modifier
+            .clickable(onClick = onClick)
+    ) {
+        content()
     }
 }
 

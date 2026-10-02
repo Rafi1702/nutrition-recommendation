@@ -18,4 +18,9 @@
     <string name="food_recommendation_section_home">Your Food Recommendation</string>
     <string name="food_recommendation_section_home_sub">Specially selected to cover your daily protein deficit.</string>
     <string name="user_profile_demographic_information_section_title">DEMOGRAPHIC INFORMATION</string>
+    <string name="body_mass_index">Body Mass Index (BMI)</string>
+    <string-array name="body_mass_index_level">
+        <item>Below Average</item>
+        <item>Normal</item>
+    </string-array>
 </resources>

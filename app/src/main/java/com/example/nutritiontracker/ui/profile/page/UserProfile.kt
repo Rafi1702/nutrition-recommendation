@@ -1,17 +1,18 @@
 package com.example.nutritiontracker.ui.profile.page
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -19,11 +20,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.nutritiontracker.R
+import com.example.nutritiontracker.domain.BodyMassIndexStatus
+import com.example.nutritiontracker.domain.PersonalActivities
 import com.example.nutritiontracker.ui.components.Chip
+import com.example.nutritiontracker.ui.components.ColumnOptionForm
 import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
@@ -31,6 +39,7 @@ import com.example.nutritiontracker.ui.components.MockNumberValidator
 import com.example.nutritiontracker.ui.components.OptionFieldValidator
 import com.example.nutritiontracker.ui.components.RowOptionForm
 import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
+import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -46,10 +55,25 @@ private fun String.toGender() = when (this) {
     else -> Gender.MALE
 }
 
-data class CardFormHeaderProps(
-    val title: String? = null,
-    val icon: ImageVector? = null
-)
+
+@Composable
+fun BodyMassIndexStatus.statusColor(): Pair<Color, Color> {
+    return when (this) {
+        BodyMassIndexStatus.NORMAL -> (colorScheme.primaryContainer to colorScheme.onPrimaryContainer)
+        else -> (colorScheme.errorContainer to colorScheme.onErrorContainer)
+    }
+}
+
+@Composable
+fun BodyMassIndexStatus.label(): String {
+    val bmiLevelsResource = stringArrayResource(R.array.body_mass_index_level)
+
+    return when (this) {
+        BodyMassIndexStatus.NORMAL -> bmiLevelsResource[1]
+        BodyMassIndexStatus.BELOW_AVERAGE -> bmiLevelsResource[0]
+        else -> ""
+    }
+}
 
 @Preview()
 @Composable
@@ -69,18 +93,16 @@ fun UserProfileContent(modifier: Modifier = Modifier) {
     ) {
         DemographicSection()
         MeasurementSection()
+        DailyActivitiesSection()
     }
 }
 
 
 @Composable
 fun DemographicSection() {
-    CardFormSection(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        cardHeaderProps = CardFormHeaderProps(
-            icon = Icons.Default.Info,
-            title = "1. INFORMASI DEMOGRAFIS"
-        )
+    UserProfileContentSection(
+        label = "1. INFORMASI DEMOGRAFIS",
+        icon = Icons.Default.Info,
     ) {
         DemographicContent()
     }
@@ -135,12 +157,9 @@ fun DemographicContent() {
 
 @Composable
 private fun MeasurementSection() {
-    CardFormSection(
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        cardHeaderProps = CardFormHeaderProps(
-            icon = Icons.Default.Info,
-            title = "2. PENGUKURAN"
-        )
+    UserProfileContentSection(
+        label = "2. PENGUKURAN",
+        icon = Icons.Default.Info,
     ) {
         MeasurementContent()
     }
@@ -148,20 +167,86 @@ private fun MeasurementSection() {
 
 @Composable
 private fun MeasurementContent() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             NumberPickerField(
+                modifier = Modifier.weight(1f),
                 fieldProperties = FieldProperties(
                     validator = MockNumberValidator(),
                     isRequired = true
                 ),
                 initialValue = 0,
                 fieldName = "Age",
-                leadingIcon = {
-
-                }
+                label = "HEIGHT",
+                unit = "CM"
+            )
+            NumberPickerField(
+                modifier = Modifier.weight(1f),
+                fieldProperties = FieldProperties(
+                    validator = MockNumberValidator(),
+                    isRequired = true
+                ),
+                initialValue = 0,
+                fieldName = "Age",
+                label = "AGE"
             )
         }
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.Speed, contentDescription = "accelerate_icon")
+                Text(stringResource(R.string.body_mass_index), style = typography.labelLarge)
+                Spacer(modifier = Modifier.weight(1f))
+                Text("21.5", style = typography.titleMedium)
+                Chip(
+                    color = BodyMassIndexStatus.NORMAL.statusColor().first,
+                    contentColor = BodyMassIndexStatus.NORMAL.statusColor().second,
+                ) {
+                    Text(BodyMassIndexStatus.NORMAL.label())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyActivitiesSection() {
+    UserProfileContentSection(label = "AKTIVITAS HARIAN", modifier = Modifier.fillMaxWidth()) {
+        DailyActivitiesContent()
+    }
+}
+
+@Composable
+private fun DailyActivitiesContent() {
+    ColumnOptionForm(
+        fieldName = "daily_activities",
+        fieldProperties = FieldProperties(
+            validator = OptionFieldValidator(),
+            isRequired = true
+        ),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        items = PersonalActivities.entries.map { it.name }
+    ) { activity, activityState ->
+        Surface(shape = RoundedCornerShape(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(modifier = Modifier.weight(1f), text = activity)
+                Checkbox(checked = activity == activityState, onCheckedChange = null)
+            }
+        }
+
     }
 }
 
@@ -178,39 +263,13 @@ private fun MeasurementContentPreview() {
                     ),
                     initialValue = 0,
                     fieldName = "Age",
+                    label = "AGE"
                 )
             }
         }
     }
 }
 
-
-
-@Composable
-private fun CardFormSection(
-    cardHeaderProps: CardFormHeaderProps = CardFormHeaderProps(),
-    contentPadding: PaddingValues = PaddingValues.Zero,
-    content: @Composable (() -> Unit)? = null
-) {
-    val (title, icon) = cardHeaderProps
-    Card {
-        Column(
-            modifier = Modifier.padding(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            title?.let {
-                CardFormHeader(
-                    title = title,
-                    icon = icon,
-                    modifier = Modifier.padding(contentPadding)
-                )
-            }
-            Box(modifier = Modifier.padding(contentPadding)) {
-                content?.invoke()
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -218,27 +277,3 @@ private fun CardFormSectionPreview() {
 
 }
 
-
-@Composable
-private fun CardFormHeader(
-    modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    title: String
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icon?.let {
-            Icon(icon, contentDescription = null)
-        }
-        Text(title, style = typography.titleMedium)
-    }
-}
-
-@Preview(name = "CardFormHeader", showBackground = true)
-@Composable
-private fun CardFormHeaderPreview() {
-    CardFormHeader(title = "Placeholder", icon = Icons.Default.Info)
-}
