@@ -7,11 +7,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Female
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Male
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -29,7 +33,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.BodyMassIndexStatus
+import com.example.nutritiontracker.domain.Gender
 import com.example.nutritiontracker.domain.PersonalActivities
+import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
 import com.example.nutritiontracker.ui.components.DatePickerField
@@ -44,17 +50,43 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
-enum class Gender(val label: String, val imageVector: ImageVector? = null) {
-    MALE("Male", Icons.Default.Place),
-    FEMALE("Female", Icons.Default.Place);
+//enum class Gender(val label: String, val imageVector: ImageVector? = null) {
+//    MALE("Male", Icons.Default.Place),
+//    FEMALE("Female", Icons.Default.Place);
+//}
+//
+//private fun String.toGender() = when (this) {
+//    "Male" -> Gender.MALE
+//    "Female" -> Gender.FEMALE
+//    else -> Gender.MALE
+//}
+
+@Composable
+fun String.toGender(): Gender {
+    return when (this) {
+        "Male" -> Gender.MALE
+        "Female" -> Gender.FEMALE
+        else -> Gender.MALE
+    }
 }
 
-private fun String.toGender() = when (this) {
-    "Male" -> Gender.MALE
-    "Female" -> Gender.FEMALE
-    else -> Gender.MALE
+@Composable
+fun Gender.label(): String {
+    val gendersResource = stringArrayResource(R.array.personal_gender)
+
+    return when (this) {
+        Gender.MALE -> gendersResource[0]
+        Gender.FEMALE -> gendersResource[1]
+    }
 }
 
+@Composable
+fun Gender.icon(): ImageVector? {
+    return when (this) {
+        Gender.MALE -> Icons.Default.Male
+        Gender.FEMALE -> Icons.Default.Female
+    }
+}
 
 @Composable
 fun BodyMassIndexStatus.statusColor(): Pair<Color, Color> {
@@ -87,13 +119,20 @@ fun UserProfilePage() {
 @Preview(showBackground = true)
 @Composable
 fun UserProfileContent(modifier: Modifier = Modifier) {
+    val scrollState = rememberScrollState()
     Form(
-        modifier = modifier,
+        modifier = modifier
+            .verticalScroll(scrollState)
+            .padding(horizontal = 16.dp),
         verticalSpacing = 16.dp
-    ) {
+    ) { isValid ->
         DemographicSection()
         MeasurementSection()
         DailyActivitiesSection()
+        Button(enabled = isValid, onClick = {}) {
+            Text("Test")
+        }
+
     }
 }
 
@@ -120,7 +159,7 @@ fun DemographicContent() {
             ),
             fieldName = "Gender Options",
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            items = Gender.entries.map { it.label },
+            items = Gender.entries.map { it.label() },
             itemWeight = 1f
         ) { gender, genderState ->
             Surface(
@@ -134,10 +173,10 @@ fun DemographicContent() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    gender.toGender().imageVector?.let { icon ->
-                        Icon(icon, contentDescription = "option_${gender.toGender().label}")
+                    gender.toGender().icon()?.let { icon ->
+                        Icon(icon, contentDescription = "option_${gender.toGender().label()}")
                     }
-                    Text(gender.toGender().label)
+                    Text(gender.toGender().label())
                 }
             }
         }
@@ -150,7 +189,12 @@ fun DemographicContent() {
                 Text("Placeholder")
                 Chip(label = "Umur")
             }
-            DatePickerField()
+            DatePickerField(
+                fieldName = "birth", fieldProperties = FieldProperties(
+                    validator = CannotEmptyValidator(),
+                    isRequired = true
+                )
+            )
         }
     }
 }
@@ -176,7 +220,7 @@ private fun MeasurementContent() {
                 modifier = Modifier.weight(1f),
                 fieldProperties = FieldProperties(
                     validator = MockNumberValidator(),
-                    isRequired = true
+//                    isRequired = true
                 ),
                 initialValue = 0,
                 fieldName = "Age",
@@ -187,7 +231,7 @@ private fun MeasurementContent() {
                 modifier = Modifier.weight(1f),
                 fieldProperties = FieldProperties(
                     validator = MockNumberValidator(),
-                    isRequired = true
+//                    isRequired = true
                 ),
                 initialValue = 0,
                 fieldName = "Age",

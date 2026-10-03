@@ -1,6 +1,6 @@
 package com.example.nutritiontracker.ui.components.textfield
 
-import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -23,7 +22,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,8 +38,83 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
 
+class NumberCreationState<T : Number>(
+    initialValue: T,
+    private val onIncrement: (T) -> T,
+    private val onDecrement: (T) -> T
+) {
+    val numberState = mutableStateOf(initialValue)
+
+    fun incrementer() {
+        numberState.value = onIncrement(numberState.value)
+    }
+
+    fun decrementer() {
+        numberState.value = onDecrement(numberState.value)
+    }
+
+    companion object {
+        inline fun <reified T : Number> create(
+            initialValue: T,
+            adder: T,
+            decrementer: T
+        ): NumberCreationState<T> {
+            val clazz = when (T::class) {
+                Number::class -> initialValue::class
+                else -> T::class
+            }
+
+            val incrementLogic: (T) -> T = when (clazz) {
+                Int::class -> { current -> (current.toInt() + adder.toInt()) as T }
+                Double::class -> { current -> (current.toDouble() + adder.toDouble()) as T }
+                Float::class -> { current -> (current.toFloat() + adder.toFloat()) as T }
+                Long::class -> { current -> (current.toLong() + adder.toLong()) as T }
+                else -> throw IllegalArgumentException("Unsupported type: $clazz")
+            }
+
+            val decrementLogic: (T) -> T = when (clazz) {
+                Int::class -> { current -> (current.toInt() - decrementer.toInt()) as T }
+                Double::class -> { current -> (current.toDouble() - decrementer.toDouble()) as T }
+                Float::class -> { current -> (current.toFloat() - decrementer.toFloat()) as T }
+                Long::class -> { current -> (current.toLong() - decrementer.toLong()) as T }
+                else -> throw IllegalArgumentException("Unsupported type: $clazz")
+            }
+
+            return NumberCreationState(initialValue, incrementLogic, decrementLogic)
+        }
+    }
+}
+
+inline fun <reified T : Number> defaultStep(initialValue: T): T {
+    val clazz = when (T::class) {
+        Number::class -> initialValue::class
+        else -> T::class
+    }
+    return when (clazz) {
+        Int::class -> 1 as T
+        Double::class -> 1.0 as T
+        Float::class -> 1f as T
+        Long::class -> 1L as T
+        else -> throw IllegalArgumentException("Unsupported type: $clazz")
+    }
+}
+
 @Composable
-fun IncrementerAndDecrementerAction(modifier: Modifier = Modifier) {
+inline fun <reified T : Number> rememberNumberCreationState(
+    initialValue: T,
+    adder: T = defaultStep(initialValue),
+    decrementer: T = defaultStep(initialValue)
+): NumberCreationState<T> {
+    return remember(initialValue, adder, decrementer) {
+        NumberCreationState.create(initialValue, adder, decrementer)
+    }
+}
+
+@Composable
+fun <T : Number> IncrementerAndDecrementerAction(
+    modifier: Modifier = Modifier,
+    state: NumberCreationState<T>,
+) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -54,111 +129,49 @@ fun IncrementerAndDecrementerAction(modifier: Modifier = Modifier) {
         ) {
             Icon(
                 Icons.Default.KeyboardArrowUp,
+                modifier = Modifier.clickable {
+                    state.incrementer()
+                },
                 contentDescription = "number_field_value_incrementer"
             )
             HorizontalDivider()
             Icon(
                 Icons.Default.KeyboardArrowDown,
+                modifier = Modifier.clickable {
+                    state.decrementer()
+                },
                 contentDescription = "number_field_value_decrementer"
             )
         }
     }
 }
 
-
 @Composable
-inline fun <reified T : Number?> NumberPickerField(
+inline fun <reified T : Number> NumberPickerField(
     modifier: Modifier = Modifier,
     fieldProperties: FieldProperties<T>,
-    initialValue: T,
+    state: NumberCreationState<T>,
     fieldName: String,
+    label: String,
+    unit: String? = null,
     noinline trailingIcon: @Composable (() -> Unit)? = null,
     noinline leadingIcon: @Composable (() -> Unit)? = null,
-    unit: String? = null,
-    label: String,
 ) {
-
-    val state = rememberTextFieldState(initialValue.toString())
-
-    LaunchedEffect(state.text) {
-        val text = state.text.toString()
-
-        val rawParsed: Number? = when (T::class) {
-            Int::class -> text.toIntOrNull()
-            Long::class -> text.toLongOrNull()
-            Double::class -> text.toDoubleOrNull()
-            Float::class -> text.toFloatOrNull()
-            else -> null
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        val typedValue = rawParsed as? T ?: initialValue
-
-        val transformedValue = fieldProperties.copy(transformer = { value ->
-            when (value) {
-                is Int -> {
-                    if (value < 0) 0 else value
-                }
-
-                is Long -> {
-                    if (value < 0L) 0L else value
-                }
-
-                is Double -> {
-                    if (value < 0.0) 0.0 else value
-                }
-
-                is Float -> {
-                    if (value < 0f) 0f else value
-                }
-
-                is Short -> {
-                    if (value < 0) 0.toShort() else value
-                }
-
-                is Byte -> {
-                    if (value < 0) 0.toByte() else value
-                }
-
-                else -> value
-            } as T
-
-        }).transformer?.invoke(typedValue) ?: typedValue
-
-        val transformedString = transformedValue?.toString() ?: ""
-        if (transformedString != text) {
-            state.edit {
-                replace(0, length, transformedString)
-            }
-        }
-    }
-
     FieldRegister(
         fieldProperties = fieldProperties.copy(
-            valueProvider = {
-                val text = state.text.toString()
-                Log.d("[NUMBER_FIELD]", "Observed text: $text")
-                when (T::class) {
-                    Int::class -> text.toIntOrNull() ?: 0
-                    Long::class -> text.toLongOrNull() ?: 0L
-                    Double::class -> text.toDoubleOrNull() ?: 0.0
-                    Float::class -> text.toFloatOrNull() ?: 0f
-                    else -> 0
-                } as T
-            },
+            valueState = state.numberState,
         ),
         name = fieldName,
     ) {
         TextFormField(
-            state = state,
             modifier = modifier
                 .widthIn(max = 160.dp)
                 .heightIn(max = 120.dp),
-            properties = LocalForm.current.getField(fieldName) ?: fieldProperties,
+            onValueChange = {},
+            value = state.numberState.value.toString(),
             textStyle = typography.displaySmall.copy(
                 color = colorScheme.onSurface,
-
-                ),
+            ),
             decorationBox = { innerTextField ->
                 Surface(shape = RoundedCornerShape(8.dp)) {
                     Column(
@@ -193,7 +206,10 @@ inline fun <reified T : Number?> NumberPickerField(
                                     }
                                 }
                             }
-                            IncrementerAndDecrementerAction(modifier = Modifier.weight(1f))
+                            IncrementerAndDecrementerAction(
+                                modifier = Modifier.weight(1f),
+                                state = state
+                            )
                         }
                     }
                 }
@@ -202,11 +218,41 @@ inline fun <reified T : Number?> NumberPickerField(
     }
 }
 
+@Composable
+inline fun <reified T : Number> NumberPickerField(
+    modifier: Modifier = Modifier,
+    fieldProperties: FieldProperties<T>,
+    initialValue: T,
+    fieldName: String,
+    label: String,
+    adder: T = defaultStep(initialValue),
+    decrementer: T = defaultStep(initialValue),
+    unit: String? = null,
+    noinline trailingIcon: @Composable (() -> Unit)? = null,
+    noinline leadingIcon: @Composable (() -> Unit)? = null,
+) {
+    val state = rememberNumberCreationState(
+        initialValue = initialValue,
+        adder = adder,
+        decrementer = decrementer
+    )
+
+    NumberPickerField(
+        modifier = modifier,
+        fieldProperties = fieldProperties,
+        state = state,
+        fieldName = fieldName,
+        label = label,
+        unit = unit,
+        trailingIcon = trailingIcon,
+        leadingIcon = leadingIcon
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun NumberPickerFieldPreview() {
     NutritionTrackerTheme {
-        // NumberPickerField uses FieldRegister which requires LocalForm to be provided
         Form {
             NumberPickerField(
                 fieldProperties = FieldProperties(

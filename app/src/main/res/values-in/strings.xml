@@ -22,4 +22,8 @@
         <item>Dibawah rerata</item>
         <item>Normal</item>
     </string-array>
+    <string-array name="personal_gender">
+        <item>Laki-laki</item>
+        <item>Perempuan</item>
+    </string-array>
 </resources>

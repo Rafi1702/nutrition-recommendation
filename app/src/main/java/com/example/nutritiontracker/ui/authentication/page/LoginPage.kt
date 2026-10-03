@@ -174,7 +174,7 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
 
                     Log.d(
                         "[PRESSED_BUTTON]",
-                        "password: ${password?.valueProvider?.invoke()}, confirmed_password: ${confirmedPassword?.valueProvider?.invoke()}"
+                        "password: ${password?.valueState?.value}, confirmed_password: ${confirmedPassword?.valueState?.value}"
                     )
                     /* TODO: Sign Up */
                 },

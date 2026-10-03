@@ -19,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,17 +65,23 @@ fun CustomOutlinedTextFieldPreview() {
 
 @Composable
 fun TextField(
-    value: String,
     modifier: Modifier = Modifier,
+    value: String,
     onValueChange: (String) -> Unit = {},
     label: String = "Label",
     cornerRadius: Dp = 8.dp,
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     isSecure: Boolean = false,
+    readOnly: Boolean = false,
+    enabled: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(),
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
-) {
+    textStyle: TextStyle = LocalTextStyle.current,
+    decorationBox: @Composable ((@Composable (() -> Unit)) -> Unit)? = null,
+
+    ) {
     val resolvedBorderColor = if (borderColor == Color.Unspecified) {
         colorScheme.onSurfaceVariant
     } else {
@@ -85,38 +93,54 @@ fun TextField(
         backgroundColor
     }
 
-    M3TextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier,
-        label = { Text(text = label) },
-        trailingIcon = trailingIcon,
-        suffix = suffix,
-        shape = RoundedCornerShape(cornerRadius),
-        visualTransformation = if (isSecure) {
-            remember { PasswordVisualTransformation() }
-        } else {
-            VisualTransformation.None
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = if (isSecure) KeyboardType.Password else KeyboardType.Text
-        ),
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            errorIndicatorColor = Color.Transparent,
+    when {
+        decorationBox != null -> {
+            BasicTextField(
+                modifier = modifier,
+                value = value,
+                onValueChange = onValueChange,
+                textStyle = textStyle,
+                decorationBox = decorationBox
+            )
+        }
+
+        else -> {
+            M3TextField(
+                value = value,
+                readOnly = readOnly,
+                onValueChange = onValueChange,
+                enabled = enabled,
+                modifier = modifier,
+                label = { Text(text = label) },
+                trailingIcon = trailingIcon,
+                suffix = suffix,
+                shape = RoundedCornerShape(cornerRadius),
+                visualTransformation = if (isSecure) {
+                    remember { PasswordVisualTransformation() }
+                } else {
+                    VisualTransformation.None
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = if (isSecure) KeyboardType.Password else KeyboardType.Text
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent,
 
 
-            focusedContainerColor = resolvedBackgroundColor,
-            unfocusedContainerColor = resolvedBackgroundColor,
-            disabledContainerColor = resolvedBackgroundColor,
-            errorContainerColor = resolvedBackgroundColor,
+                    focusedContainerColor = resolvedBackgroundColor,
+                    unfocusedContainerColor = resolvedBackgroundColor,
+                    disabledContainerColor = resolvedBackgroundColor,
+                    errorContainerColor = resolvedBackgroundColor,
 
-            focusedLabelColor = resolvedBorderColor,
-            unfocusedLabelColor = resolvedBorderColor
-        )
-    )
+                    focusedLabelColor = resolvedBorderColor,
+                    unfocusedLabelColor = resolvedBorderColor
+                )
+            )
+        }
+    }
 }
 
 @Composable
@@ -137,7 +161,6 @@ fun TextField(
     textStyle: TextStyle = LocalTextStyle.current,
 ) {
 
-    // 1. Resolve warna secara ringkas
     val resolvedBorderColor =
         if (borderColor == Color.Unspecified) colorScheme.onSurfaceVariant else borderColor
     val resolvedBackgroundColor =
@@ -262,10 +285,10 @@ fun <T> TextFormField(
 }
 
 @Composable
-fun <T> TextFormField(
+fun TextFormField(
     modifier: Modifier = Modifier,
-    state: TextFieldState,
-    properties: FieldProperties<T>,
+    value: String,
+    onValueChange: (String) -> Unit = { },
     label: String = "Label",
     cornerRadius: Dp = 8.dp,
     borderColor: Color = Color.Unspecified,
@@ -274,25 +297,31 @@ fun <T> TextFormField(
     suffix: @Composable (() -> Unit)? = null,
     isSecure: Boolean? = null,
     keyboardOption: KeyboardOptions = KeyboardOptions(),
-    decorationBox: TextFieldDecorator? = null,
     textStyle: TextStyle = LocalTextStyle.current,
+    decorationBox: @Composable ((@Composable (() -> Unit)) -> Unit)? = null,
+    readOnly: Boolean = false,
+    enabled: Boolean = true,
 ) {
-    val (_, errorMessage) = properties
+
+
     TextField(
-        state = state,
+        value = value,
+        onValueChange = onValueChange,
         modifier = modifier,
         label = label,
-        errorMessage = errorMessage.value,
-        isSecure = isSecure ?: false,
+//        errorMessage = errorMessage.value,
+        isSecure = false,
         cornerRadius = cornerRadius,
         borderColor = borderColor,
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-        isError = properties.isDirty.value,
+//        isError = properties.isDirty.value,
         keyboardOptions = keyboardOption,
-        decorationBox = decorationBox,
-        textStyle = textStyle
+        textStyle = textStyle,
+        enabled = enabled,
+        readOnly = readOnly,
+        decorationBox = decorationBox
     )
 }
 
@@ -313,7 +342,7 @@ fun TextFormField(
     val state = rememberTextFieldState(initialValue)
 
     FieldRegister(
-        fieldProperties = fieldProperties.copy(valueProvider = { state.text }),
+        fieldProperties = fieldProperties.copy(valueState = remember(state) { derivedStateOf { state.text } }),
         name = fieldName
     ) {
         TextFormField(

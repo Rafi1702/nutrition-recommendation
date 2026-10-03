@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.State
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.LocalForm
@@ -28,7 +29,7 @@ data class FieldProperties<T>(
     val errorMessage: MutableState<String?> = mutableStateOf(null),
     val isDirty: MutableState<Boolean?> = mutableStateOf(null),
     val isRequired: Boolean = false,
-    val valueProvider: (() -> T)? = null,
+    val valueState: State<T>? = null,
     val transformer: ((T) -> T)? = null
 ) {
     constructor(
@@ -36,14 +37,15 @@ data class FieldProperties<T>(
         errorMessage: MutableState<String?> = mutableStateOf(null),
         isDirty: MutableState<Boolean?> = mutableStateOf(null),
         isRequired: Boolean = false,
-        valueProvider: (() -> T)? = null,
+        valueState: State<T>? = null,
         transformer: ((T) -> T)? = null
     ) : this(
         validator = listOf(validator),
         errorMessage = errorMessage,
         isDirty = isDirty,
         isRequired = isRequired,
-        valueProvider = valueProvider
+        valueState = valueState,
+        transformer = transformer
     )
 }
 
@@ -96,12 +98,6 @@ fun rememberFormBuilder(): FormBuilder {
     return remember { FormBuilder() }
 }
 
-private data class ValidationState<T>(
-    val value: T,
-    val error: String?
-)
-
-
 /**
  * This function used for registering composable to the FormBuilder
  * @param form is the instance of FormBuilder
@@ -124,11 +120,13 @@ fun <T> RegisterFormListener(
     LaunchedEffect(effectKey) {
         form.addField(name, fieldProperties)
 
-        val rawInitialValue = fieldProperties.valueProvider?.invoke() ?: return@LaunchedEffect
+        val rawInitialValue = fieldProperties.valueState?.value ?: return@LaunchedEffect
         // Intercept initial value jika ada transformer
         val initialValue = fieldProperties.transformer?.invoke(rawInitialValue) ?: rawInitialValue
 
-        snapshotFlow { fieldProperties.valueProvider.invoke() }
+        Log.d("[REGISTER_FORM_LISTENER]", "initial value: $initialValue")
+
+        snapshotFlow { fieldProperties.valueState.value }
             .filterNotNull()
             .distinctUntilChanged()
             .collect { rawCurrentValue ->
@@ -214,6 +212,12 @@ class EmailValidator : FieldValidator<CharSequence> {
     }
 }
 
+class CannotEmptyValidator: FieldValidator<String>{
+    override fun validate(value: String): String? {
+        return if(value.isNotBlank()) null else "Value Cannot Empty"
+    }
+}
+
 class PasswordValidator : FieldValidator<CharSequence> {
     override fun validate(value: CharSequence): String? {
         return when {
@@ -254,7 +258,7 @@ class MatchValidator(
 ) : FieldValidator<CharSequence> {
     override fun validate(value: CharSequence): String? {
         val targetProps = form.getField<CharSequence>(targetFieldKey)
-        val targetValue = targetProps?.valueProvider?.invoke()
+        val targetValue = targetProps?.valueState?.value
 
         Log.d("[MATCH_VALIDATOR]", "targetValue: $targetValue, currentValue: $value")
 

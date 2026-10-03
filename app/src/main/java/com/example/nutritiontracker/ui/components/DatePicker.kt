@@ -1,6 +1,8 @@
 package com.example.nutritiontracker.ui.components
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -23,12 +25,15 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.getSelectedDate
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +47,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import com.example.nutritiontracker.ui.components.textfield.TextField
+import androidx.compose.ui.window.PopupProperties
+import com.example.nutritiontracker.ui.components.textfield.TextFormField
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -101,7 +107,7 @@ private fun rememberDateBuild(
 
     month: Int = 1,
 ): List<DatePickerHolder?>? {
-    val dates = remember(year, month) {
+    return remember(year, month) {
         LocalDate.of(year, month, 1)
             .datesUntil(LocalDate.of(year + 1, month, 1))
             .map {
@@ -109,7 +115,6 @@ private fun rememberDateBuild(
             }
             .toList()
     }
-    return dates
 }
 
 
@@ -129,7 +134,6 @@ private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
     }
 )
 
-@Preview(showBackground = true)
 @Composable
 fun DatePicker(
     modifier: Modifier = Modifier,
@@ -179,7 +183,6 @@ fun DatePicker(
 
     }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        //TODO add dropdown button for selected month
         Text(trackedMonth.value.month)
         LazyRow(
             state = listState,
@@ -202,40 +205,47 @@ fun DatePicker(
 }
 
 
-@Preview(showBackground = true)
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerField(){
+fun DatePickerField(fieldName: String, fieldProperties: FieldProperties<String>) {
     var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
-    val selectedDate = datePickerState.selectedDateMillis?.let {
-        convertMillisToDate(it)
-    } ?: ""
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
+    )
+
 
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
-        TextField(
-            value = selectedDate,
-            onValueChange = { },
-            label = "Date",
-            trailingIcon = {
-                IconButton(onClick = { showDatePicker = !showDatePicker }) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Select date"
-                    )
-                }
-            },
+        FieldRegister(
+            name = fieldName,
+            fieldProperties = fieldProperties.copy(valueState = remember { derivedStateOf { datePickerState.toString() } })
+        ) {
+            TextFormField(
+                value = datePickerState.getSelectedDate().toString(),
+                readOnly = true,
+                label = "Date",
+                enabled = false,
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = !showDatePicker }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Select date"
+                        )
+                    }
+                },
 
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-        )
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+            )
+        }
 
         if (showDatePicker) {
             Popup(
                 onDismissRequest = { showDatePicker = false },
-                alignment = Alignment.TopStart
+                alignment = Alignment.TopStart,
             ) {
                 Box(
                     modifier = Modifier
@@ -255,13 +265,30 @@ fun DatePickerField(){
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview(showBackground = true)
 @Composable
-fun DatePickerFormField(){
-
+fun DatePickerFieldReview() {
+    NutritionTrackerTheme {
+        Form {
+            DatePickerField(
+                fieldName = "date", fieldProperties = FieldProperties(
+                    validator = CannotEmptyValidator(),
+                    isRequired = true
+                )
+            )
+        }
+    }
 }
 
-fun convertMillisToDate(millis: Long): String {
-    return ""
+
+
+@Preview(showBackground = true)
+@Composable
+private fun DatePickerPreview(){
+    NutritionTrackerTheme {
+        DatePicker()
+    }
 }
 
 @Composable

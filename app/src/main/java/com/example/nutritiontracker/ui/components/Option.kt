@@ -23,7 +23,7 @@ private fun OptionForm(
     val state = remember { mutableStateOf(initialValue) }
 
     FieldRegister(
-        fieldProperties = fieldProperties.copy(valueProvider = { state.value }),
+        fieldProperties = fieldProperties.copy(valueState = state),
         name = fieldName
     ) {
         content.invoke(state)
