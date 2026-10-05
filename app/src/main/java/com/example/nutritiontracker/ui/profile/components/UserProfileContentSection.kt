@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.profile.page.DemographicContent
+import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
 
@@ -29,17 +31,18 @@ data class CardFormHeaderProps(
 private fun CardFormHeader(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    title: String
+    title: String? = null,
 ) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icon?.let {
+    if (icon != null && title != null) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Icon(icon, contentDescription = null)
+
+            Text(title, style = typography.titleMedium)
         }
-        Text(title, style = typography.titleMedium)
     }
 }
 
@@ -51,18 +54,18 @@ private fun CardFormSection(
     content: @Composable (() -> Unit)? = null
 ) {
     val (title, icon) = cardHeaderProps
-    Card(modifier = modifier) {
+    Card(modifier = modifier, colors = CardDefaults.cardColors().copy(
+            containerColor = colorScheme.surfaceContainerLow
+    )) {
         Column(
             modifier = Modifier.padding(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            title?.let {
-                CardFormHeader(
-                    title = title,
-                    icon = icon,
-                    modifier = Modifier.padding(contentPadding)
-                )
-            }
+            CardFormHeader(
+                title = title,
+                icon = icon,
+                modifier = Modifier.padding(contentPadding)
+            )
             Box(modifier = Modifier.padding(contentPadding)) {
                 content?.invoke()
             }
@@ -74,7 +77,7 @@ private fun CardFormSection(
 internal fun UserProfileContentSection(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    label: String,
+    label: String? = null,
     content: @Composable (() -> Unit)
 ) {
     CardFormSection(

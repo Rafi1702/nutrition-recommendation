@@ -16,7 +16,7 @@ val typography: Typography
     get() = rememberAppTypography(LocalScreenSize.current)
 
 
-val LocalColorScheme = compositionLocalOf { DarkColorScheme }
+val LocalColorScheme = compositionLocalOf { LightColorScheme }
 
 val colorScheme: ColorScheme
     @Composable

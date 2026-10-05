@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.ui.components.textfield
 
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,15 +13,14 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.SecureTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,13 +42,14 @@ import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FieldRegister
 import com.example.nutritiontracker.ui.components.PasswordValidator
 import com.example.nutritiontracker.ui.theme.LocalForm
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import androidx.compose.material3.TextField as M3TextField
 
 @Preview(name = "TextField", showBackground = true)
 @Composable
 fun CustomOutlinedTextFieldPreview() {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         TextField(value = "", label = "Email")
         TextField(
             value = "",
@@ -69,7 +70,7 @@ fun TextField(
     value: String,
     onValueChange: (String) -> Unit = {},
     label: String = "Label",
-    cornerRadius: Dp = 8.dp,
+    cornerRadius: Dp = Spacing.s,
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     isSecure: Boolean = false,
@@ -148,7 +149,7 @@ fun TextField(
     state: TextFieldState,
     modifier: Modifier = Modifier,
     label: String = "Label",
-    cornerRadius: Dp = 8.dp,
+    cornerRadius: Dp = Spacing.s,
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     isSecure: Boolean = false,
@@ -309,14 +310,12 @@ fun TextFormField(
         onValueChange = onValueChange,
         modifier = modifier,
         label = label,
-//        errorMessage = errorMessage.value,
         isSecure = false,
         cornerRadius = cornerRadius,
         borderColor = borderColor,
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-//        isError = properties.isDirty.value,
         keyboardOptions = keyboardOption,
         textStyle = textStyle,
         enabled = enabled,
@@ -332,7 +331,7 @@ fun TextFormField(
     fieldProperties: FieldProperties<CharSequence>,
     initialValue: String = "",
     label: String = "Label",
-    cornerRadius: Dp = 8.dp,
+    cornerRadius: Dp = Spacing.s,
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -340,7 +339,9 @@ fun TextFormField(
     isSecure: Boolean? = null,
 ) {
     val state = rememberTextFieldState(initialValue)
-
+    LaunchedEffect(fieldProperties.isValid,) {
+        Log.d("[BASIC_TEXT_FIELD]", "field valid: ${fieldProperties.isValid}")
+    }
     FieldRegister(
         fieldProperties = fieldProperties.copy(valueState = remember(state) { derivedStateOf { state.text } }),
         name = fieldName

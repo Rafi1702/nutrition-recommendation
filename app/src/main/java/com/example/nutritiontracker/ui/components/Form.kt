@@ -20,6 +20,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.LocalForm
+import com.example.nutritiontracker.ui.theme.Spacing
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 
@@ -47,6 +48,9 @@ data class FieldProperties<T>(
         valueState = valueState,
         transformer = transformer
     )
+
+
+    val isValid: Boolean by derivedStateOf { errorMessage.value == null && isDirty.value == true }
 }
 
 class FormBuilder {
@@ -55,7 +59,7 @@ class FormBuilder {
     val isValid: Boolean by derivedStateOf {
         if (fieldRegistry.isEmpty()) return@derivedStateOf false
         fieldRegistry.values.filter { it.isRequired }
-            .all { it.errorMessage.value == null && it.isDirty.value == true }
+            .all { it.isValid }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -121,7 +125,6 @@ fun <T> RegisterFormListener(
         form.addField(name, fieldProperties)
 
         val rawInitialValue = fieldProperties.valueState?.value ?: return@LaunchedEffect
-        // Intercept initial value jika ada transformer
         val initialValue = fieldProperties.transformer?.invoke(rawInitialValue) ?: rawInitialValue
 
         Log.d("[REGISTER_FORM_LISTENER]", "initial value: $initialValue")
@@ -132,7 +135,8 @@ fun <T> RegisterFormListener(
             .collect { rawCurrentValue ->
                 val validators = form.getField<T>(name)?.validator ?: fieldProperties.validator
 
-                val currentValue = fieldProperties.transformer?.invoke(rawCurrentValue) ?: rawCurrentValue
+                val currentValue =
+                    fieldProperties.transformer?.invoke(rawCurrentValue) ?: rawCurrentValue
                 val firstError = validators.firstNotNullOfOrNull { it.validate(currentValue) }
 
                 val isDirty = currentValue != initialValue
@@ -154,7 +158,7 @@ fun <T> RegisterFormListener(
 @Composable
 fun Form(
     modifier: Modifier = Modifier,
-    verticalSpacing: Dp = 8.dp,
+    verticalSpacing: Dp = Spacing.s,
     child: @Composable ((isValid: Boolean) -> Unit)? = null
 ) {
     val builder = rememberFormBuilder()
@@ -182,6 +186,9 @@ fun <T> FieldRegister(
 ) {
     content?.let {
         val form = LocalForm.current
+        LaunchedEffect(Unit) {
+            Log.d("[FIELD_REGISTER]", "field: $fieldProperties")
+        }
         RegisterFormListener(
             form = form,
             name = name,
@@ -212,9 +219,9 @@ class EmailValidator : FieldValidator<CharSequence> {
     }
 }
 
-class CannotEmptyValidator: FieldValidator<String>{
+class CannotEmptyValidator : FieldValidator<String> {
     override fun validate(value: String): String? {
-        return if(value.isNotBlank()) null else "Value Cannot Empty"
+        return if (value.isNotBlank()) null else "Value Cannot Empty"
     }
 }
 

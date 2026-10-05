@@ -28,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
 import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.ScreenSize
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
 
@@ -60,7 +61,7 @@ fun MainPage(
 }
 
 @Composable
-private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
+private fun MainLayout(padding: PaddingValues = PaddingValues(Spacing.none)) {
     when (screenSize) {
         ScreenSize.MOBILE -> {
             val navController = LocalNavController.current
@@ -82,7 +83,7 @@ private fun MainLayout(padding: PaddingValues = PaddingValues(0.dp)) {
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             ) {
                 Spacer(modifier = Modifier.weight(.5f))
                 HomePage(

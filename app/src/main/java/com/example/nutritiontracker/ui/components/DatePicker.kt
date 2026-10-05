@@ -50,6 +50,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.example.nutritiontracker.ui.components.textfield.TextFormField
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import java.time.Instant
@@ -182,11 +183,11 @@ fun DatePicker(
         }
 
     }
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Text(trackedMonth.value.month)
         LazyRow(
             state = listState,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             contentPadding = contentPadding,
             flingBehavior = snapFlingBehavior,
         ) {
@@ -251,9 +252,9 @@ fun DatePickerField(fieldName: String, fieldProperties: FieldProperties<String>)
                     modifier = Modifier
                         .fillMaxWidth()
                         .offset(y = 64.dp)
-                        .shadow(elevation = 4.dp)
+                        .shadow(elevation = Spacing.xs)
                         .background(colorScheme.surface)
-                        .padding(16.dp)
+                        .padding(Spacing.m)
                 ) {
                     M3DatePicker(
                         state = datePickerState,
@@ -303,13 +304,13 @@ private fun DateTimePickerCard(
         modifier = Modifier
             .clickable(onClick = onTap)
             .size(72.dp),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(Spacing.s),
         colors = DatePickerDefaults.getDatePickerColor(isActive)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(dayName, style = typography.labelLarge)

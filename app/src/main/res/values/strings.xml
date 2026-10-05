@@ -27,4 +27,18 @@
         <item>Male</item>
         <item>Female</item>
     </string-array>
+    <string-array name="personal_daily_activities">
+        <item>Light</item>
+        <item>Sedentary</item>
+        <item>Moderate</item>
+        <item>Active</item>
+    </string-array>
+    <string-array name="personal_daily_activities_sub">
+        <item>Example of Sedentary</item>
+        <item>Example of Light</item>
+        <item>Example of Moderate</item>
+        <item>Example of Active</item>
+    </string-array>
+
+    <string name="user_profile_daily_estimation_section_title">Daily Estimation</string>
 </resources>

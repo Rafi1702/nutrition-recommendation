@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.components.textfield
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,6 +36,7 @@ import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.MockNumberValidator
 import com.example.nutritiontracker.ui.theme.LocalForm
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
@@ -85,16 +88,20 @@ class NumberCreationState<T : Number>(
     }
 }
 
-inline fun <reified T : Number> defaultStep(initialValue: T): T {
+inline fun <reified T : Number> defaultStep(value: Any = 1): T {
     val clazz = when (T::class) {
-        Number::class -> initialValue::class
+        Number::class -> value::class
         else -> T::class
     }
+    val isZero = when (value) {
+        is Number -> value.toDouble() == 0.0
+        else -> false
+    }
     return when (clazz) {
-        Int::class -> 1 as T
-        Double::class -> 1.0 as T
-        Float::class -> 1f as T
-        Long::class -> 1L as T
+        Int::class -> (if (isZero) 0 else 1) as T
+        Double::class -> (if (isZero) 0.0 else 1.0) as T
+        Float::class -> (if (isZero) 0f else 1f) as T
+        Long::class -> (if (isZero) 0L else 1L) as T
         else -> throw IllegalArgumentException("Unsupported type: $clazz")
     }
 }
@@ -114,33 +121,41 @@ inline fun <reified T : Number> rememberNumberCreationState(
 fun <T : Number> IncrementerAndDecrementerAction(
     modifier: Modifier = Modifier,
     state: NumberCreationState<T>,
+    isIncrementEnabled: Boolean = true,
+    isDecrementEnabled: Boolean = true,
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(Spacing.m),
         color = colorScheme.onSurface,
         contentColor = colorScheme.inverseOnSurface
     ) {
         Column(
             modifier = Modifier
                 .width(IntrinsicSize.Min)
-                .padding(8.dp),
+                .padding(Spacing.s),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
                 Icons.Default.KeyboardArrowUp,
-                modifier = Modifier.clickable {
-                    state.incrementer()
+                modifier = Modifier.clickable(enabled = isIncrementEnabled) {
+                    if (isIncrementEnabled) state.incrementer()
                 },
-                contentDescription = "number_field_value_incrementer"
+                contentDescription = "number_field_value_incrementer",
+                tint = colorScheme.inverseOnSurface.copy(
+                    alpha = if (isIncrementEnabled) 1f else 0.38f
+                )
             )
             HorizontalDivider()
             Icon(
                 Icons.Default.KeyboardArrowDown,
-                modifier = Modifier.clickable {
-                    state.decrementer()
+                modifier = Modifier.clickable(enabled = isDecrementEnabled) {
+                    if (isDecrementEnabled) state.decrementer()
                 },
-                contentDescription = "number_field_value_decrementer"
+                contentDescription = "number_field_value_decrementer",
+                tint = colorScheme.inverseOnSurface.copy(
+                    alpha = if (isDecrementEnabled) 1f else 0.38f
+                )
             )
         }
     }
@@ -154,8 +169,8 @@ inline fun <reified T : Number> NumberPickerField(
     fieldName: String,
     label: String,
     unit: String? = null,
-    noinline trailingIcon: @Composable (() -> Unit)? = null,
-    noinline leadingIcon: @Composable (() -> Unit)? = null,
+    isIncrementEnabled: Boolean = true,
+    isDecrementEnabled: Boolean = true,
 ) {
     FieldRegister(
         fieldProperties = fieldProperties.copy(
@@ -163,6 +178,12 @@ inline fun <reified T : Number> NumberPickerField(
         ),
         name = fieldName,
     ) {
+        val registeredProps = LocalForm.current.getField<T>(fieldName) ?: fieldProperties
+        val currentValue = state.numberState.value
+        val hasError = registeredProps.errorMessage.value != null
+        val isValidValue = registeredProps.validator.none { it.validate(currentValue) != null }
+        val canDecrement = isDecrementEnabled && !hasError && isValidValue
+
         TextFormField(
             modifier = modifier
                 .widthIn(max = 160.dp)
@@ -173,10 +194,10 @@ inline fun <reified T : Number> NumberPickerField(
                 color = colorScheme.onSurface,
             ),
             decorationBox = { innerTextField ->
-                Surface(shape = RoundedCornerShape(8.dp)) {
+                Surface(shape = RoundedCornerShape(Spacing.s)) {
                     Column(
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                        modifier = Modifier.padding(vertical = Spacing.s, horizontal = Spacing.m),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.xxs)
                     ) {
                         Text(label)
                         Row(
@@ -208,7 +229,9 @@ inline fun <reified T : Number> NumberPickerField(
                             }
                             IncrementerAndDecrementerAction(
                                 modifier = Modifier.weight(1f),
-                                state = state
+                                state = state,
+                                isIncrementEnabled = isIncrementEnabled,
+                                isDecrementEnabled = canDecrement
                             )
                         }
                     }
@@ -225,17 +248,24 @@ inline fun <reified T : Number> NumberPickerField(
     initialValue: T,
     fieldName: String,
     label: String,
-    adder: T = defaultStep(initialValue),
-    decrementer: T = defaultStep(initialValue),
+    adder: T = defaultStep(1),
+    decrementer: T = defaultStep(1),
     unit: String? = null,
-    noinline trailingIcon: @Composable (() -> Unit)? = null,
-    noinline leadingIcon: @Composable (() -> Unit)? = null,
 ) {
-    val state = rememberNumberCreationState(
-        initialValue = initialValue,
-        adder = adder,
-        decrementer = decrementer
-    )
+    LaunchedEffect(fieldProperties.isValid, fieldProperties.isDirty) {
+        Log.d(
+            "[NUMBER_PICKER_FIELD]",
+            "field valid: ${fieldProperties.isValid}, errorMessage: ${fieldProperties.errorMessage.value}, dirty: ${fieldProperties.isDirty.value}"
+        )
+    }
+
+    val state = remember(initialValue, adder, decrementer) {
+        NumberCreationState.create(
+            initialValue = initialValue,
+            adder = adder,
+            decrementer = decrementer
+        )
+    }
 
     NumberPickerField(
         modifier = modifier,
@@ -244,8 +274,7 @@ inline fun <reified T : Number> NumberPickerField(
         fieldName = fieldName,
         label = label,
         unit = unit,
-        trailingIcon = trailingIcon,
-        leadingIcon = leadingIcon
+        isDecrementEnabled = fieldProperties.isValid || fieldProperties.errorMessage.value == null
     )
 }
 
