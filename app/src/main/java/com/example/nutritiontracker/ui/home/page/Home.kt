@@ -26,6 +26,7 @@ import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
 import com.example.nutritiontracker.ui.home.components.ShowMoreButton
 import com.example.nutritiontracker.ui.home.components.UserNeedsCard
 import com.example.nutritiontracker.ui.theme.LocalNavController
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
@@ -39,23 +40,23 @@ internal fun HomePage(modifier: Modifier = Modifier) {
         modifier = modifier,
         color = colorScheme.surface
     ) {
-        LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp)) {
+        LazyColumn(contentPadding = PaddingValues(horizontal = Spacing.m)) {
             item {
                 DatePicker()
             }
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.m))
                 UserNeedsCard()
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.m))
                 UserNeedSection()
             }
 
             if (navController != null) {
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Spacing.m))
                     RecommendedFoodSection(onSeeMoreClick = {
                         navController.navigate(FoodPath.FOOD_RECOMMENDATIONS)
                     })
@@ -63,7 +64,7 @@ internal fun HomePage(modifier: Modifier = Modifier) {
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(Spacing.m))
                 ConsumeLogSurface()
             }
         }
@@ -101,7 +102,7 @@ private fun RecommendedFoodSection(
 @Composable
 private fun UserNeedSection(modifier: Modifier = Modifier) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.s),
         modifier = Modifier.background(color = colorScheme.surface)
     ) {
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -116,7 +117,7 @@ private fun UserNeedSection(modifier: Modifier = Modifier) {
         }
         Row(
             modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+            horizontalArrangement = Arrangement.spacedBy(space = Spacing.s)
         ) {
             MacroNutrientsNeed(
                 modifier = Modifier.weight(1f),

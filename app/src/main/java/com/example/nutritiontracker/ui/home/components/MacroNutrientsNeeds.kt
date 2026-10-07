@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.domain.MacroType
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.colors
 import com.example.nutritiontracker.ui.theme.typography
@@ -43,9 +44,9 @@ import com.example.nutritiontracker.ui.utils.withStyle
 private fun MacroNutrientsNeedPreview() {
     NutritionTrackerTheme {
         FlowRow(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(Spacing.m),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s + Spacing.xs),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             MacroNutrientsNeed(
                 label = MacroType.PROTEIN,
@@ -98,8 +99,8 @@ internal fun MacroNutrientsNeed(
                     .fillMaxHeight()
             )
             Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                modifier = Modifier.padding(Spacing.s + Spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs + Spacing.xxs)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -116,7 +117,7 @@ internal fun MacroNutrientsNeed(
                     Icon(
                         imageVector = Icons.Default.Fastfood,
                         contentDescription = "${label.name}-icon",
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(Spacing.m),
                         tint = macroColors.main
                     )
                 }

@@ -1,23 +1,39 @@
 package com.example.nutritiontracker.ui.components
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.getSelectedDate
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,9 +43,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
+import com.example.nutritiontracker.ui.components.textfield.TextFormField
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import java.time.Instant
@@ -37,6 +58,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.material3.DatePicker as M3DatePicker
 
 
 object DatePickerDefaults {
@@ -86,7 +108,7 @@ private fun rememberDateBuild(
 
     month: Int = 1,
 ): List<DatePickerHolder?>? {
-    val dates = remember(year, month) {
+    return remember(year, month) {
         LocalDate.of(year, month, 1)
             .datesUntil(LocalDate.of(year + 1, month, 1))
             .map {
@@ -94,7 +116,6 @@ private fun rememberDateBuild(
             }
             .toList()
     }
-    return dates
 }
 
 
@@ -114,7 +135,6 @@ private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
     }
 )
 
-@Preview(showBackground = true)
 @Composable
 fun DatePicker(
     modifier: Modifier = Modifier,
@@ -163,12 +183,11 @@ fun DatePicker(
         }
 
     }
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        //TODO add dropdown button for selected month
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Text(trackedMonth.value.month)
         LazyRow(
             state = listState,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             contentPadding = contentPadding,
             flingBehavior = snapFlingBehavior,
         ) {
@@ -186,6 +205,93 @@ fun DatePicker(
     }
 }
 
+
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerField(fieldName: String, fieldProperties: FieldProperties<String>) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
+    )
+
+
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        FieldRegister(
+            name = fieldName,
+            fieldProperties = fieldProperties.copy(valueState = remember { derivedStateOf { datePickerState.toString() } })
+        ) {
+            TextFormField(
+                value = datePickerState.getSelectedDate().toString(),
+                readOnly = true,
+                label = "Date",
+                enabled = false,
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = !showDatePicker }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Select date"
+                        )
+                    }
+                },
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+            )
+        }
+
+        if (showDatePicker) {
+            Popup(
+                onDismissRequest = { showDatePicker = false },
+                alignment = Alignment.TopStart,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = 64.dp)
+                        .shadow(elevation = Spacing.xs)
+                        .background(colorScheme.surface)
+                        .padding(Spacing.m)
+                ) {
+                    M3DatePicker(
+                        state = datePickerState,
+                        showModeToggle = false
+                    )
+                }
+            }
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview(showBackground = true)
+@Composable
+fun DatePickerFieldReview() {
+    NutritionTrackerTheme {
+        Form {
+            DatePickerField(
+                fieldName = "date", fieldProperties = FieldProperties(
+                    validator = CannotEmptyValidator(),
+                    isRequired = true
+                )
+            )
+        }
+    }
+}
+
+
+
+@Preview(showBackground = true)
+@Composable
+private fun DatePickerPreview(){
+    NutritionTrackerTheme {
+        DatePicker()
+    }
+}
+
 @Composable
 private fun DateTimePickerCard(
     dayName: String = "Thu",
@@ -198,13 +304,13 @@ private fun DateTimePickerCard(
         modifier = Modifier
             .clickable(onClick = onTap)
             .size(72.dp),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(Spacing.s),
         colors = DatePickerDefaults.getDatePickerColor(isActive)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(dayName, style = typography.labelLarge)

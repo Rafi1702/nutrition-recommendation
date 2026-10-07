@@ -40,8 +40,10 @@ import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.MatchValidator
 import com.example.nutritiontracker.ui.components.PasswordValidator
-import com.example.nutritiontracker.ui.components.TextFormField
+import com.example.nutritiontracker.ui.components.textfield.TextFormField
+import com.example.nutritiontracker.ui.theme.LocalForm
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
@@ -66,13 +68,13 @@ internal fun LoginPage(
                 modifier = modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(Spacing.m)
                     .sizeIn(
                         maxWidth = 480.dp
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(
-                    24.dp,
+                    Spacing.l,
                     alignment = Alignment.CenterVertically
                 )
             ) {
@@ -106,15 +108,15 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 6.dp,
         tonalElevation = 2.dp,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(Spacing.m),
         color = colorScheme.surfaceVariant,
         contentColor = colorScheme.onSurfaceVariant,
         border = BorderStroke(1.dp, colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        Form(modifier = Modifier.padding(20.dp), verticalSpacing = 16.dp) { isValid, form ->
+        Form(modifier = Modifier.padding(Spacing.m), verticalSpacing = Spacing.m) { isValid ->
+            val form = LocalForm.current
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                formBuilder = form,
                 label = "Password",
                 fieldName = "password_sign_up",
                 initialValue = "TESST",
@@ -126,7 +128,6 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
             )
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                formBuilder = form,
                 fieldName = "password_sign_up_confirm",
                 label = "Confirm password",
                 initialValue = "",
@@ -142,15 +143,15 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
             ) {
                 Text(
                     text = "Already have an account?",
                     style = typography.bodyMedium.copy(color = colorScheme.onSurfaceVariant)
                 )
-                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Spacing.none) {
                     TextButton(
-                        contentPadding = PaddingValues(0.dp),
+                        contentPadding = PaddingValues(Spacing.none),
                         onClick = { onSignInPressed(AuthContentType.SIGN_IN) },
                         colors = ButtonDefaults.textButtonColors(contentColor = colorScheme.primary)
                     ) {
@@ -174,7 +175,7 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
 
                     Log.d(
                         "[PRESSED_BUTTON]",
-                        "password: ${password?.valueProvider?.invoke()}, confirmed_password: ${confirmedPassword?.valueProvider?.invoke()}"
+                        "password: ${password?.valueState?.value}, confirmed_password: ${confirmedPassword?.valueState?.value}"
                     )
                     /* TODO: Sign Up */
                 },
@@ -205,12 +206,13 @@ private fun SignInContent(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 6.dp,
         tonalElevation = 2.dp,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(Spacing.m),
         color = colorScheme.surfaceVariant,
         contentColor = colorScheme.onSurfaceVariant,
         border = BorderStroke(1.dp, colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        Form(modifier = Modifier.padding(20.dp), verticalSpacing = 16.dp) { isValid, form ->
+        Form(modifier = Modifier.padding(Spacing.m), verticalSpacing = Spacing.m) { isValid ->
+            val form = LocalForm.current
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldProperties = FieldProperties(
@@ -218,7 +220,6 @@ private fun SignInContent(
                     isRequired = true
                 ),
                 fieldName = "email",
-                formBuilder = form,
                 label = "Email",
                 backgroundColor = colorScheme.surface,
             )
@@ -230,14 +231,13 @@ private fun SignInContent(
                     isRequired = true,
                 ),
                 fieldName = "password",
-                formBuilder = form,
                 label = "Password",
                 backgroundColor = colorScheme.surface,
             )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.Start),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CheckBoxForm(
@@ -259,15 +259,15 @@ private fun SignInContent(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
             ) {
                 Text(
                     text = "Doesn't have an account?",
                     style = typography.bodyMedium.copy(color = colorScheme.onSurfaceVariant)
                 )
-                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Spacing.none) {
                     TextButton(
-                        contentPadding = PaddingValues(0.dp),
+                        contentPadding = PaddingValues(Spacing.none),
                         onClick = { onSignUpPressed(AuthContentType.SIGN_UP) },
                         colors = ButtonDefaults.textButtonColors(contentColor = colorScheme.primary)
                     ) {

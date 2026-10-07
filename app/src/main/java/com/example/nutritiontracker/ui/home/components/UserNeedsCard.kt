@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.withStyle
@@ -50,20 +51,20 @@ internal fun UserNeedsCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(Spacing.s + Spacing.xs)),
         colors = CardDefaults.cardColors(
             containerColor = colorScheme.surfaceVariant
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(Spacing.s + Spacing.xs)
     ) {
         RowEqualHeight(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(Spacing.m)
                 .fillMaxWidth(),
             leftContent = {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(Spacing.s)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -95,13 +96,13 @@ internal fun UserNeedsCard(modifier: Modifier = Modifier) {
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Chip(
-                        radius = 12.dp,
+                        radius = Spacing.s + Spacing.xs,
                         color = colorScheme.primaryContainer,
                         contentColor = colorScheme.onPrimaryContainer
                     ) {
                         Text(
                             text = "72.5% ${stringResource(R.string.user_needs_card_recorded_achieved_percentage)}",
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+                            modifier = Modifier.padding(vertical = Spacing.xs, horizontal = Spacing.s),
                             style = typography.labelSmall.copy(fontWeight = FontWeight.Medium)
                         )
                     }
@@ -192,7 +193,7 @@ internal fun EnergyConsumeIndicator(
     indicatorColor: Color = colorScheme.secondary,
     trackColor: Color = colorScheme.secondaryContainer
 ) {
-    val strokeWidth = 8.dp
+    val strokeWidth = Spacing.s
 
     SubcomposeLayout(modifier = modifier) { constraints ->
         val textPlaceable = subcompose("text") {
@@ -206,7 +207,7 @@ internal fun EnergyConsumeIndicator(
             )
         }.first().measure(constraints.copy(minWidth = 0, minHeight = 0))
 
-        val paddingPx = (strokeWidth + 8.dp).roundToPx()
+        val paddingPx = (strokeWidth + Spacing.s).roundToPx()
         val diameter = maxOf(textPlaceable.width, textPlaceable.height) + (paddingPx * 2)
 
         val indicatorPlaceable = subcompose("indicator") {
@@ -214,7 +215,7 @@ internal fun EnergyConsumeIndicator(
                 progress = { 0.7f },
                 strokeWidth = strokeWidth,
                 strokeCap = StrokeCap.Round,
-                gapSize = 0.dp,
+                gapSize = Spacing.none,
                 color = indicatorColor,
                 trackColor = trackColor
             )

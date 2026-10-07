@@ -4,7 +4,6 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,11 +21,11 @@ fun CheckBoxForm(
     onCheckedChange: (Boolean) -> Unit = {}
 ) {
 
-    var isChecked by remember { mutableStateOf(false) }
+    val isCheckedState = remember { mutableStateOf(false) }
 
-    val boundProperties = remember(fieldProperties, isChecked) {
+    val boundProperties = remember(fieldProperties) {
         fieldProperties.copy(
-            valueProvider = { isChecked }
+            valueState = isCheckedState
         )
     }
 
@@ -45,9 +44,9 @@ fun CheckBoxForm(
     val checkboxContent = @Composable {
         M3Checkbox(
             modifier = modifier,
-            checked = isChecked,
+            checked = isCheckedState.value,
             onCheckedChange = {
-                isChecked = it
+                isCheckedState.value = it
                 onCheckedChange(it)
             }
         )
