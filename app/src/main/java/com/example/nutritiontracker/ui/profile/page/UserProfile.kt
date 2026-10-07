@@ -2,29 +2,35 @@ package com.example.nutritiontracker.ui.profile.page
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Female
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Male
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -64,8 +70,8 @@ import com.example.nutritiontracker.ui.utils.withStyle
 @Composable
 fun String.toGender(): Gender {
     return when (this) {
-        "Male" -> Gender.MALE
-        "Female" -> Gender.FEMALE
+        "Male", "Pria" -> Gender.MALE
+        "Female", "Wanita" -> Gender.FEMALE
         else -> Gender.MALE
     }
 }
@@ -91,7 +97,7 @@ fun Gender.icon(): ImageVector? {
 @Composable
 fun BodyMassIndexStatus.statusColor(): Pair<Color, Color> {
     return when (this) {
-        BodyMassIndexStatus.NORMAL -> (colorScheme.primaryContainer to colorScheme.onPrimaryContainer)
+        BodyMassIndexStatus.NORMAL -> (colorScheme.primary to colorScheme.onPrimary)
         else -> (colorScheme.errorContainer to colorScheme.onErrorContainer)
     }
 }
@@ -111,8 +117,8 @@ object PersonalActivitiesUtility {
     @Composable
     fun String.toPersonalActivities(): PersonalActivities {
         return when (this) {
-            "LIGHT" -> PersonalActivities.LIGHT
             "SEDENTARY" -> PersonalActivities.SEDENTARY
+            "LIGHT" -> PersonalActivities.LIGHT
             "MODERATE" -> PersonalActivities.MODERATE
             "ACTIVE" -> PersonalActivities.ACTIVE
             else -> PersonalActivities.LIGHT
@@ -127,16 +133,20 @@ object PersonalActivitiesUtility {
             }
 
         return when (this) {
-            PersonalActivities.LIGHT -> Pair(labels[0].first, labels[0].second)
-            PersonalActivities.SEDENTARY -> Pair(labels[1].first, labels[1].second)
+            PersonalActivities.SEDENTARY -> Pair(labels[0].first, labels[0].second)
+            PersonalActivities.LIGHT -> Pair(labels[1].first, labels[1].second)
             PersonalActivities.MODERATE -> Pair(labels[2].first, labels[2].second)
             PersonalActivities.ACTIVE -> Pair(labels[3].first, labels[3].second)
         }
     }
 
-    //TODO: IMPORT SVG
     fun PersonalActivities.icon(): ImageVector {
-        return Icons.Default.Close
+        return when (this) {
+            PersonalActivities.SEDENTARY -> Icons.Default.Weekend
+            PersonalActivities.LIGHT -> Icons.AutoMirrored.Filled.DirectionsWalk
+            PersonalActivities.MODERATE -> Icons.Default.FitnessCenter
+            PersonalActivities.ACTIVE -> Icons.AutoMirrored.Filled.DirectionsRun
+        }
     }
 }
 
@@ -171,10 +181,7 @@ fun UserProfileContent(modifier: Modifier = Modifier) {
         DemographicSection()
         MeasurementSection()
         DailyActivitiesSection()
-        Button(enabled = isValid, onClick = {}) {
-            Text("Test")
-        }
-
+        DailyEstimationSection()
     }
 }
 
@@ -194,8 +201,14 @@ fun DemographicSection() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DemographicContent() {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        Text("Jenis Kelamin", style = typography.labelLarge.copy(fontWeight = FontWeight.W500))
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+        Text(
+            "Jenis Kelamin Biologis",
+            style = typography.titleSmall.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = colorScheme.onSurface
+            )
+        )
         RowOptionForm(
             fieldProperties = FieldProperties(
                 validator = OptionFieldValidator(),
@@ -206,32 +219,56 @@ fun DemographicContent() {
             items = Gender.entries.map { it.label() },
             itemWeight = 1f
         ) { gender, genderState ->
+            val isSelected = gender == genderState
             Surface(
-                color = if (gender == genderState) colorScheme.primaryContainer else colorScheme.tertiary,
-                shape = RoundedCornerShape(Spacing.m)
+                color = if (isSelected) colorScheme.primary else colorScheme.surfaceVariant,
+                contentColor = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface,
+                shape = RoundedCornerShape(Spacing.s)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = Spacing.xl),
+                        .padding(vertical = Spacing.m, horizontal = Spacing.s),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
                     gender.toGender().icon()?.let { icon ->
-                        Icon(icon, contentDescription = "option_${gender.toGender().label()}")
+                        Icon(
+                            icon,
+                            contentDescription = "option_${gender.toGender().label()}",
+                            tint = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
+                        )
                     }
-                    Text(gender.toGender().label())
+                    Text(
+                        gender.toGender().label(),
+                        style = typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
+                        )
+                    )
                 }
             }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Placeholder")
-                Chip(label = "Umur")
+                Text(
+                    "Tanggal Lahir",
+                    style = typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface
+                    )
+                )
+                Chip(
+                    color = colorScheme.primaryContainer,
+                    contentColor = colorScheme.onPrimaryContainer
+                ) {
+                    Text("26 Tahun", style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                }
             }
             DatePickerField(
                 fieldName = "birth", fieldProperties = FieldProperties(
@@ -246,7 +283,7 @@ fun DemographicContent() {
 @Composable
 private fun MeasurementSection() {
     UserProfileContentSection(
-        label = "2. PENGUKURAN",
+        label = "2. BIOMETRIK & PENGUKURAN",
         icon = Icons.Default.Info,
     ) {
         MeasurementContent()
@@ -265,38 +302,62 @@ private fun MeasurementContent() {
                 fieldProperties = FieldProperties(
                     validator = MockNumberValidator(),
                 ),
-                initialValue = 0,
-                fieldName = "Age",
-                label = "HEIGHT",
-                unit = "CM"
+                initialValue = 168,
+                fieldName = "Height",
+                label = "TINGGI BADAN",
+                unit = "cm"
             )
             NumberPickerField(
                 modifier = Modifier.weight(1f),
                 fieldProperties = FieldProperties(
                     validator = MockNumberValidator(),
                 ),
-                initialValue = 0,
-                fieldName = "Age",
-                label = "AGE"
+                initialValue = 58,
+                fieldName = "Weight",
+                label = "BERAT SAAT INI",
+                unit = "kg"
             )
         }
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(Spacing.s)) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(Spacing.s),
+            color = colorScheme.surfaceVariant
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Spacing.s),
+                    .padding(Spacing.m),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Speed, contentDescription = "accelerate_icon")
-                Text(stringResource(R.string.body_mass_index), style = typography.labelLarge)
+                Icon(
+                    Icons.Default.Speed,
+                    contentDescription = "accelerate_icon",
+                    tint = colorScheme.primary
+                )
+                Text(
+                    stringResource(R.string.body_mass_index),
+                    style = typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorScheme.onSurface
+                    )
+                )
                 Spacer(modifier = Modifier.weight(1f))
-                Text("21.5", style = typography.titleMedium)
+                Text(
+                    "21.5",
+                    style = typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.primary
+                    )
+                )
                 Chip(
                     color = BodyMassIndexStatus.NORMAL.statusColor().first,
                     contentColor = BodyMassIndexStatus.NORMAL.statusColor().second,
                 ) {
-                    Text(BodyMassIndexStatus.NORMAL.label())
+                    Text(
+                        BodyMassIndexStatus.NORMAL.label(),
+                        style = typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
             }
         }
@@ -326,7 +387,11 @@ private fun MeasurementContentPreview() {
 
 @Composable
 private fun DailyActivitiesSection() {
-    UserProfileContentSection(label = "AKTIVITAS HARIAN", modifier = Modifier.fillMaxWidth()) {
+    UserProfileContentSection(
+        label = "3. AKTIVITAS HARIAN",
+        icon = Icons.Default.Info,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         DailyActivitiesContent()
     }
 }
@@ -342,7 +407,12 @@ private fun DailyActivitiesContent() {
         verticalArrangement = Arrangement.spacedBy(Spacing.s),
         items = PersonalActivities.entries.map { it.name }
     ) { activity, activityState ->
-        Surface(shape = RoundedCornerShape(Spacing.s)) {
+        val isSelected = activity == activityState
+        Surface(
+            shape = RoundedCornerShape(Spacing.s),
+            color = if (isSelected) colorScheme.primary else colorScheme.surfaceVariant,
+            contentColor = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.m),
@@ -352,48 +422,84 @@ private fun DailyActivitiesContent() {
             ) {
                 Surface(
                     shape = CircleShape,
-                    color = colorScheme.surfaceVariant,
-                    contentColor = colorScheme.inverseOnSurface
+                    color = if (isSelected) colorScheme.primaryContainer.copy(alpha = 0.25f) else colorScheme.surface,
+                    contentColor = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                 ) {
                     Icon(
-                        modifier = Modifier.padding(Spacing.xxs),
+                        modifier = Modifier.padding(Spacing.s),
                         imageVector = with(PersonalActivitiesUtility) {
                             activity.toPersonalActivities().icon()
                         },
-                        contentDescription = "${activity}_icon"
+                        contentDescription = "${activity}_icon",
+                        tint = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = with(PersonalActivitiesUtility) {
-                        activity.toPersonalActivities().label().first
-                    })
+                    Text(
+                        text = with(PersonalActivitiesUtility) {
+                            activity.toPersonalActivities().label().first
+                        },
+                        style = typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
+                        )
+                    )
                     Text(
                         text = with(PersonalActivitiesUtility) {
                             activity.toPersonalActivities().label().second
                         },
-                        style = typography.labelSmall
+                        style = typography.bodySmall.copy(
+                            color = if (isSelected) colorScheme.onPrimary.copy(alpha = 0.85f) else colorScheme.onSurfaceVariant
+                        )
                     )
-
                 }
 
-                Checkbox(checked = activity == activityState, onCheckedChange = null)
+                if (isSelected) {
+                    Surface(
+                        shape = CircleShape,
+                        color = colorScheme.onPrimary,
+                        contentColor = colorScheme.primary
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "selected",
+                            modifier = Modifier
+                                .padding(Spacing.xxs)
+                                .size(Spacing.m),
+                            tint = colorScheme.primary
+                        )
+                    }
+                } else {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.Transparent,
+                        border = BorderStroke(Spacing.xxs / 2, colorScheme.outline.copy(alpha = 0.3f))
+                    ) {
+                        Box(modifier = Modifier.size(Spacing.m))
+                    }
+                }
             }
         }
-
     }
 }
 
 
 @Composable
 private fun DailyEstimationSection() {
-    UserProfileContentSection {
+    UserProfileContentSection(
+        label = "4. TARGET POLA MAKAN & DIET",
+        icon = Icons.Default.Info,
+    ) {
         DailyEstimationContent()
     }
 }
 
 @Composable
 private fun DailyEstimationContent() {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m)
+    ) {
         DailyEstimationContentHeader()
         DailyEstimationContentBody()
     }
@@ -403,21 +509,32 @@ private fun DailyEstimationContent() {
 private fun DailyEstimationContentHeader() {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.s)
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(shape = CircleShape) {
+        Surface(
+            shape = CircleShape,
+            color = colorScheme.secondaryContainer
+        ) {
             Icon(
                 Icons.Default.LocalFireDepartment,
                 modifier = Modifier.padding(Spacing.s),
-                contentDescription = "daily_estimation"
+                contentDescription = "daily_estimation",
+                tint = colorScheme.secondary
             )
         }
         Column {
-            Text(stringResource(R.string.user_profile_daily_estimation_section_title))
+            Text(
+                stringResource(R.string.user_profile_daily_estimation_section_title),
+                style = typography.titleSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorScheme.onSurface
+                )
+            )
             Text(text = buildAnnotatedString {
                 withStyle(
-                    style = typography.titleMedium,
-                    color = LocalContentColor.current
+                    style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = colorScheme.primary
                 ) {
                     append("~${createDefaultUserProfile().nutritionNeeds}\t")
                 }
@@ -435,9 +552,15 @@ private fun DailyEstimationContentHeader() {
                 color = colorScheme.primaryContainer,
                 contentColor = colorScheme.onPrimaryContainer
             ) {
-                Text("TDEE Siap", style = typography.labelLarge)
+                Text("TDEE Siap", style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
             }
-            Text("Defisit: -350 kkal", style = typography.titleSmall)
+            Text(
+                "Defisit: -350 kkal",
+                style = typography.labelSmall.copy(
+                    fontWeight = FontWeight.Medium,
+                    color = colorScheme.onSurfaceVariant
+                )
+            )
         }
     }
 }
@@ -447,10 +570,21 @@ private fun DailyEstimationContentBody() {
     Button(
         shape = RoundedCornerShape(Spacing.s),
         onClick = {},
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colorScheme.primary,
+            contentColor = colorScheme.onPrimary
+        )
     ) {
-        Icon(Icons.Default.Calculate, contentDescription = "calculate_nutrients_need")
-        Text("Simpan & Hitung Kebutuhan Nutrisi")
+        Icon(
+            Icons.Default.Calculate,
+            contentDescription = "calculate_nutrients_need",
+            modifier = Modifier.padding(end = Spacing.xs)
+        )
+        Text(
+            "Simpan & Hitung Kebutuhan Nutrisi",
+            style = typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+        )
     }
 }
 
@@ -462,7 +596,3 @@ private fun DailyActivitiesContentPreview() {
         DailyEstimationSection()
     }
 }
-
-
-
-

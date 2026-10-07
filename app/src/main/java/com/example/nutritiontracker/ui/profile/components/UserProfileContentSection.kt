@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -16,8 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
-import com.example.nutritiontracker.ui.profile.page.DemographicContent
+import androidx.compose.ui.text.font.FontWeight
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
@@ -36,12 +36,22 @@ private fun CardFormHeader(
     if (icon != null && title != null) {
         Row(
             modifier = modifier,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(icon, contentDescription = null)
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = colorScheme.primary
+            )
 
-            Text(title, style = typography.titleMedium)
+            Text(
+                title,
+                style = typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onSurface
+                )
+            )
         }
     }
 }
@@ -50,16 +60,21 @@ private fun CardFormHeader(
 private fun CardFormSection(
     modifier: Modifier = Modifier,
     cardHeaderProps: CardFormHeaderProps = CardFormHeaderProps(),
-    contentPadding: PaddingValues = PaddingValues.Zero,
+    contentPadding: PaddingValues = PaddingValues(Spacing.none),
     content: @Composable (() -> Unit)? = null
 ) {
     val (title, icon) = cardHeaderProps
-    Card(modifier = modifier, colors = CardDefaults.cardColors().copy(
-            containerColor = colorScheme.surfaceContainerLow
-    )) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Spacing.m),
+        colors = CardDefaults.cardColors(
+            containerColor = colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = Spacing.xxs)
+    ) {
         Column(
-            modifier = Modifier.padding(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(vertical = Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             CardFormHeader(
                 title = title,
@@ -82,7 +97,7 @@ internal fun UserProfileContentSection(
 ) {
     CardFormSection(
         modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 16.dp),
+        contentPadding = PaddingValues(horizontal = Spacing.m),
         cardHeaderProps = CardFormHeaderProps(
             icon = icon,
             title = label,

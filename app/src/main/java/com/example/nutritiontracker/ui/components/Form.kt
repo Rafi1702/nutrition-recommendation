@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.State
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.LocalForm
 import com.example.nutritiontracker.ui.theme.Spacing
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -31,7 +30,6 @@ data class FieldProperties<T>(
     val isDirty: MutableState<Boolean?> = mutableStateOf(null),
     val isRequired: Boolean = false,
     val valueState: State<T>? = null,
-    val transformer: ((T) -> T)? = null
 ) {
     constructor(
         validator: FieldValidator<T>,
@@ -39,14 +37,12 @@ data class FieldProperties<T>(
         isDirty: MutableState<Boolean?> = mutableStateOf(null),
         isRequired: Boolean = false,
         valueState: State<T>? = null,
-        transformer: ((T) -> T)? = null
     ) : this(
         validator = listOf(validator),
         errorMessage = errorMessage,
         isDirty = isDirty,
         isRequired = isRequired,
         valueState = valueState,
-        transformer = transformer
     )
 
 
@@ -125,9 +121,9 @@ fun <T> RegisterFormListener(
         form.addField(name, fieldProperties)
 
         val rawInitialValue = fieldProperties.valueState?.value ?: return@LaunchedEffect
-        val initialValue = fieldProperties.transformer?.invoke(rawInitialValue) ?: rawInitialValue
 
-        Log.d("[REGISTER_FORM_LISTENER]", "initial value: $initialValue")
+
+        Log.d("[REGISTER_FORM_LISTENER]", "initial value: $rawInitialValue")
 
         snapshotFlow { fieldProperties.valueState.value }
             .filterNotNull()
@@ -135,11 +131,9 @@ fun <T> RegisterFormListener(
             .collect { rawCurrentValue ->
                 val validators = form.getField<T>(name)?.validator ?: fieldProperties.validator
 
-                val currentValue =
-                    fieldProperties.transformer?.invoke(rawCurrentValue) ?: rawCurrentValue
-                val firstError = validators.firstNotNullOfOrNull { it.validate(currentValue) }
+                val firstError = validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
 
-                val isDirty = currentValue != initialValue
+                val isDirty = rawCurrentValue != rawInitialValue
 
                 form.updateFieldState(
                     name = name,
@@ -149,7 +143,7 @@ fun <T> RegisterFormListener(
 
                 Log.d(
                     "[FORM_LISTENER]",
-                    "field: $name, current: $currentValue, error: $firstError, isDirty: $isDirty"
+                    "field: $name, current: $rawCurrentValue, error: $firstError, isDirty: $isDirty"
                 )
             }
     }
@@ -241,7 +235,7 @@ class CheckRequiredValidator : FieldValidator<Boolean> {
     }
 }
 
-class MockNumberValidator : FieldValidator<Number> {
+class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValidator<Number> {
     override fun validate(value: Number): String? {
         Log.d("[VALIDATOR]", "Number Validator: $value")
         val isGreaterThanZero = when (value) {

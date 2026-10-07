@@ -76,6 +76,8 @@ fun TextField(
     isSecure: Boolean = false,
     readOnly: Boolean = false,
     enabled: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = 1,
     keyboardOptions: KeyboardOptions = KeyboardOptions(),
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
@@ -101,7 +103,9 @@ fun TextField(
                 value = value,
                 onValueChange = onValueChange,
                 textStyle = textStyle,
-                decorationBox = decorationBox
+                decorationBox = decorationBox,
+                minLines = minLines,
+                maxLines = maxLines
             )
         }
 
@@ -115,6 +119,8 @@ fun TextField(
                 label = { Text(text = label) },
                 trailingIcon = trailingIcon,
                 suffix = suffix,
+                minLines = minLines,
+                maxLines = maxLines,
                 shape = RoundedCornerShape(cornerRadius),
                 visualTransformation = if (isSecure) {
                     remember { PasswordVisualTransformation() }
@@ -300,6 +306,8 @@ fun TextFormField(
     keyboardOption: KeyboardOptions = KeyboardOptions(),
     textStyle: TextStyle = LocalTextStyle.current,
     decorationBox: @Composable ((@Composable (() -> Unit)) -> Unit)? = null,
+    minLines: Int = 1,
+    maxLines: Int = 1,
     readOnly: Boolean = false,
     enabled: Boolean = true,
 ) {
@@ -319,6 +327,8 @@ fun TextFormField(
         keyboardOptions = keyboardOption,
         textStyle = textStyle,
         enabled = enabled,
+        maxLines = maxLines,
+        minLines = minLines,
         readOnly = readOnly,
         decorationBox = decorationBox
     )
