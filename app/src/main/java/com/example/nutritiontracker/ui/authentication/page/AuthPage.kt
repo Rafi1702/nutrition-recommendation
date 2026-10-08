@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Scaffold
@@ -37,6 +38,7 @@ import com.example.nutritiontracker.ui.components.CheckRequiredValidator
 import com.example.nutritiontracker.ui.components.EmailValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
+import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MatchValidator
 import com.example.nutritiontracker.ui.components.PasswordValidator
 import com.example.nutritiontracker.ui.components.textfield.TextFormField
@@ -54,7 +56,8 @@ internal fun AuthPage(
     authViewModel: AuthenticationViewModel,
 ) {
 
-    val authContentType = authViewModel.contentType.collectAsState()
+    val uiState = authViewModel.uiState.collectAsState()
+
     NutritionTrackerTheme {
         Scaffold(
             containerColor = colorScheme.background
@@ -74,14 +77,16 @@ internal fun AuthPage(
                 )
             ) {
                 Text("APP LOGO", style = typography.displaySmall)
-                when (authContentType.value) {
+                when (uiState.value.contentType) {
                     AuthContentType.SIGN_IN -> {
                         SignInContent(
+                            formBuilder = authViewModel.form,
                             onSignUpPressed = {
                                 authViewModel.onContentTypeChange(AuthContentType.SIGN_UP)
                             },
                             onSignInButtonPressed = {
-                                onNavigateToHome()
+//                                onNavigateToHome()
+                                authViewModel.signIn()
                                 Log.d("[SIGN_IN]", "BUTTON_PRESSED")
                             }
                         )
@@ -199,7 +204,9 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
 @Composable
 private fun SignInContent(
     onSignUpPressed: (AuthContentType) -> Unit = {},
-    onSignInButtonPressed: () -> Unit = {}
+    onSignInButtonPressed: () -> Unit = {},
+    isLoading: Boolean = false,
+    formBuilder: FormBuilder? = null
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -210,15 +217,19 @@ private fun SignInContent(
         contentColor = colorScheme.onSurface,
         border = BorderStroke(1.dp, colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        Form(modifier = Modifier.padding(Spacing.m), verticalSpacing = Spacing.m) { isValid ->
-            val form = LocalForm.current
+        Form(
+            modifier = Modifier.padding(Spacing.m),
+            formBuilder = formBuilder,
+            verticalSpacing = Spacing.m
+        ) { isValid ->
+
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldProperties = FieldProperties(
                     validator = EmailValidator(),
                     isRequired = true
                 ),
-                fieldName = "email",
+                fieldName = "username",
                 label = "Email",
                 backgroundColor = colorScheme.surfaceVariant,
             )
@@ -241,7 +252,6 @@ private fun SignInContent(
             ) {
                 CheckBoxForm(
                     modifier = Modifier.minimumInteractiveComponentSize(),
-                    form = form,
                     name = "remember",
                     fieldProperties = FieldProperties(
                         validator = CheckRequiredValidator(),
@@ -294,7 +304,10 @@ private fun SignInContent(
                     disabledContentColor = colorScheme.onSurface.copy(alpha = 0.38f)
                 )
             ) {
-                Text("Sign In", style = typography.labelLarge)
+                if (isLoading) CircularProgressIndicator() else Text(
+                    "Sign In",
+                    style = typography.labelLarge
+                )
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
             }
         }

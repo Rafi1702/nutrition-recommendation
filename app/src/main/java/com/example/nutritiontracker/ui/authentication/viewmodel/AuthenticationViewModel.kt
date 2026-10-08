@@ -12,8 +12,8 @@ import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MatchValidator
 import com.example.nutritiontracker.ui.components.PasswordValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,6 +25,11 @@ enum class AuthContentType {
     SIGN_UP
 }
 
+data class AuthenticationUiState(
+    val error: String? = null,
+    val contentType: AuthContentType = AuthContentType.SIGN_IN,
+    val isLoading: Boolean = false
+)
 
 @HiltViewModel
 class AuthenticationViewModel @Inject constructor(
@@ -32,22 +37,33 @@ class AuthenticationViewModel @Inject constructor(
     private val signUpUseCase: SignUpUseCase
 ) : ViewModel() {
 
-    val form = FormBuilder()
+    val form = FormBuilder().apply {
+        addField(
+            "username", FieldProperties(
+                validator = EmailValidator(),
+                isRequired = true
+            )
+        )
 
-    private val _contentType = MutableStateFlow(AuthContentType.SIGN_IN)
-
-    val contentType = _contentType.asStateFlow()
-
-    operator fun component1(): StateFlow<AuthContentType> {
-        return contentType
+        addField(
+            "password",
+            FieldProperties(
+                validator = PasswordValidator(),
+                isRequired = true
+            ),
+        )
     }
+
+    private val _uiState = MutableStateFlow(AuthenticationUiState())
+
+    val uiState = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            _contentType.collect { content ->
-                if (form.fieldRegistry.isNotEmpty()) form.clear()
-                when (content) {
+            _uiState.collect {
+                when (it.contentType) {
                     AuthContentType.SIGN_IN -> {
+                        form.clear()
                         form.addField(
                             mapOf(
                                 "username" to FieldProperties(
@@ -63,6 +79,7 @@ class AuthenticationViewModel @Inject constructor(
                     }
 
                     AuthContentType.SIGN_UP -> {
+                        form.clear()
                         form.addField(
                             mapOf(
                                 "username" to FieldProperties(
@@ -88,18 +105,26 @@ class AuthenticationViewModel @Inject constructor(
         }
     }
 
-
     fun signIn() {
         viewModelScope.launch {
             val username = form.getField<String>("username")?.valueState?.value
             val password = form.getField<String>("password")?.valueState?.value
 
             if (username != null && password != null) {
+                _uiState.update { it.copy(isLoading = true) }
+                delay(1000)
                 signInUseCase(
                     SignInAuth(
                         username = username,
                         password = password
                     )
+                ).fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(isLoading = false) }
+                    },
+                    onFailure = {
+                        _uiState.update { it.copy(error = it.error) }
+                    }
                 )
             }
         }
@@ -125,7 +150,7 @@ class AuthenticationViewModel @Inject constructor(
 
     fun onContentTypeChange(authContentType: AuthContentType) {
         viewModelScope.launch {
-            _contentType.update { authContentType }
+            _uiState.update { it.copy(contentType = authContentType) }
         }
     }
 }

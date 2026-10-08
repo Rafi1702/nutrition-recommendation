@@ -127,26 +127,30 @@ fun <T> RegisterFormListener(
 
         val rawInitialValue = fieldProperties.valueState?.value ?: return@LaunchedEffect
 
-
         Log.d("[REGISTER_FORM_LISTENER]", "initial value: $rawInitialValue")
 
         snapshotFlow { fieldProperties.valueState.value }
             .distinctUntilChanged()
             .collect { rawCurrentValue ->
                 form.getField<T>(name)?.let{ (validators, _, isDirty) ->
-                    val firstError = validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
+//                    val firstError = validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
 
-                    form.updateFieldState(
-                        name = name,
-                        errorMessage = firstError,
-                        isDirty = if(isDirty.value != null) rawCurrentValue != rawInitialValue else true
-                    )
+                    form.getField<T>(name)?.let { (validators, _, isDirty) ->
+                        val firstError =
+                            validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
 
-                    Log.d(
-                        "[FORM_LISTENER]",
-                        "field: $name, current: $rawCurrentValue, error: $firstError, isDirty: $isDirty"
-                    )
+                        form.updateFieldState(
+                            name = name,
+                            errorMessage = firstError,
+                            isDirty = if (isDirty.value != null) rawCurrentValue != rawInitialValue else true
+                        )
 
+                        Log.d(
+                            "[FORM_LISTENER]",
+                            "field: $name, current: $rawCurrentValue, error: $firstError, isDirty: $isDirty"
+                        )
+
+                    }
                 }
             }
     }
@@ -156,9 +160,10 @@ fun <T> RegisterFormListener(
 fun Form(
     modifier: Modifier = Modifier,
     verticalSpacing: Dp = Spacing.s,
+    formBuilder: FormBuilder? = null,
     child: @Composable ((isValid: Boolean) -> Unit)? = null
 ) {
-    val builder = rememberFormBuilder()
+    val builder = formBuilder ?: rememberFormBuilder()
 
     DisposableEffect(Unit) {
         onDispose { builder.clear() }

@@ -7,8 +7,8 @@ import javax.inject.Inject
 
 
 class SignInUseCase @Inject constructor(private val authRepository: AuthRepository) {
-    suspend operator fun invoke(authModel: SignInAuth) {
-        authRepository.signIn(authModel)
+    suspend operator fun invoke(authModel: SignInAuth): Result<Unit> {
+       return authRepository.signIn(authModel)
     }
 }
 

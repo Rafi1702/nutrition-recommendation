@@ -5,6 +5,6 @@ import com.example.nutritiontracker.domain.model.SignUpAuth
 
 
 interface AuthRepository {
-    suspend fun signIn(authModel: SignInAuth)
-    suspend fun signUp(authModel: SignUpAuth)
+    suspend fun signIn(authModel: SignInAuth): Result<Unit>
+    suspend fun signUp(authModel: SignUpAuth): Result<Unit>
 }

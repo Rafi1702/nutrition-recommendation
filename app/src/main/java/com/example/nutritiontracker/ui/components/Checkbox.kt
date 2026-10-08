@@ -14,7 +14,6 @@ import androidx.compose.material3.Checkbox as M3Checkbox
 @Composable
 fun CheckBoxForm(
     modifier: Modifier = Modifier,
-    form: FormBuilder,
     name: String,
     fieldProperties: FieldProperties<Boolean>,
     removePadding: Boolean = false,
@@ -29,27 +28,18 @@ fun CheckBoxForm(
         )
     }
 
-    RegisterFormListener(
-        form = form,
-        name = name,
-        fieldProperties = boundProperties,
-    )
-
-    DisposableEffect(Unit) {
-        onDispose {
-            form.removeField(name)
-        }
-    }
 
     val checkboxContent = @Composable {
-        M3Checkbox(
-            modifier = modifier,
-            checked = isCheckedState.value,
-            onCheckedChange = {
-                isCheckedState.value = it
-                onCheckedChange(it)
-            }
-        )
+        FieldRegister (fieldProperties = boundProperties, name){
+            M3Checkbox(
+                modifier = modifier,
+                checked = isCheckedState.value,
+                onCheckedChange = {
+                    isCheckedState.value = it
+                    onCheckedChange(it)
+                }
+            )
+        }
     }
     if (removePadding) {
         return CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
