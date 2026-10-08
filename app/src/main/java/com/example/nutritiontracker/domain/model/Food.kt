@@ -1,4 +1,4 @@
-package com.example.nutritiontracker.domain
+package com.example.nutritiontracker.domain.model
 
 import com.example.nutritiontracker.R
 import kotlin.math.roundToInt

@@ -1,5 +1,9 @@
 package com.example.nutritiontracker
 
+
+/*
+TODO: This only possible using another client that support intercepting such as OkHttpClient
+*/
 enum class AuthorizationPolicy{
     BEARER,
     API_KEY;
@@ -18,7 +22,7 @@ enum class ContentType{
 
     fun getContentTypeRequestHeaderPair(value: String): Pair<String, String>{
         return when(this){
-            JSON -> TODO()
+            JSON -> ("Application/Json" to value)
             HTML -> TODO()
             XML -> TODO()
         }
@@ -27,5 +31,5 @@ enum class ContentType{
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class CustomHeader(val authPolicy: Array<AuthorizationPolicy>, val contentType: ContentType)
+annotation class CustomHeader(val authPolicy: Array<AuthorizationPolicy> = [], val contentType: ContentType)
 

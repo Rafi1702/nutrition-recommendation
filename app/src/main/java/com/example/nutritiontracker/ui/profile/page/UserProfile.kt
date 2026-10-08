@@ -45,10 +45,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.domain.BodyMassIndexStatus
-import com.example.nutritiontracker.domain.Gender
-import com.example.nutritiontracker.domain.PersonalActivities
-import com.example.nutritiontracker.domain.createDefaultUserProfile
+import com.example.nutritiontracker.domain.model.BodyMassIndexStatus
+import com.example.nutritiontracker.domain.model.Gender
+import com.example.nutritiontracker.domain.model.PersonalActivities
+import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm

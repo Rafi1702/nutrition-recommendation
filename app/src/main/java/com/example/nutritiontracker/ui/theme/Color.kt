@@ -4,7 +4,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import com.example.nutritiontracker.domain.MacroType
+import com.example.nutritiontracker.domain.model.MacroType
 
 val PrimaryLight = Color(0xFF2E7D32)
 val OnPrimaryLight = Color(0xFFFFFFFF)

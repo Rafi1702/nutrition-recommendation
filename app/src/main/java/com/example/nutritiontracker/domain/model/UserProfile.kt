@@ -1,4 +1,4 @@
-package com.example.nutritiontracker.domain
+package com.example.nutritiontracker.domain.model
 
 data class UserProfile(
     val gender: Gender,

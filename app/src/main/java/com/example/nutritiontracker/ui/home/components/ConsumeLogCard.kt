@@ -22,11 +22,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.datasource.remote.MOCK_FOODS
-import com.example.nutritiontracker.domain.ConsumeLog
-import com.example.nutritiontracker.domain.EatTime
-import com.example.nutritiontracker.domain.NutrientsSubTotal
-import com.example.nutritiontracker.domain.nutrientsSubTotal
+import com.example.nutritiontracker.data.remote.MOCK_FOODS
+import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.EatTime
+import com.example.nutritiontracker.domain.model.NutrientsSubTotal
+import com.example.nutritiontracker.domain.model.nutrientsSubTotal
 import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography

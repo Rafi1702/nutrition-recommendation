@@ -1,4 +1,4 @@
-package com.example.nutritiontracker.domain
+package com.example.nutritiontracker.domain.model
 
 enum class EatTime(val label: String) {
     BREAKFAST("Breakfast"),

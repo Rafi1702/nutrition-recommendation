@@ -54,7 +54,7 @@ class FormBuilder {
 
     val isValid: Boolean by derivedStateOf {
         if (fieldRegistry.isEmpty()) return@derivedStateOf false
-        fieldRegistry.values.filter { it.isRequired }
+        fieldRegistry.values.filter { it.valueState != null }
             .all { it.isValid }
     }
 
@@ -64,8 +64,13 @@ class FormBuilder {
         return properties as FieldProperties<T>?
     }
 
-    fun <T> addField(name: String, field: FieldProperties<T>) {
+    fun <T> addField(name: String, field: FieldProperties<T>): FormBuilder {
         fieldRegistry[name] = field
+        return this
+    }
+
+    fun addField(fields: Map<String, FieldProperties<*>>){
+        fieldRegistry.putAll(fields)
     }
 
     fun removeField(name: String) {
@@ -126,25 +131,23 @@ fun <T> RegisterFormListener(
         Log.d("[REGISTER_FORM_LISTENER]", "initial value: $rawInitialValue")
 
         snapshotFlow { fieldProperties.valueState.value }
-            .filterNotNull()
             .distinctUntilChanged()
             .collect { rawCurrentValue ->
-                val validators = form.getField<T>(name)?.validator ?: fieldProperties.validator
+                form.getField<T>(name)?.let{ (validators, _, isDirty) ->
+                    val firstError = validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
 
-                val firstError = validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
+                    form.updateFieldState(
+                        name = name,
+                        errorMessage = firstError,
+                        isDirty = if(isDirty.value != null) rawCurrentValue != rawInitialValue else true
+                    )
 
-                val isDirty = rawCurrentValue != rawInitialValue
+                    Log.d(
+                        "[FORM_LISTENER]",
+                        "field: $name, current: $rawCurrentValue, error: $firstError, isDirty: $isDirty"
+                    )
 
-                form.updateFieldState(
-                    name = name,
-                    errorMessage = firstError,
-                    isDirty = isDirty
-                )
-
-                Log.d(
-                    "[FORM_LISTENER]",
-                    "field: $name, current: $rawCurrentValue, error: $firstError, isDirty: $isDirty"
-                )
+                }
             }
     }
 }
