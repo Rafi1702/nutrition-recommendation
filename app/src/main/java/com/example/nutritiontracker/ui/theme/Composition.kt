@@ -3,6 +3,7 @@ package com.example.nutritiontracker.ui.theme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.navigation.NavHostController
@@ -30,7 +31,4 @@ val screenSize: ScreenSize
     get() = rememberScreenSize()
 
 val LocalNavController = compositionLocalOf<NavHostController?> { error("No NavHostController Provided") }
-
-val LocalForm = compositionLocalOf<FormBuilder> { error("No Form Provided") }
-
 
