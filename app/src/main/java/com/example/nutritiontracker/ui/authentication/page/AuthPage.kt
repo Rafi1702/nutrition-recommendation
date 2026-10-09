@@ -33,16 +33,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthContentType
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationViewModel
+import com.example.nutritiontracker.ui.authentication.viewmodel.SignInForm
+import com.example.nutritiontracker.ui.authentication.viewmodel.SignUpForm
 import com.example.nutritiontracker.ui.components.CheckBoxForm
 import com.example.nutritiontracker.ui.components.CheckRequiredValidator
-import com.example.nutritiontracker.ui.components.EmailValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
-import com.example.nutritiontracker.ui.components.MatchValidator
-import com.example.nutritiontracker.ui.components.PasswordValidator
 import com.example.nutritiontracker.ui.components.textfield.TextFormField
-import com.example.nutritiontracker.ui.theme.LocalForm
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
@@ -80,12 +78,11 @@ internal fun AuthPage(
                 when (uiState.value.contentType) {
                     AuthContentType.SIGN_IN -> {
                         SignInContent(
-                            formBuilder = authViewModel.form,
+                            formBuilder = authViewModel.signInForm,
                             onSignUpPressed = {
                                 authViewModel.onContentTypeChange(AuthContentType.SIGN_UP)
                             },
                             onSignInButtonPressed = {
-//                                onNavigateToHome()
                                 authViewModel.signIn()
                                 Log.d("[SIGN_IN]", "BUTTON_PRESSED")
                             }
@@ -93,7 +90,7 @@ internal fun AuthPage(
                     }
 
                     AuthContentType.SIGN_UP -> {
-                        SignUpContent(onSignInPressed = {
+                        SignUpContent(formBuilder = authViewModel.signUpForm, onSignInPressed = {
                             authViewModel.onContentTypeChange(
                                 AuthContentType.SIGN_IN
                             )
@@ -107,7 +104,10 @@ internal fun AuthPage(
 
 @Preview(showBackground = true)
 @Composable
-private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
+private fun SignUpContent(
+    onSignInPressed: (AuthContentType) -> Unit = {},
+    formBuilder: FormBuilder<SignUpForm>? = null
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 6.dp,
@@ -117,32 +117,25 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
         contentColor = colorScheme.onSurface,
         border = BorderStroke(1.dp, colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
-        Form(modifier = Modifier.padding(Spacing.m), verticalSpacing = Spacing.m) { isValid ->
-            val form = LocalForm.current
+        Form(
+            modifier = Modifier.padding(Spacing.m),
+            verticalSpacing = Spacing.m,
+            isPersist = true,
+            formBuilder = formBuilder
+        ) { isValid ->
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 label = "Password",
-                fieldName = "password_sign_up",
-                initialValue = "TESST",
-                backgroundColor = colorScheme.surfaceVariant,
-                fieldProperties = FieldProperties(
-                    validator = PasswordValidator(),
-                    isRequired = true,
-                ),
+                fieldName = SignUpForm::password,
+                persist = true,
+                backgroundColor = colorScheme.surfaceVariant
             )
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                fieldName = "password_sign_up_confirm",
+                fieldName = SignUpForm::confirmPassword,
                 label = "Confirm password",
-                initialValue = "",
+                persist = true,
                 backgroundColor = colorScheme.surfaceVariant,
-                fieldProperties = FieldProperties(
-                    validator = MatchValidator(
-                        form = form,
-                        targetFieldKey = "password_sign_up"
-                    ),
-                    isRequired = true
-                ),
             )
 
             Row(
@@ -173,15 +166,7 @@ private fun SignUpContent(onSignInPressed: (AuthContentType) -> Unit = {}) {
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    val (password, confirmedPassword) = (form.getField<CharSequence>("password_sign_up") to form.getField<CharSequence>(
-                        "password_sign_up_confirm"
-                    ))
 
-                    Log.d(
-                        "[PRESSED_BUTTON]",
-                        "password: ${password?.valueState?.value}, confirmed_password: ${confirmedPassword?.valueState?.value}"
-                    )
-                    /* TODO: Sign Up */
                 },
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
@@ -206,7 +191,7 @@ private fun SignInContent(
     onSignUpPressed: (AuthContentType) -> Unit = {},
     onSignInButtonPressed: () -> Unit = {},
     isLoading: Boolean = false,
-    formBuilder: FormBuilder? = null
+    formBuilder: FormBuilder<SignInForm>? = null
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -220,28 +205,23 @@ private fun SignInContent(
         Form(
             modifier = Modifier.padding(Spacing.m),
             formBuilder = formBuilder,
+            isPersist = true,
             verticalSpacing = Spacing.m
         ) { isValid ->
 
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                fieldProperties = FieldProperties(
-                    validator = EmailValidator(),
-                    isRequired = true
-                ),
-                fieldName = "username",
+                fieldName = SignInForm::username,
                 label = "Email",
+                persist = true,
                 backgroundColor = colorScheme.surfaceVariant,
             )
 
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                fieldProperties = FieldProperties(
-                    validator = PasswordValidator(),
-                    isRequired = true,
-                ),
-                fieldName = "password",
+                fieldName = SignInForm::password,
                 label = "Password",
+                persist = true,
                 backgroundColor = colorScheme.surfaceVariant,
             )
 
@@ -252,7 +232,7 @@ private fun SignInContent(
             ) {
                 CheckBoxForm(
                     modifier = Modifier.minimumInteractiveComponentSize(),
-                    name = "remember",
+                    fieldName = SignInForm::isChecked,
                     fieldProperties = FieldProperties(
                         validator = CheckRequiredValidator(),
                         isRequired = true

@@ -6,6 +6,7 @@ import com.example.nutritiontracker.domain.model.SignInAuth
 import com.example.nutritiontracker.domain.model.SignUpAuth
 import com.example.nutritiontracker.domain.usecase.SignInUseCase
 import com.example.nutritiontracker.domain.usecase.SignUpUseCase
+import com.example.nutritiontracker.ui.components.CheckRequiredValidator
 import com.example.nutritiontracker.ui.components.EmailValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
@@ -20,6 +21,18 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
+data class SignInForm(
+    val username: CharSequence,
+    val password: CharSequence,
+    val isChecked: Boolean,
+)
+
+data class SignUpForm(
+    val username: CharSequence,
+    val password: CharSequence,
+    val confirmPassword: CharSequence,
+)
+
 enum class AuthContentType {
     SIGN_IN,
     SIGN_UP
@@ -31,24 +44,60 @@ data class AuthenticationUiState(
     val isLoading: Boolean = false
 )
 
+
 @HiltViewModel
 class AuthenticationViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val signUpUseCase: SignUpUseCase
 ) : ViewModel() {
 
-    val form = FormBuilder().apply {
+    val signInForm = FormBuilder<SignInForm>().apply {
         addField(
-            "username", FieldProperties(
+            SignInForm::username, FieldProperties(
                 validator = EmailValidator(),
                 isRequired = true
             )
         )
 
         addField(
-            "password",
+            SignInForm::password,
             FieldProperties(
                 validator = PasswordValidator(),
+                isRequired = true
+            ),
+        )
+
+        addField(
+            SignInForm::isChecked,
+            FieldProperties(
+                validator = CheckRequiredValidator()
+            )
+        )
+    }
+
+    val signUpForm = FormBuilder<SignUpForm>().apply{
+        addField(
+            SignUpForm::username, FieldProperties(
+                validator = EmailValidator(),
+                isRequired = true
+            )
+        )
+
+        addField(
+            SignUpForm::password,
+            FieldProperties(
+                validator = PasswordValidator(),
+                isRequired = true
+            ),
+        )
+
+        addField(
+            SignUpForm::confirmPassword,
+            FieldProperties(
+                validator = MatchValidator(
+                    form = this,
+                    targetFieldKey = SignUpForm::password,
+                ),
                 isRequired = true
             ),
         )
@@ -58,65 +107,19 @@ class AuthenticationViewModel @Inject constructor(
 
     val uiState = _uiState.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            _uiState.collect {
-                when (it.contentType) {
-                    AuthContentType.SIGN_IN -> {
-                        form.clear()
-                        form.addField(
-                            mapOf(
-                                "username" to FieldProperties(
-                                    validator = EmailValidator(),
-                                    isRequired = true
-                                ),
-                                "password" to FieldProperties(
-                                    validator = PasswordValidator(),
-                                    isRequired = true
-                                ),
-                            )
-                        )
-                    }
-
-                    AuthContentType.SIGN_UP -> {
-                        form.clear()
-                        form.addField(
-                            mapOf(
-                                "username" to FieldProperties(
-                                    validator = EmailValidator(),
-                                    isRequired = true
-                                ),
-                                "password" to FieldProperties(
-                                    validator = PasswordValidator(),
-                                    isRequired = true
-                                ),
-                                "confirm_password" to FieldProperties(
-                                    validator = MatchValidator(
-                                        form = form,
-                                        targetFieldKey = "password"
-                                    ),
-                                    isRequired = true
-                                ),
-                            )
-                        )
-                    }
-                }
-            }
-        }
-    }
 
     fun signIn() {
         viewModelScope.launch {
-            val username = form.getField<String>("username")?.valueState?.value
-            val password = form.getField<String>("password")?.valueState?.value
+            val username = signInForm.getField<CharSequence>(SignInForm::username)?.valueState?.value
+            val password = signInForm.getField<CharSequence>(SignInForm::password)?.valueState?.value
 
             if (username != null && password != null) {
                 _uiState.update { it.copy(isLoading = true) }
                 delay(1000)
                 signInUseCase(
                     SignInAuth(
-                        username = username,
-                        password = password
+                        username = username.toString(),
+                        password = password.toString()
                     )
                 ).fold(
                     onSuccess = {
@@ -132,9 +135,9 @@ class AuthenticationViewModel @Inject constructor(
 
     fun signUp() {
         viewModelScope.launch {
-            val username = form.getField<String>("username")?.valueState?.value
-            val password = form.getField<String>("password")?.valueState?.value
-            val confirmPassword = form.getField<String>("confirm_password")?.valueState?.value
+            val username = signUpForm.getField<String>(SignUpForm::username)?.valueState?.value
+            val password = signUpForm.getField<String>(SignUpForm::password)?.valueState?.value
+            val confirmPassword = signUpForm.getField<String>(SignUpForm::confirmPassword)?.valueState?.value
 
             if (username != null && password != null && confirmPassword != null) {
                 signUpUseCase(
