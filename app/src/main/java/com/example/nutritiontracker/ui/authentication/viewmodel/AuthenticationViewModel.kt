@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.authentication.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.SignInAuth
@@ -49,16 +50,15 @@ data class AuthenticationUiState(
 class AuthenticationViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val signUpUseCase: SignUpUseCase
-) : ViewModel() {
+) : ViewModel(), AuthViewModelCallback {
 
-    val signInForm = FormBuilder<SignInForm>().apply {
+    val signInForm = FormBuilder<SignInForm>(persist = true).apply {
         addField(
             SignInForm::username, FieldProperties(
                 validator = EmailValidator(),
-                isRequired = true
+                isRequired = true,
             )
         )
-
         addField(
             SignInForm::password,
             FieldProperties(
@@ -78,14 +78,16 @@ class AuthenticationViewModel @Inject constructor(
     val signUpForm = FormBuilder<SignUpForm>().apply{
         addField(
             SignUpForm::username, FieldProperties(
+                persist = true,
                 validator = EmailValidator(),
-                isRequired = true
+                isRequired = true,
             )
         )
 
         addField(
             SignUpForm::password,
             FieldProperties(
+                persist = true,
                 validator = PasswordValidator(),
                 isRequired = true
             ),
@@ -94,6 +96,7 @@ class AuthenticationViewModel @Inject constructor(
         addField(
             SignUpForm::confirmPassword,
             FieldProperties(
+                persist = true,
                 validator = MatchValidator(
                     form = this,
                     targetFieldKey = SignUpForm::password,
@@ -108,8 +111,9 @@ class AuthenticationViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
 
-    fun signIn() {
+    override fun signIn() {
         viewModelScope.launch {
+            Log.d("[SIGN_IN]", "PRESSED SIGN IN")
             val username = signInForm.getField<CharSequence>(SignInForm::username)?.valueState?.value
             val password = signInForm.getField<CharSequence>(SignInForm::password)?.valueState?.value
 
@@ -125,15 +129,15 @@ class AuthenticationViewModel @Inject constructor(
                     onSuccess = {
                         _uiState.update { it.copy(isLoading = false) }
                     },
-                    onFailure = {
-                        _uiState.update { it.copy(error = it.error) }
+                    onFailure = { err ->
+                        _uiState.update { it.copy(error = err.message, isLoading = false) }
                     }
                 )
             }
         }
     }
 
-    fun signUp() {
+    override fun signUp() {
         viewModelScope.launch {
             val username = signUpForm.getField<String>(SignUpForm::username)?.valueState?.value
             val password = signUpForm.getField<String>(SignUpForm::password)?.valueState?.value
@@ -151,11 +155,17 @@ class AuthenticationViewModel @Inject constructor(
         }
     }
 
-    fun onContentTypeChange(authContentType: AuthContentType) {
+    override fun onContentTypeChange(authContentType: AuthContentType) {
         viewModelScope.launch {
             _uiState.update { it.copy(contentType = authContentType) }
         }
     }
+}
+
+internal interface AuthViewModelCallback{
+    fun signIn()
+    fun signUp()
+    fun onContentTypeChange(authContentType: AuthContentType)
 }
 
 

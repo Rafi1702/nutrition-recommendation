@@ -2,7 +2,14 @@ package com.example.nutritiontracker.ui.components.textfield
 
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,37 +37,23 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FieldRegister
 import com.example.nutritiontracker.ui.components.PasswordValidator
 import com.example.nutritiontracker.ui.components.currentForm
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
+import com.example.nutritiontracker.ui.theme.typography
+import com.example.nutritiontracker.ui.utils.withStyle
 import kotlin.reflect.KProperty1
 import androidx.compose.material3.TextField as M3TextField
-
-@Preview(name = "TextField", showBackground = true)
-@Composable
-fun CustomOutlinedTextFieldPreview() {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        TextField(value = "", label = "Email")
-        TextField(
-            value = "",
-            label = "Password",
-            isSecure = true,
-            suffix = {
-                Icon(
-                    Icons.Default.Visibility,
-                    contentDescription = "Visibility",
-                )
-            })
-    }
-}
 
 @Composable
 fun TextField(
@@ -159,8 +152,11 @@ fun TextField(
     isSecure: Boolean = false,
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    prefix: @Composable (() -> Unit)? = null,
     errorMessage: String? = null,
     isError: Boolean? = null,
+    isRequired: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions(),
     decorationBox: TextFieldDecorator? = null,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -186,12 +182,6 @@ fun TextField(
         unfocusedLabelColor = resolvedBorderColor
     )
 
-    val labelContent: (@Composable TextFieldLabelScope.() -> Unit)? = if (label.isNotBlank()) {
-        { Text(text = label) }
-    } else {
-        null
-    }
-
     val supportingTextContent: (@Composable () -> Unit)? =
         if (errorMessage != null && isError == true) {
             { Text(text = errorMessage) }
@@ -211,45 +201,63 @@ fun TextField(
         }
     }
 
-    when {
-        isSecure -> {
-            SecureTextField(
-                state = state,
-                modifier = modifier.onKeyEvent(ignoredKeyEvent),
-                label = labelContent,
-                trailingIcon = trailingIcon,
-                isError = hasError,
-                supportingText = supportingTextContent,
-                keyboardOptions = keyboardOptions,
-                suffix = suffix,
-                textStyle = textStyle,
-                shape = RoundedCornerShape(cornerRadius),
-                colors = textFieldColors,
+    val prefixContent: @Composable (() -> Unit)? = prefix?.let {
+        {
+            Box(modifier = Modifier.padding(end = Spacing.s)){
+                prefix.invoke()
+            }
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
+            Text(text = label, style = typography.labelMedium)
+            if (isRequired) Text(
+                text = "*",
+                style = typography.labelMedium.copy(color = colorScheme.error)
             )
         }
+        when {
+            isSecure -> {
+                SecureTextField(
+                    state = state,
+                    modifier = modifier.onKeyEvent(ignoredKeyEvent),
+                    trailingIcon = trailingIcon,
+                    isError = hasError,
+                    supportingText = supportingTextContent,
+                    keyboardOptions = keyboardOptions,
+                    suffix = suffix,
+                    prefix = prefixContent,
+                    placeholder = placeholder,
+                    textStyle = textStyle,
+                    shape = RoundedCornerShape(cornerRadius),
+                    colors = textFieldColors,
+                )
+            }
 
-        decorationBox != null -> {
-            BasicTextField(
-                state = state,
-                modifier = modifier,
-                decorator = decorationBox,
-                textStyle = textStyle
-            )
-        }
+            decorationBox != null -> {
+                BasicTextField(
+                    state = state,
+                    modifier = modifier,
+                    decorator = decorationBox,
+                    textStyle = textStyle
+                )
+            }
 
-        else -> {
-            M3TextField(
-                state = state,
-                modifier = modifier.onPreviewKeyEvent(ignoredKeyEvent),
-                label = labelContent,
-                trailingIcon = trailingIcon,
-                isError = hasError,
-                supportingText = supportingTextContent,
-                suffix = suffix,
-                shape = RoundedCornerShape(cornerRadius),
-                colors = textFieldColors,
-                textStyle = textStyle
-            )
+            else -> {
+                M3TextField(
+                    state = state,
+                    modifier = modifier.onPreviewKeyEvent(ignoredKeyEvent),
+                    trailingIcon = trailingIcon,
+                    isError = hasError,
+                    placeholder = placeholder,
+                    supportingText = supportingTextContent,
+                    suffix = suffix,
+                    prefix = prefixContent,
+                    shape = RoundedCornerShape(cornerRadius),
+                    colors = textFieldColors,
+                    textStyle = textStyle
+                )
+            }
         }
     }
 }
@@ -265,21 +273,26 @@ fun <T> TextFormField(
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    prefix: @Composable (() -> Unit)? = null,
     isSecure: Boolean? = null,
+    isRequired: Boolean = false,
     keyboardOption: KeyboardOptions = KeyboardOptions(),
     style: TextStyle = LocalTextStyle.current,
 ) {
     val (_, errorMessage) = properties
     val resolvedIsSecure = isSecure ?: properties.validator.any { it is PasswordValidator }
 
-
     TextField(
         state = state,
         modifier = modifier,
+        isRequired = isRequired,
         label = label,
         errorMessage = errorMessage.value,
         isSecure = resolvedIsSecure,
+        placeholder = placeholder,
         cornerRadius = cornerRadius,
+        prefix = prefix,
         borderColor = borderColor,
         backgroundColor = backgroundColor,
         suffix = suffix,
@@ -300,7 +313,6 @@ fun TextFormField(
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
-    isSecure: Boolean? = null,
     keyboardOption: KeyboardOptions = KeyboardOptions(),
     textStyle: TextStyle = LocalTextStyle.current,
     decorationBox: @Composable ((@Composable (() -> Unit)) -> Unit)? = null,
@@ -337,44 +349,44 @@ fun <T : Any> TextFormField(
     modifier: Modifier = Modifier,
     fieldName: KProperty1<T, *>,
     fieldProperties: FieldProperties<CharSequence>? = null,
-    persist: Boolean = false,
     label: String = "Label",
     cornerRadius: Dp = Spacing.s,
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
+    prefix: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
     suffix: @Composable (() -> Unit)? = null,
     isSecure: Boolean? = null,
 ) {
 
     val formBuilder = currentForm<T>()
 
-    val state = rememberTextFieldState(
-        if (formBuilder.getField<CharSequence>(fieldName)?.valueState != null) formBuilder.getField<CharSequence>(
-            fieldName
-        )?.valueState?.value.toString() else ""
-    )
+    val existingField = formBuilder.getField<CharSequence>(fieldName)
+    val initialText = existingField?.valueState?.value?.toString() ?: ""
+
+    val state = rememberTextFieldState(initialText)
 
     val boundProps = remember(fieldName) {
-        val base = formBuilder.getField(fieldName)
-            ?: fieldProperties
-            ?: FieldProperties(validator = emptyList())
+        val base = existingField ?: fieldProperties ?: FieldProperties(validator = emptyList())
         base.copy(valueState = derivedStateOf { state.text })
     }
 
     FieldRegister(
         fieldProperties = boundProps,
         name = fieldName,
-        persist = persist,
     ) {
         val currentProps = formBuilder.getField(fieldName) ?: boundProps
         TextFormField(
             state = state,
             properties = currentProps,
             modifier = modifier,
-            label = label,
             cornerRadius = cornerRadius,
+            label = label,
+            prefix = prefix,
             borderColor = borderColor,
+            isRequired = boundProps.isRequired,
+            placeholder = placeholder,
             backgroundColor = backgroundColor,
             suffix = suffix,
             trailingIcon = trailingIcon,

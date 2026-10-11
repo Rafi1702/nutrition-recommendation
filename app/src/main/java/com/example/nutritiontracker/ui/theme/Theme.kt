@@ -1,9 +1,8 @@
 package com.example.nutritiontracker.ui.theme
 
-    import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-    import androidx.compose.material3.SnackbarHostState
-    import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable

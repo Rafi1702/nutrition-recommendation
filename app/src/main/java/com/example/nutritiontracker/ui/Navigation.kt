@@ -2,12 +2,14 @@ package com.example.nutritiontracker.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.ui.authentication.page.AuthPage
+import com.example.nutritiontracker.ui.authentication.page.AuthPageRoute
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationViewModel
 import com.example.nutritiontracker.ui.home.page.HomePath
@@ -26,7 +28,7 @@ fun AppNavigation(
 
         composable(AuthPath.AUTH) {
             val authenticationViewModel: AuthenticationViewModel = hiltViewModel()
-            AuthPage(authViewModel = authenticationViewModel)
+            AuthPageRoute(viewModel = authenticationViewModel)
         }
         composable(HomePath.BASE_HOME_PATH) {
             MainPage()

@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.theme
 
+import android.view.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -23,6 +24,8 @@ val BackgroundLight = Color(0xFFF8FBF8)  // Putih dengan sedikit sentuhan hijau 
 val SurfaceLight = Color(0xFFFFFFFF)
 val OnBackgroundLight = Color(0xFF191C19)
 val OnSurfaceLight = Color(0xFF191C19)
+val SurfaceVariantLight = Color(0xFFF0F2F9)
+val OnSurfaceVariantLight = Color(0xFF424942)
 
 // --- Dark Theme Colors ---
 val PrimaryDark = Color(0xFF81C784)      // Hijau Mint lembut untuk dark mode
@@ -38,10 +41,12 @@ val OnSecondaryContainerDark = Color(0xFFFFCCBC)
 val TertiaryDark = Color(0xFF4DB6AC)     // Teal lembut
 val OnTertiaryDark = Color(0xFF003732)
 
-val BackgroundDark = Color(0xFF111411)   // Hitam keabuan dengan nuansa natural
+val BackgroundDark = Color(0xFF111411)
 val SurfaceDark = Color(0xFF111411)
 val OnBackgroundDark = Color(0xFFE2E3DF)
 val OnSurfaceDark = Color(0xFFE2E3DF)
+val SurfaceVariantDark = Color(0xFF1E222B)      
+val OnSurfaceVariantDark = Color(0xFFC1C7C1)
 
 
 internal val DarkColorScheme = darkColorScheme(
@@ -58,7 +63,9 @@ internal val DarkColorScheme = darkColorScheme(
     background = BackgroundDark,
     surface = SurfaceDark,
     onBackground = OnBackgroundDark,
-    onSurface = OnSurfaceDark
+    onSurface = OnSurfaceDark,
+    surfaceVariant = SurfaceVariantDark,
+    onSurfaceVariant = OnSurfaceVariantDark
 )
 
 internal val LightColorScheme = lightColorScheme(
@@ -75,7 +82,9 @@ internal val LightColorScheme = lightColorScheme(
     background = BackgroundLight,
     surface = SurfaceLight,
     onBackground = OnBackgroundLight,
-    onSurface = OnSurfaceLight
+    onSurface = OnSurfaceLight,
+    surfaceVariant = SurfaceVariantLight,
+    onSurfaceVariant = OnSurfaceVariantLight
 )
 
 data class MacroColors(

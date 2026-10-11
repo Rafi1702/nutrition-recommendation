@@ -18,6 +18,8 @@
     <string name="food_recommendation_section_home_sub">Dipilih khusus untuk menutupi defisit protein harianmu.</string>
     <string name="user_profile_demographic_information_section_title">INFORMASI DEMOGRAFI</string>
     <string name="body_mass_index">Index Massa Tubuh (IMT)</string>
+    <string name="username_auth_textfield_placeholder">Masukkan username</string>
+    <string name="password_auth_textfield_placeholder">Masukkan password</string>
     <string-array name="body_mass_index_level">
         <item>Dibawah rerata</item>
         <item>Normal</item>

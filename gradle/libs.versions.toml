@@ -19,6 +19,7 @@ navigationRuntimeKtx = "2.10.1"
 navigationCompose = "2.10.1"
 retrofit = "3.0.0"
 kspVersion = "2.3.12"
+securityCryptoVersion = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -48,6 +49,7 @@ androidx-compose-material3-window-size-class1 = { group = "androidx.compose.mate
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

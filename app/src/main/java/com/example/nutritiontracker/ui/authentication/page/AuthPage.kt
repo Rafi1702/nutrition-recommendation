@@ -1,18 +1,28 @@
 package com.example.nutritiontracker.ui.authentication.page
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Dangerous
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,18 +35,30 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.nutritiontracker.R
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthContentType
+import com.example.nutritiontracker.ui.authentication.viewmodel.AuthViewModelCallback
+import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationUiState
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationViewModel
 import com.example.nutritiontracker.ui.authentication.viewmodel.SignInForm
 import com.example.nutritiontracker.ui.authentication.viewmodel.SignUpForm
 import com.example.nutritiontracker.ui.components.CheckBoxForm
 import com.example.nutritiontracker.ui.components.CheckRequiredValidator
+import com.example.nutritiontracker.ui.components.EmailValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
@@ -48,14 +70,29 @@ import com.example.nutritiontracker.ui.theme.typography
 
 
 @Composable
+internal fun AuthPageRoute(
+    viewModel: AuthenticationViewModel = hiltViewModel(),
+    onNavigateToHome: () -> Unit = {},
+) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    AuthPage(
+        uiState = uiState.value,
+        signInForm = viewModel.signInForm,
+        signUpForm = viewModel.signUpForm,
+        onNavigateToHome = onNavigateToHome,
+        authCallback = viewModel
+    )
+}
+
+@Composable
 internal fun AuthPage(
     modifier: Modifier = Modifier,
     onNavigateToHome: () -> Unit = {},
-    authViewModel: AuthenticationViewModel,
+    uiState: AuthenticationUiState = AuthenticationUiState(),
+    signInForm: FormBuilder<SignInForm>,
+    signUpForm: FormBuilder<SignUpForm>,
+    authCallback: AuthViewModelCallback,
 ) {
-
-    val uiState = authViewModel.uiState.collectAsState()
-
     NutritionTrackerTheme {
         Scaffold(
             containerColor = colorScheme.background
@@ -74,24 +111,39 @@ internal fun AuthPage(
                     alignment = Alignment.CenterVertically
                 )
             ) {
-                Text("APP LOGO", style = typography.displaySmall)
-                when (uiState.value.contentType) {
+
+                Surface(
+                    shadowElevation = 8.dp,
+                    shape = CircleShape,
+                    color = colorScheme.surfaceVariant
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .padding(Spacing.l),
+                        painter = painterResource(R.drawable.ic_nutritracker_logo_altenative),
+                        contentDescription = null
+                    )
+                }
+
+                when (uiState.contentType) {
                     AuthContentType.SIGN_IN -> {
                         SignInContent(
-                            formBuilder = authViewModel.signInForm,
+                            formBuilder = signInForm,
                             onSignUpPressed = {
-                                authViewModel.onContentTypeChange(AuthContentType.SIGN_UP)
+                                authCallback.onContentTypeChange(AuthContentType.SIGN_UP)
                             },
+                            errorMessage = uiState.error,
                             onSignInButtonPressed = {
-                                authViewModel.signIn()
-                                Log.d("[SIGN_IN]", "BUTTON_PRESSED")
-                            }
+                                authCallback.signIn()
+                            },
+                            isLoading = uiState.isLoading,
                         )
                     }
 
                     AuthContentType.SIGN_UP -> {
-                        SignUpContent(formBuilder = authViewModel.signUpForm, onSignInPressed = {
-                            authViewModel.onContentTypeChange(
+                        SignUpContent(formBuilder = signUpForm, onSignInPressed = {
+                            authCallback.onContentTypeChange(
                                 AuthContentType.SIGN_IN
                             )
                         })
@@ -120,21 +172,29 @@ private fun SignUpContent(
         Form(
             modifier = Modifier.padding(Spacing.m),
             verticalSpacing = Spacing.m,
-            isPersist = true,
             formBuilder = formBuilder
         ) { isValid ->
+            val (isVisible, icon, iconDescription, onVisibleChange) = rememberPasswordVisibility()
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 label = "Password",
+                isSecure = !isVisible,
                 fieldName = SignUpForm::password,
-                persist = true,
-                backgroundColor = colorScheme.surfaceVariant
+                backgroundColor = colorScheme.surfaceVariant,
+                placeholder = {
+                    Text(stringResource(R.string.password_auth_textfield_placeholder))
+                },
+
+                suffix = {
+                    Icon(icon, modifier = Modifier.clickable {
+                        onVisibleChange()
+                    }, contentDescription = iconDescription)
+                }
             )
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldName = SignUpForm::confirmPassword,
                 label = "Confirm password",
-                persist = true,
                 backgroundColor = colorScheme.surfaceVariant,
             )
 
@@ -191,6 +251,7 @@ private fun SignInContent(
     onSignUpPressed: (AuthContentType) -> Unit = {},
     onSignInButtonPressed: () -> Unit = {},
     isLoading: Boolean = false,
+    errorMessage: String? = null,
     formBuilder: FormBuilder<SignInForm>? = null
 ) {
     Surface(
@@ -205,23 +266,36 @@ private fun SignInContent(
         Form(
             modifier = Modifier.padding(Spacing.m),
             formBuilder = formBuilder,
-            isPersist = true,
             verticalSpacing = Spacing.m
         ) { isValid ->
 
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldName = SignInForm::username,
-                label = "Email",
-                persist = true,
+                label = "Username",
+                prefix = { Icon(Icons.Default.Person, contentDescription = "user_username") },
+                placeholder = { Text(stringResource(R.string.username_auth_textfield_placeholder)) },
                 backgroundColor = colorScheme.surfaceVariant,
             )
 
+
+            val (isVisible, icon, iconDescription, onVisibleChange) = rememberPasswordVisibility()
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldName = SignInForm::password,
                 label = "Password",
-                persist = true,
+                suffix = {
+                    Icon(
+                        icon,
+                        modifier = Modifier.clickable {
+                            onVisibleChange()
+                        },
+                        contentDescription = iconDescription
+                    )
+                },
+                prefix = { Icon(Icons.Default.Lock, contentDescription = "user_password") },
+                placeholder = { Text(stringResource(R.string.password_auth_textfield_placeholder)) },
+                isSecure = !isVisible,
                 backgroundColor = colorScheme.surfaceVariant,
             )
 
@@ -276,7 +350,7 @@ private fun SignInContent(
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                enabled = isValid,
+                enabled = isValid && !isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.primary,
                     contentColor = colorScheme.onPrimary,
@@ -284,12 +358,79 @@ private fun SignInContent(
                     disabledContentColor = colorScheme.onSurface.copy(alpha = 0.38f)
                 )
             ) {
-                if (isLoading) CircularProgressIndicator() else Text(
-                    "Sign In",
-                    style = typography.labelLarge
-                )
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(Spacing.m))
+                } else {
+                    Text(
+                        "Sign In",
+                        style = typography.labelLarge
+                    )
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                }
+            }
+
+
+            Box(modifier = Modifier.height(16.dp)){
+                errorMessage?.let {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Dangerous,
+                            contentDescription = "content_error",
+                            tint = colorScheme.error
+                        )
+                        Text(
+                            text = errorMessage,
+                            style = typography.labelLarge.copy(color = colorScheme.error)
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+data class PasswordField(
+    val isVisible: Boolean,
+    val icon: ImageVector,
+    val iconDescription: String,
+    val onVisibleChange: () -> Unit,
+)
+
+@Composable
+fun rememberPasswordVisibility(): PasswordField {
+    var isVisible by remember { mutableStateOf(false) }
+    return PasswordField(
+        isVisible = isVisible,
+        icon = if (isVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+        iconDescription = if (isVisible) "visibility_on" else "visibility_off",
+        onVisibleChange = {
+            isVisible = !isVisible
+        }
+    )
+}
+
+@Preview
+@Composable
+private fun AuthPagePreview() {
+    val mockCallback = object : AuthViewModelCallback {
+        override fun signIn() {}
+        override fun signUp() {}
+        override fun onContentTypeChange(authContentType: AuthContentType) {}
+    }
+    AuthPage(
+        signInForm = FormBuilder<SignInForm>().apply {
+            addField(
+                SignInForm::username, FieldProperties(
+                    validator = EmailValidator(),
+                    isRequired = true,
+                )
+            )
+        },
+        signUpForm = FormBuilder(),
+        authCallback = mockCallback
+    )
 }

@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.example.nutritiontracker.ui.theme.Spacing
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlin.reflect.KProperty1
 
 
@@ -29,6 +30,7 @@ data class FieldProperties<T>(
     val errorMessage: MutableState<String?> = mutableStateOf(null),
     val isDirty: MutableState<Boolean?> = mutableStateOf(null),
     val isRequired: Boolean = false,
+    val persist: Boolean = false,
     val valueState: State<T>? = null,
 ) {
     constructor(
@@ -36,12 +38,14 @@ data class FieldProperties<T>(
         errorMessage: MutableState<String?> = mutableStateOf(null),
         isDirty: MutableState<Boolean?> = mutableStateOf(null),
         isRequired: Boolean = false,
+        persist: Boolean = false,
         valueState: State<T>? = null,
     ) : this(
         validator = listOf(validator),
         errorMessage = errorMessage,
         isDirty = isDirty,
         isRequired = isRequired,
+        persist = persist,
         valueState = valueState,
     )
 
@@ -49,13 +53,23 @@ data class FieldProperties<T>(
     val isValid: Boolean by derivedStateOf { errorMessage.value == null && isDirty.value == true }
 }
 
-class FormBuilder<T : Any> {
+class FormBuilder<T : Any>(persist: Boolean = false) {
     val fieldRegistry = mutableStateMapOf<KProperty1<T, *>, FieldProperties<*>>()
 
+    private val _persistState = mutableStateOf(persist)
+
+    val persistState: Boolean by derivedStateOf { _persistState.value }
     val isValid: Boolean by derivedStateOf {
-        if (fieldRegistry.isEmpty()) return@derivedStateOf false
-        fieldRegistry.values.filter { it.valueState != null }
-            .all { it.isValid }
+        val activeFields = fieldRegistry.values.filter { it.valueState != null && it.isRequired }
+
+        if (activeFields.isEmpty()) return@derivedStateOf false
+
+        activeFields.all { it.isDirty.value == true && it.isValid }
+    }
+
+
+    fun setPersist(isPersist: Boolean) {
+        _persistState.value = isPersist
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -113,33 +127,16 @@ fun <T : Any> currentForm(): FormBuilder<T> {
     return LocalForm.current as FormBuilder<T>
 }
 
-/**
- * This function used for registering composable to the FormBuilder
- * @param form is the instance of FormBuilder
- * @param name the registered field name (must be unique for 1 Instance Form Composable)
- * @param fieldProperties the properties of registered fields
- * @param effectKey overriding key for LaunchedEffect
-Flow of the Observer (snapshot flow on Launched Effect). The snapshotFlow will observe mutableState in FormBuilder.
-there are no constraint to manage when the lambda going to execute. so if one of mutableState on FormBuilder is changing,
-it executes the action on snapshotFlow.
-Registered field into Form Builder -> find the first error -> accumulating the ValidationState into Pair that contain (previous, current)
--> collected the Pair of ValidationState and then update fieldState value
- * */
 @Composable
 fun <T : Any> Form(
     modifier: Modifier = Modifier,
     verticalSpacing: Dp = Spacing.s,
-    isPersist: Boolean =  false,
     formBuilder: FormBuilder<T>? = null,
-    child: @Composable ((isValid: Boolean) -> Unit)? = null,
+    child: @Composable ((isValid: Boolean) -> Unit)? = null
 ) {
     val builder = remember(formBuilder) { formBuilder ?: FormBuilder() }
 
     CompositionLocalProvider(LocalForm provides builder) {
-        DisposableEffect(builder) {
-            onDispose { if (!isPersist) builder.clear() }
-        }
-
         Column(
             modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -155,14 +152,18 @@ fun <T : Any, V> FieldRegister(
     fieldProperties: FieldProperties<V>,
     name: KProperty1<T, *>,
     effectKey: Any? = Unit,
-    persist: Boolean = false,
     content: @Composable (() -> Unit)?
 ) {
     val form = currentForm<T>()
 
     DisposableEffect(form, name) {
         form.addField(name, fieldProperties)
-        onDispose { if(!persist) form.removeField(name) }
+        onDispose {
+            if (form.persistState || fieldProperties.persist) {
+                return@onDispose
+            }
+            form.removeField(name)
+        }
     }
 
     LaunchedEffect(effectKey) {
@@ -170,11 +171,10 @@ fun <T : Any, V> FieldRegister(
 
         Log.d("[REGISTER_FORM_LISTENER]", "initial value: $rawInitialValue")
 
-        snapshotFlow { fieldProperties.valueState.value }
+        snapshotFlow { fieldProperties.valueState.value }.filterNotNull()
             .distinctUntilChanged()
             .collect { rawCurrentValue ->
-                if (rawCurrentValue == null) return@collect
-                val currentProps = form.getField<V>(name) ?: fieldProperties
+                val currentProps = form.getField(name) ?: fieldProperties
                 val validators = currentProps.validator
                 val firstError =
                     validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
@@ -253,7 +253,7 @@ class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValid
     }
 }
 
-class MatchValidator<T: Any>(
+class MatchValidator<T : Any>(
     private val form: FormBuilder<T>,
     private val targetFieldKey: KProperty1<T, *>,
     private val customErrorMessage: String = "Passwords do not match"
