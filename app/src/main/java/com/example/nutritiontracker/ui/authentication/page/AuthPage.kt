@@ -6,18 +6,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Dangerous
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -26,6 +31,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Scaffold
@@ -35,18 +41,22 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
@@ -75,6 +85,12 @@ internal fun AuthPageRoute(
     onNavigateToHome: () -> Unit = {},
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+    
+    LaunchedEffect(uiState.value.success){
+        if(uiState.value.success == true){
+            onNavigateToHome()
+        }
+    }
     AuthPage(
         uiState = uiState.value,
         signInForm = viewModel.signInForm,
@@ -142,11 +158,19 @@ internal fun AuthPage(
                     }
 
                     AuthContentType.SIGN_UP -> {
-                        SignUpContent(formBuilder = signUpForm, onSignInPressed = {
-                            authCallback.onContentTypeChange(
-                                AuthContentType.SIGN_IN
-                            )
-                        })
+                        SignUpContent(
+                            formBuilder = signUpForm,
+                            onSignUpButtonPressed = {
+                                authCallback.signUp()
+                            },
+                            onSignInPressed = {
+                                authCallback.onContentTypeChange(
+                                    AuthContentType.SIGN_IN
+                                )
+                            },
+                            isLoading = uiState.isLoading,
+                            errorMessage = uiState.error
+                        )
                     }
                 }
             }
@@ -158,7 +182,10 @@ internal fun AuthPage(
 @Composable
 private fun SignUpContent(
     onSignInPressed: (AuthContentType) -> Unit = {},
-    formBuilder: FormBuilder<SignUpForm>? = null
+    onSignUpButtonPressed: () -> Unit = {},
+    formBuilder: FormBuilder<SignUpForm>? = null,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -176,7 +203,7 @@ private fun SignUpContent(
         ) { isValid ->
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
-                fieldName = SignInForm::username,
+                fieldName = SignUpForm::username,
                 label = "Username",
                 prefix = { Icon(Icons.Default.Person, contentDescription = "user_username") },
                 placeholder = { Text(stringResource(R.string.username_auth_textfield_placeholder)) },
@@ -239,12 +266,10 @@ private fun SignUpContent(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = {
-
-                },
+                onClick = onSignUpButtonPressed,
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                enabled = isValid,
+                enabled = isValid && !isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.primary,
                     contentColor = colorScheme.onPrimary,
@@ -252,8 +277,32 @@ private fun SignUpContent(
                     disabledContentColor = colorScheme.onSurface.copy(alpha = 0.38f)
                 )
             ) {
-                Text("Sign Up", style = typography.labelLarge)
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(Spacing.m))
+                } else {
+                    Text("Sign Up", style = typography.labelLarge)
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                }
+            }
+
+            Box(modifier = Modifier.height(16.dp)) {
+                errorMessage?.let {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Dangerous,
+                            contentDescription = "content_error",
+                            tint = colorScheme.error
+                        )
+                        Text(
+                            text = errorMessage,
+                            style = typography.labelLarge.copy(color = colorScheme.error)
+                        )
+                    }
+                }
             }
         }
     }
@@ -377,6 +426,20 @@ private fun SignInContent(
                 }
             }
 
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                    Text(
+                        "atau masuk dengan",
+                        modifier = Modifier.weight(1f),
+                        style = typography.labelSmall.copy(textAlign = TextAlign.Center)
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                }
+            }
 
             Box(modifier = Modifier.height(16.dp)) {
                 errorMessage?.let {
@@ -397,6 +460,49 @@ private fun SignInContent(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ThirdPartyAuthButton(modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(8.dp)
+    Box(modifier = modifier.height(IntrinsicSize.Min)) {
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {},
+            shape = shape,
+            colors = ButtonDefaults.buttonColors()
+                .copy(
+                    containerColor = colorScheme.surfaceVariant,
+                    contentColor = colorScheme.onSurfaceVariant
+                ),
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+        ) {
+            Icon(Icons.Default.AutoFixHigh, contentDescription = "google_auth")
+            Spacer(modifier = Modifier.width(Spacing.s))
+            Text("Google")
+        }
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(shape = shape)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .rotate(-45f)
+                    .offset(y = (-4).dp)
+                    .clip(shape),
+                color = colorScheme.tertiaryContainer
+            ) {
+                Text(
+                    "Coming Soon",
+                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 2.dp),
+                    style = typography.labelSmall.copy(fontSize = 8.sp)
+                )
+            }
+
         }
     }
 }

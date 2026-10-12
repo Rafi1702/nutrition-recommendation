@@ -28,7 +28,9 @@ fun AppNavigation(
 
         composable(AuthPath.AUTH) {
             val authenticationViewModel: AuthenticationViewModel = hiltViewModel()
-            AuthPageRoute(viewModel = authenticationViewModel)
+            AuthPageRoute(viewModel = authenticationViewModel, onNavigateToHome = {
+                navController.navigate(HomePath.BASE_HOME_PATH)
+            })
         }
         composable(HomePath.BASE_HOME_PATH) {
             MainPage()

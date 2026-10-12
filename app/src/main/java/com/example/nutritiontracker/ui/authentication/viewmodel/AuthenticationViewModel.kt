@@ -42,7 +42,8 @@ enum class AuthContentType {
 data class AuthenticationUiState(
     val error: String? = null,
     val contentType: AuthContentType = AuthContentType.SIGN_IN,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val success: Boolean? = false
 )
 
 
@@ -52,32 +53,36 @@ class AuthenticationViewModel @Inject constructor(
     private val signUpUseCase: SignUpUseCase
 ) : ViewModel(), AuthViewModelCallback {
 
-    val signInForm = FormBuilder<SignInForm>(persist = true).apply {
+    val signInForm = FormBuilder<SignInForm>().apply {
         addField(
             SignInForm::username, FieldProperties(
                 validator = UsernameValidator(),
                 isRequired = true,
+                persist = true
             )
         )
         addField(
             SignInForm::password,
             FieldProperties(
                 validator = PasswordValidator(),
-                isRequired = true
+                isRequired = true,
+                persist = true
             ),
         )
 
         addField(
             SignInForm::isChecked,
             FieldProperties(
-                validator = CheckRequiredValidator()
+                validator = CheckRequiredValidator(),
+                persist = true,
             )
         )
     }
 
-    val signUpForm = FormBuilder<SignUpForm>().apply{
+    val signUpForm = FormBuilder<SignUpForm>().apply {
         addField(
-            SignUpForm::username, FieldProperties(
+            SignUpForm::username,
+            FieldProperties(
                 persist = true,
                 validator = UsernameValidator(),
                 isRequired = true,
@@ -114,8 +119,10 @@ class AuthenticationViewModel @Inject constructor(
     override fun signIn() {
         viewModelScope.launch {
             Log.d("[SIGN_IN]", "PRESSED SIGN IN")
-            val username = signInForm.getField<CharSequence>(SignInForm::username)?.valueState?.value
-            val password = signInForm.getField<CharSequence>(SignInForm::password)?.valueState?.value
+            val username =
+                signInForm.getField<CharSequence>(SignInForm::username)?.valueState?.value
+            val password =
+                signInForm.getField<CharSequence>(SignInForm::password)?.valueState?.value
 
             if (username != null && password != null) {
                 _uiState.update { it.copy(isLoading = true) }
@@ -127,7 +134,7 @@ class AuthenticationViewModel @Inject constructor(
                     )
                 ).fold(
                     onSuccess = {
-                        _uiState.update { it.copy(isLoading = false) }
+                        _uiState.update { it.copy(isLoading = false, success = true) }
                     },
                     onFailure = { err ->
                         _uiState.update { it.copy(error = err.message, isLoading = false) }
@@ -141,15 +148,25 @@ class AuthenticationViewModel @Inject constructor(
         viewModelScope.launch {
             val username = signUpForm.getField<String>(SignUpForm::username)?.valueState?.value
             val password = signUpForm.getField<String>(SignUpForm::password)?.valueState?.value
-            val confirmPassword = signUpForm.getField<String>(SignUpForm::confirmPassword)?.valueState?.value
+            val confirmPassword =
+                signUpForm.getField<String>(SignUpForm::confirmPassword)?.valueState?.value
 
             if (username != null && password != null && confirmPassword != null) {
+                _uiState.update { it.copy(isLoading = true) }
+                delay(1000)
                 signUpUseCase(
                     SignUpAuth(
                         username = username,
                         password = password,
                         confirmPassword = confirmPassword
                     )
+                ).fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(isLoading = false, success = true) }
+                    },
+                    onFailure = { err ->
+                        _uiState.update { it.copy(error = err.message, isLoading = false) }
+                    }
                 )
             }
         }
@@ -162,7 +179,7 @@ class AuthenticationViewModel @Inject constructor(
     }
 }
 
-internal interface AuthViewModelCallback{
+internal interface AuthViewModelCallback {
     fun signIn()
     fun signUp()
     fun onContentTypeChange(authContentType: AuthContentType)

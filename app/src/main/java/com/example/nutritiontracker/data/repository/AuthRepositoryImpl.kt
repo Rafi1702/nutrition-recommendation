@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.data.repository
 
+import android.util.Log
 import com.example.nutritiontracker.data.model.SignInRequestDto
 import com.example.nutritiontracker.data.model.SignUpRequestDto
 import com.example.nutritiontracker.data.remote.AuthService
@@ -12,12 +13,13 @@ class AuthRepositoryImpl @Inject constructor(private val authService: AuthServic
     AuthRepository {
     override suspend fun signIn(authModel: SignInAuth): Result<Unit> {
         return try {
-            authService.signIn(
+          val response = authService.signIn(
                 SignInRequestDto(
                     username = authModel.username,
                     password = authModel.password,
                 )
             )
+            Log.d("[AuthRepositoryImpl]", "Sign In $response")
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
