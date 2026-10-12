@@ -1,11 +1,13 @@
 package com.example.nutritiontracker.data.model
+import com.google.gson.annotations.SerializedName
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class AuthResponseDto(
+    @SerializedName("access_token")
     val accessToken: String,
+
+    @SerializedName("token_type")
     val tokenType: String,
-    val expiresAt: String,
+
+    @SerializedName("expires_at")
+    val expiresAt: String
 )

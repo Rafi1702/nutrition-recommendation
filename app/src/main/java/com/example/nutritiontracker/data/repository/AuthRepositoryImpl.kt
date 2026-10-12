@@ -13,7 +13,7 @@ class AuthRepositoryImpl @Inject constructor(private val authService: AuthServic
     AuthRepository {
     override suspend fun signIn(authModel: SignInAuth): Result<Unit> {
         return try {
-          val response = authService.signIn(
+            val response = authService.signIn(
                 SignInRequestDto(
                     username = authModel.username,
                     password = authModel.password,
