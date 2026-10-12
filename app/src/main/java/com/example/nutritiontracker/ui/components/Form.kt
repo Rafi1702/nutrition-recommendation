@@ -214,6 +214,19 @@ class EmailValidator : FieldValidator<CharSequence> {
     }
 }
 
+class UsernameValidator(
+    private val minimumUsernameLength: Int = 4
+) : FieldValidator<CharSequence> {
+    override fun validate(value: CharSequence): String? {
+        return when {
+            value.isBlank() -> "Username cannot be empty"
+            value.length < minimumUsernameLength -> "Username cannot less than $minimumUsernameLength characters"
+            else -> null
+        }
+
+    }
+}
+
 class CannotEmptyValidator : FieldValidator<String> {
     override fun validate(value: String): String? {
         return if (value.isNotBlank()) null else "Value Cannot Empty"

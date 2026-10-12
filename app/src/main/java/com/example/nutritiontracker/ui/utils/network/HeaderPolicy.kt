@@ -1,12 +1,12 @@
-package com.example.nutritiontracker
+package com.example.nutritiontracker.ui.utils.network
 
 
 /*
 TODO: This only possible using another client that support intercepting such as OkHttpClient
 */
-enum class AuthorizationPolicy{
-    BEARER,
-    API_KEY;
+enum class AuthorizationPolicy(name: String){
+    BEARER("Authorization"),
+    API_KEY("X-API-KEY");
 
     fun getAuthorizationRequestHeaderPair(value: String): Pair<String, String>{
         return when(this){
@@ -15,18 +15,11 @@ enum class AuthorizationPolicy{
         }
     }
 }
-enum class ContentType{
-    JSON,
-    HTML,
-    XML;
+enum class ContentType(name: String){
+    JSON("application/json"),
+    HTML(""),
+    XML("");
 
-    fun getContentTypeRequestHeaderPair(value: String): Pair<String, String>{
-        return when(this){
-            JSON -> ("Application/Json" to value)
-            HTML -> TODO()
-            XML -> TODO()
-        }
-    }
 }
 
 @Target(AnnotationTarget.FUNCTION)

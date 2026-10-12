@@ -8,11 +8,11 @@ import com.example.nutritiontracker.domain.model.SignUpAuth
 import com.example.nutritiontracker.domain.usecase.SignInUseCase
 import com.example.nutritiontracker.domain.usecase.SignUpUseCase
 import com.example.nutritiontracker.ui.components.CheckRequiredValidator
-import com.example.nutritiontracker.ui.components.EmailValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MatchValidator
 import com.example.nutritiontracker.ui.components.PasswordValidator
+import com.example.nutritiontracker.ui.components.UsernameValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,7 +55,7 @@ class AuthenticationViewModel @Inject constructor(
     val signInForm = FormBuilder<SignInForm>(persist = true).apply {
         addField(
             SignInForm::username, FieldProperties(
-                validator = EmailValidator(),
+                validator = UsernameValidator(),
                 isRequired = true,
             )
         )
@@ -79,7 +79,7 @@ class AuthenticationViewModel @Inject constructor(
         addField(
             SignUpForm::username, FieldProperties(
                 persist = true,
-                validator = EmailValidator(),
+                validator = UsernameValidator(),
                 isRequired = true,
             )
         )

@@ -174,28 +174,42 @@ private fun SignUpContent(
             verticalSpacing = Spacing.m,
             formBuilder = formBuilder
         ) { isValid ->
-            val (isVisible, icon, iconDescription, onVisibleChange) = rememberPasswordVisibility()
+            TextFormField(
+                modifier = Modifier.fillMaxWidth(),
+                fieldName = SignInForm::username,
+                label = "Username",
+                prefix = { Icon(Icons.Default.Person, contentDescription = "user_username") },
+                placeholder = { Text(stringResource(R.string.username_auth_textfield_placeholder)) },
+                backgroundColor = colorScheme.surfaceVariant,
+            )
+            val passwordField = rememberPasswordVisibility()
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 label = "Password",
-                isSecure = !isVisible,
+                isSecure = !passwordField.isVisible,
                 fieldName = SignUpForm::password,
                 backgroundColor = colorScheme.surfaceVariant,
+                prefix = {
+                    passwordField.Prefix()
+                },
                 placeholder = {
                     Text(stringResource(R.string.password_auth_textfield_placeholder))
                 },
 
                 suffix = {
-                    Icon(icon, modifier = Modifier.clickable {
-                        onVisibleChange()
-                    }, contentDescription = iconDescription)
+                    passwordField.Suffix()
                 }
             )
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldName = SignUpForm::confirmPassword,
                 label = "Confirm password",
+                placeholder = { Text("Input confirm password") },
+                isSecure = !passwordField.isVisible,
                 backgroundColor = colorScheme.surfaceVariant,
+                prefix = {
+                    passwordField.Prefix()
+                },
             )
 
             Row(
@@ -279,23 +293,17 @@ private fun SignInContent(
             )
 
 
-            val (isVisible, icon, iconDescription, onVisibleChange) = rememberPasswordVisibility()
+            val passwordField = rememberPasswordVisibility()
             TextFormField(
                 modifier = Modifier.fillMaxWidth(),
                 fieldName = SignInForm::password,
                 label = "Password",
                 suffix = {
-                    Icon(
-                        icon,
-                        modifier = Modifier.clickable {
-                            onVisibleChange()
-                        },
-                        contentDescription = iconDescription
-                    )
+                    passwordField.Suffix()
                 },
                 prefix = { Icon(Icons.Default.Lock, contentDescription = "user_password") },
                 placeholder = { Text(stringResource(R.string.password_auth_textfield_placeholder)) },
-                isSecure = !isVisible,
+                isSecure = !passwordField.isVisible,
                 backgroundColor = colorScheme.surfaceVariant,
             )
 
@@ -370,7 +378,7 @@ private fun SignInContent(
             }
 
 
-            Box(modifier = Modifier.height(16.dp)){
+            Box(modifier = Modifier.height(16.dp)) {
                 errorMessage?.let {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -393,20 +401,32 @@ private fun SignInContent(
     }
 }
 
-data class PasswordField(
+private data class PasswordField(
     val isVisible: Boolean,
-    val icon: ImageVector,
-    val iconDescription: String,
     val onVisibleChange: () -> Unit,
 )
 
 @Composable
-fun rememberPasswordVisibility(): PasswordField {
+private fun PasswordField.Prefix() {
+    return Icon(Icons.Default.Lock, contentDescription = "password_field_prefix")
+}
+
+@Composable
+private fun PasswordField.Suffix() {
+    return Icon(
+        if (this.isVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+        modifier = Modifier.clickable {
+            this.onVisibleChange()
+        },
+        contentDescription = "password_field_visibility"
+    )
+}
+
+@Composable
+private fun rememberPasswordVisibility(): PasswordField {
     var isVisible by remember { mutableStateOf(false) }
     return PasswordField(
         isVisible = isVisible,
-        icon = if (isVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-        iconDescription = if (isVisible) "visibility_on" else "visibility_off",
         onVisibleChange = {
             isVisible = !isVisible
         }
@@ -430,6 +450,29 @@ private fun AuthPagePreview() {
                 )
             )
         },
+        signUpForm = FormBuilder(),
+        authCallback = mockCallback
+    )
+}
+
+@Preview
+@Composable
+private fun AuthPagePreviewSignUp() {
+    val mockCallback = object : AuthViewModelCallback {
+        override fun signIn() {}
+        override fun signUp() {}
+        override fun onContentTypeChange(authContentType: AuthContentType) {}
+    }
+    AuthPage(
+        signInForm = FormBuilder<SignInForm>().apply {
+            addField(
+                SignInForm::username, FieldProperties(
+                    validator = EmailValidator(),
+                    isRequired = true,
+                )
+            )
+        },
+        uiState = AuthenticationUiState(contentType = AuthContentType.SIGN_UP),
         signUpForm = FormBuilder(),
         authCallback = mockCallback
     )
