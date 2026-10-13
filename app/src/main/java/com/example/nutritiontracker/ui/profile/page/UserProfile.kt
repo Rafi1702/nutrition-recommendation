@@ -44,34 +44,38 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.domain.BodyMassIndexStatus
-import com.example.nutritiontracker.domain.Gender
-import com.example.nutritiontracker.domain.PersonalActivities
-import com.example.nutritiontracker.domain.createDefaultUserProfile
-import com.example.nutritiontracker.ui.components.CannotEmptyValidator
+import com.example.nutritiontracker.domain.model.BodyMassIndexStatus
+import com.example.nutritiontracker.domain.model.Gender
+import com.example.nutritiontracker.domain.model.PersonalActivities
+import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
 import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
-import com.example.nutritiontracker.ui.components.MockNumberValidator
+import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.OptionFieldValidator
 import com.example.nutritiontracker.ui.components.RowOptionForm
 import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
+import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileForm
+import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.withStyle
 
-
 @Composable
 fun String.toGender(): Gender {
-    return when (this) {
-        "Male", "Pria" -> Gender.MALE
-        "Female", "Wanita" -> Gender.FEMALE
+    val gendersResource = stringArrayResource(R.array.personal_gender)
+
+    val indexOfResource = gendersResource.indexOf(this)
+    return when (indexOfResource) {
+        0 -> Gender.MALE
+        1 -> Gender.FEMALE
         else -> Gender.MALE
     }
 }
@@ -150,29 +154,29 @@ object PersonalActivitiesUtility {
     }
 }
 
-
 @RequiresApi(Build.VERSION_CODES.O)
-@Composable
-fun UserProfilePage() {
-    Scaffold { innerPadding ->
-        UserProfileContent(modifier = Modifier.padding(innerPadding))
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun UserProfilePagePreview() {
     NutritionTrackerTheme {
-        UserProfilePage()
+        UserProfileContent(form = FormBuilder())
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UserProfileContent(modifier: Modifier = Modifier) {
+fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
+    Scaffold { innerPadding ->
+        UserProfileContent(modifier = Modifier.padding(innerPadding), viewModel.userProfileForm)
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun UserProfileContent(modifier: Modifier = Modifier, form: FormBuilder<UserProfileForm>) {
     val scrollState = rememberScrollState()
     Form(
+        formBuilder = form,
         modifier = modifier
             .verticalScroll(scrollState)
             .padding(horizontal = Spacing.m),
@@ -182,6 +186,10 @@ fun UserProfileContent(modifier: Modifier = Modifier) {
         MeasurementSection()
         DailyActivitiesSection()
         DailyEstimationSection()
+
+        Button(enabled = isValid, onClick = {}){
+            Text(stringResource(R.string.user_profile_submit))
+        }
     }
 }
 
@@ -190,7 +198,7 @@ fun UserProfileContent(modifier: Modifier = Modifier) {
 @Composable
 fun DemographicSection() {
     UserProfileContentSection(
-        label = "1. INFORMASI DEMOGRAFIS",
+        label = stringResource(R.string.user_profile_section_demographic),
         icon = Icons.Default.Info,
     ) {
         DemographicContent()
@@ -203,18 +211,14 @@ fun DemographicSection() {
 fun DemographicContent() {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         Text(
-            "Jenis Kelamin Biologis",
+            stringResource(R.string.user_profile_biological_gender),
             style = typography.titleSmall.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = colorScheme.onSurface
             )
         )
         RowOptionForm(
-            fieldProperties = FieldProperties(
-                validator = OptionFieldValidator(),
-                isRequired = true
-            ),
-            fieldName = "Gender Options",
+            fieldName = UserProfileForm::gender,
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             items = Gender.entries.map { it.label() },
             itemWeight = 1f
@@ -257,7 +261,7 @@ fun DemographicContent() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Tanggal Lahir",
+                    stringResource(R.string.user_profile_birth_date),
                     style = typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = colorScheme.onSurface
@@ -267,14 +271,12 @@ fun DemographicContent() {
                     color = colorScheme.primaryContainer,
                     contentColor = colorScheme.onPrimaryContainer
                 ) {
-                    Text("26 Tahun", style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.user_profile_sample_age), style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
                 }
             }
             DatePickerField(
-                fieldName = "birth", fieldProperties = FieldProperties(
-                    validator = CannotEmptyValidator(),
-                    isRequired = true
-                )
+                fieldName = UserProfileForm::birth,
+
             )
         }
     }
@@ -283,7 +285,7 @@ fun DemographicContent() {
 @Composable
 private fun MeasurementSection() {
     UserProfileContentSection(
-        label = "2. BIOMETRIK & PENGUKURAN",
+        label = stringResource(R.string.user_profile_section_biometric),
         icon = Icons.Default.Info,
     ) {
         MeasurementContent()
@@ -299,23 +301,17 @@ private fun MeasurementContent() {
         ) {
             NumberPickerField(
                 modifier = Modifier.weight(1f),
-                fieldProperties = FieldProperties(
-                    validator = MockNumberValidator(),
-                ),
-                initialValue = 168,
-                fieldName = "Height",
-                label = "TINGGI BADAN",
-                unit = "cm"
+                initialValue = 168.0,
+                fieldName = UserProfileForm::height,
+                label = stringResource(R.string.user_profile_height_label),
+                unit = stringResource(R.string.user_profile_height_unit)
             )
             NumberPickerField(
                 modifier = Modifier.weight(1f),
-                fieldProperties = FieldProperties(
-                    validator = MockNumberValidator(),
-                ),
-                initialValue = 58,
-                fieldName = "Weight",
-                label = "BERAT SAAT INI",
-                unit = "kg"
+                initialValue = 58.0,
+                fieldName = UserProfileForm::weight,
+                label = stringResource(R.string.user_profile_weight_label),
+                unit = stringResource(R.string.user_profile_weight_unit)
             )
         }
         Surface(
@@ -368,18 +364,8 @@ private fun MeasurementContent() {
 @Composable
 private fun MeasurementContentPreview() {
     NutritionTrackerTheme {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row {
-                NumberPickerField(
-                    fieldProperties = FieldProperties(
-                        validator = MockNumberValidator(),
-                        isRequired = true
-                    ),
-                    initialValue = 0,
-                    fieldName = "Age",
-                    label = "AGE"
-                )
-            }
+        Form<UserProfileForm> {
+            MeasurementContent()
         }
     }
 }
@@ -388,7 +374,7 @@ private fun MeasurementContentPreview() {
 @Composable
 private fun DailyActivitiesSection() {
     UserProfileContentSection(
-        label = "3. AKTIVITAS HARIAN",
+        label = stringResource(R.string.user_profile_section_activities),
         icon = Icons.Default.Info,
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -399,11 +385,7 @@ private fun DailyActivitiesSection() {
 @Composable
 private fun DailyActivitiesContent() {
     ColumnOptionForm(
-        fieldName = "daily_activities",
-        fieldProperties = FieldProperties(
-            validator = OptionFieldValidator(),
-            isRequired = true
-        ),
+        fieldName = UserProfileForm::gender,
         verticalArrangement = Arrangement.spacedBy(Spacing.s),
         items = PersonalActivities.entries.map { it.name }
     ) { activity, activityState ->
@@ -487,7 +469,7 @@ private fun DailyActivitiesContent() {
 @Composable
 private fun DailyEstimationSection() {
     UserProfileContentSection(
-        label = "4. TARGET POLA MAKAN & DIET",
+        label = stringResource(R.string.user_profile_section_diet),
         icon = Icons.Default.Info,
     ) {
         DailyEstimationContent()
@@ -507,6 +489,7 @@ private fun DailyEstimationContent() {
 
 @Composable
 private fun DailyEstimationContentHeader() {
+    val kcalPerDay = stringResource(R.string.user_profile_kcal_per_day)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
@@ -542,7 +525,7 @@ private fun DailyEstimationContentHeader() {
                     style = typography.labelSmall,
                     color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 ) {
-                    append("kkal / day")
+                    append(kcalPerDay)
                 }
             })
         }
@@ -552,10 +535,10 @@ private fun DailyEstimationContentHeader() {
                 color = colorScheme.primaryContainer,
                 contentColor = colorScheme.onPrimaryContainer
             ) {
-                Text("TDEE Siap", style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                Text(stringResource(R.string.user_profile_tdee_ready), style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
             }
             Text(
-                "Defisit: -350 kkal",
+                stringResource(R.string.user_profile_deficit_sample),
                 style = typography.labelSmall.copy(
                     fontWeight = FontWeight.Medium,
                     color = colorScheme.onSurfaceVariant
@@ -582,7 +565,7 @@ private fun DailyEstimationContentBody() {
             modifier = Modifier.padding(end = Spacing.xs)
         )
         Text(
-            "Simpan & Hitung Kebutuhan Nutrisi",
+            stringResource(R.string.user_profile_calculate_nutrition_button),
             style = typography.labelLarge.copy(fontWeight = FontWeight.Bold)
         )
     }

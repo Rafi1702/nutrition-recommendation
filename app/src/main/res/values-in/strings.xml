@@ -18,6 +18,8 @@
     <string name="food_recommendation_section_home_sub">Dipilih khusus untuk menutupi defisit protein harianmu.</string>
     <string name="user_profile_demographic_information_section_title">INFORMASI DEMOGRAFI</string>
     <string name="body_mass_index">Index Massa Tubuh (IMT)</string>
+    <string name="username_auth_textfield_placeholder">Masukkan username</string>
+    <string name="password_auth_textfield_placeholder">Masukkan password</string>
     <string-array name="body_mass_index_level">
         <item>Dibawah rerata</item>
         <item>Normal</item>
@@ -27,4 +29,20 @@
         <item>Perempuan</item>
     </string-array>
     <string name="user_profile_daily_estimation_section_title">Estimasi Harian</string>
+    <string name="user_profile_submit">Kirim</string>
+    <string name="user_profile_section_demographic">1. INFORMASI DEMOGRAFIS</string>
+    <string name="user_profile_section_biometric">2. BIOMETRIK &amp; PENGUKURAN</string>
+    <string name="user_profile_section_activities">3. AKTIVITAS HARIAN</string>
+    <string name="user_profile_section_diet">4. TARGET POLA MAKAN &amp; DIET</string>
+    <string name="user_profile_biological_gender">Jenis Kelamin Biologis</string>
+    <string name="user_profile_birth_date">Tanggal Lahir</string>
+    <string name="user_profile_sample_age">26 Tahun</string>
+    <string name="user_profile_height_label">TINGGI BADAN</string>
+    <string name="user_profile_height_unit">cm</string>
+    <string name="user_profile_weight_label">BERAT SAAT INI</string>
+    <string name="user_profile_weight_unit">kg</string>
+    <string name="user_profile_kcal_per_day">kkal / day</string>
+    <string name="user_profile_tdee_ready">TDEE Siap</string>
+    <string name="user_profile_deficit_sample">Defisit: -350 kkal</string>
+    <string name="user_profile_calculate_nutrition_button">Simpan &amp; Hitung Kebutuhan Nutrisi</string>
 </resources>

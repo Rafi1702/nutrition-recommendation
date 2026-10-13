@@ -19,6 +19,8 @@
     <string name="food_recommendation_section_home_sub">Specially selected to cover your daily protein deficit.</string>
     <string name="user_profile_demographic_information_section_title">DEMOGRAPHIC INFORMATION</string>
     <string name="body_mass_index">Body Mass Index (BMI)</string>
+    <string name="username_auth_textfield_placeholder">Input username</string>
+    <string name="password_auth_textfield_placeholder">Input password</string>
     <string-array name="body_mass_index_level">
         <item>Below Average</item>
         <item>Normal</item>
@@ -41,4 +43,20 @@
     </string-array>
 
     <string name="user_profile_daily_estimation_section_title">Daily Estimation</string>
+    <string name="user_profile_submit">Submit</string>
+    <string name="user_profile_section_demographic">1. DEMOGRAPHIC INFORMATION</string>
+    <string name="user_profile_section_biometric">2. BIOMETRICS &amp; MEASUREMENT</string>
+    <string name="user_profile_section_activities">3. DAILY ACTIVITIES</string>
+    <string name="user_profile_section_diet">4. DIET &amp; NUTRITION GOALS</string>
+    <string name="user_profile_biological_gender">Biological Gender</string>
+    <string name="user_profile_birth_date">Birth Date</string>
+    <string name="user_profile_sample_age">26 Years</string>
+    <string name="user_profile_height_label">HEIGHT</string>
+    <string name="user_profile_height_unit">cm</string>
+    <string name="user_profile_weight_label">CURRENT WEIGHT</string>
+    <string name="user_profile_weight_unit">kg</string>
+    <string name="user_profile_kcal_per_day">kcal / day</string>
+    <string name="user_profile_tdee_ready">TDEE Ready</string>
+    <string name="user_profile_deficit_sample">Deficit: -350 kcal</string>
+    <string name="user_profile_calculate_nutrition_button">Save &amp; Calculate Nutrition Needs</string>
 </resources>

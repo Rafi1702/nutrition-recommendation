@@ -93,7 +93,7 @@ internal fun UserProfileContentSection(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     label: String? = null,
-    content: @Composable (() -> Unit)
+    content: @Composable (() -> Unit) = {}
 ) {
     CardFormSection(
         modifier = modifier,

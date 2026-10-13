@@ -34,17 +34,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FieldRegister
-import com.example.nutritiontracker.ui.components.Form
-import com.example.nutritiontracker.ui.components.MockNumberValidator
-import com.example.nutritiontracker.ui.theme.LocalForm
-import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.components.currentForm
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import kotlin.reflect.KProperty1
 
 
 class NumberPickerState<T>(
@@ -163,11 +160,11 @@ fun <T> IncrementerAndDecrementerAction(
 }
 
 @Composable
-private fun <T> NumberPickerFieldContent(
+private fun <M : Any, T> NumberPickerFieldContent(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<T>,
+    fieldProperties: FieldProperties<T>? = null,
     state: NumberPickerState<T>,
-    fieldName: String,
+    fieldName: KProperty1<M, T>,
     label: String,
     unit: String? = null,
     keyboardType: KeyboardType = KeyboardType.Number,
@@ -175,6 +172,9 @@ private fun <T> NumberPickerFieldContent(
     isIncrementEnabled: Boolean = true,
     isDecrementEnabled: Boolean = true,
 ) {
+    val formBuilder = currentForm<M>()
+    val existingField = formBuilder.getField<T>(fieldName) ?: FieldProperties(validator = listOf())
+
     var textInput by remember { mutableStateOf(state.value.toString()) }
 
     LaunchedEffect(state.value) {
@@ -183,16 +183,15 @@ private fun <T> NumberPickerFieldContent(
         }
     }
 
+
     FieldRegister(
-        fieldProperties = fieldProperties.copy(
-            valueState = state.valueState
-        ),
+        fieldProperties = existingField,
         name = fieldName,
     ) {
-        val registeredProps = LocalForm.current.getField<T>(fieldName) ?: fieldProperties
+
         val currentValue = state.value
-        val hasError = registeredProps.errorMessage.value != null
-        val isValidValue = registeredProps.validator.none { it.validate(currentValue) != null }
+        val hasError = existingField.errorMessage!= null
+        val isValidValue = existingField.validator.none { it.validate(currentValue) != null }
         val canDecrement = isDecrementEnabled && !hasError && isValidValue
 
         TextFormField(
@@ -208,7 +207,7 @@ private fun <T> NumberPickerFieldContent(
                 state.valueState.value = parseValue(filteredText)
             },
             keyboardOption = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = typography.headlineLarge.copy(
+            textStyle = typography.displaySmall.copy(
                 color = colorScheme.onSurface,
             ),
             decorationBox = { innerTextField ->
@@ -263,11 +262,11 @@ private fun <T> NumberPickerFieldContent(
 
 @JvmName("NumberPickerFieldIntState")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Int>,
+    fieldProperties: FieldProperties<Int>? = null,
     state: NumberPickerState<Int>,
-    fieldName: String,
+    fieldName: KProperty1<M, Int>,
     label: String,
     unit: String? = null,
     isIncrementEnabled: Boolean = true,
@@ -289,23 +288,29 @@ fun NumberPickerField(
 
 @JvmName("NumberPickerFieldInt")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Int>,
-    initialValue: Int,
-    fieldName: String,
+    fieldProperties: FieldProperties<Int>? = null,
+    initialValue: Int = 0,
+    fieldName: KProperty1<M, Int>,
     label: String,
     step: Int = 1,
     unit: String? = null,
 ) {
-    LaunchedEffect(fieldProperties.isValid, fieldProperties.isDirty) {
+    val formBuilder = currentForm<M>()
+    val existingField = formBuilder.getField<Int>(fieldName)
+    val startValue = existingField?.state?.value ?: initialValue
+
+    val props = existingField ?: fieldProperties
+    LaunchedEffect(props?.isValid, props?.isDirty) {
         Log.d(
             "[NUMBER_PICKER_FIELD]",
-            "field valid: ${fieldProperties.isValid}, errorMessage: ${fieldProperties.errorMessage.value}, dirty: ${fieldProperties.isDirty.value}"
+            "field valid: ${props?.isValid}, errorMessage: ${props?.errorMessage}, dirty: ${props?.isDirty}"
         )
     }
 
-    val state = rememberIntPickerState(initialValue = initialValue, step = step)
+    val state = rememberIntPickerState(initialValue = startValue, step = step)
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
@@ -314,17 +319,19 @@ fun NumberPickerField(
         fieldName = fieldName,
         label = label,
         unit = unit,
-        isDecrementEnabled = fieldProperties.isValid || fieldProperties.errorMessage.value == null
+        isDecrementEnabled = isDecEnabled
     )
 }
 
+// --- Double Overloads ---
+
 @JvmName("NumberPickerFieldDoubleState")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Double>,
+    fieldProperties: FieldProperties<Double>? = null,
     state: NumberPickerState<Double>,
-    fieldName: String,
+    fieldName: KProperty1<M, Double>,
     label: String,
     unit: String? = null,
     isIncrementEnabled: Boolean = true,
@@ -346,16 +353,22 @@ fun NumberPickerField(
 
 @JvmName("NumberPickerFieldDouble")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Double>,
-    initialValue: Double,
-    fieldName: String,
+    fieldProperties: FieldProperties<Double>? = null,
+    initialValue: Double = 0.0,
+    fieldName: KProperty1<M, Double>,
     label: String,
     step: Double = 1.0,
     unit: String? = null,
 ) {
-    val state = rememberDoublePickerState(initialValue = initialValue, step = step)
+    val formBuilder = currentForm<M>()
+    val existingField = formBuilder.getField<Double>(fieldName)
+    val startValue = existingField?.state?.value ?: initialValue
+
+    val state = rememberDoublePickerState(initialValue = startValue, step = step)
+    val props = existingField ?: fieldProperties
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
@@ -364,7 +377,7 @@ fun NumberPickerField(
         fieldName = fieldName,
         label = label,
         unit = unit,
-        isDecrementEnabled = fieldProperties.isValid || fieldProperties.errorMessage.value == null
+        isDecrementEnabled = isDecEnabled
     )
 }
 
@@ -372,11 +385,11 @@ fun NumberPickerField(
 
 @JvmName("NumberPickerFieldFloatState")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Float>,
+    fieldProperties: FieldProperties<Float>? = null,
     state: NumberPickerState<Float>,
-    fieldName: String,
+    fieldName: KProperty1<M, Float>,
     label: String,
     unit: String? = null,
     isIncrementEnabled: Boolean = true,
@@ -398,16 +411,22 @@ fun NumberPickerField(
 
 @JvmName("NumberPickerFieldFloat")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Float>,
-    initialValue: Float,
-    fieldName: String,
+    fieldProperties: FieldProperties<Float>? = null,
+    initialValue: Float = 0f,
+    fieldName: KProperty1<M, Float>,
     label: String,
     step: Float = 1f,
     unit: String? = null,
 ) {
-    val state = rememberFloatPickerState(initialValue = initialValue, step = step)
+    val formBuilder = currentForm<M>()
+    val existingField = formBuilder.getField<Float>(fieldName)
+    val startValue = existingField?.state?.value ?: initialValue
+
+    val state = rememberFloatPickerState(initialValue = startValue, step = step)
+    val props = existingField ?: fieldProperties
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
@@ -416,7 +435,7 @@ fun NumberPickerField(
         fieldName = fieldName,
         label = label,
         unit = unit,
-        isDecrementEnabled = fieldProperties.isValid || fieldProperties.errorMessage.value == null
+        isDecrementEnabled = isDecEnabled
     )
 }
 
@@ -424,11 +443,11 @@ fun NumberPickerField(
 
 @JvmName("NumberPickerFieldLongState")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Long>,
+    fieldProperties: FieldProperties<Long>? = null,
     state: NumberPickerState<Long>,
-    fieldName: String,
+    fieldName: KProperty1<M, Long>,
     label: String,
     unit: String? = null,
     isIncrementEnabled: Boolean = true,
@@ -450,16 +469,22 @@ fun NumberPickerField(
 
 @JvmName("NumberPickerFieldLong")
 @Composable
-fun NumberPickerField(
+fun <M : Any> NumberPickerField(
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Long>,
-    initialValue: Long,
-    fieldName: String,
+    fieldProperties: FieldProperties<Long>? = null,
+    initialValue: Long = 0L,
+    fieldName: KProperty1<M, Long>,
     label: String,
     step: Long = 1L,
     unit: String? = null,
 ) {
-    val state = rememberLongPickerState(initialValue = initialValue, step = step)
+    val formBuilder = currentForm<M>()
+    val existingField = formBuilder.getField<Long>(fieldName)
+    val startValue = existingField?.state?.value ?: initialValue
+
+    val state = rememberLongPickerState(initialValue = startValue, step = step)
+    val props = existingField ?: fieldProperties
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
@@ -468,73 +493,29 @@ fun NumberPickerField(
         fieldName = fieldName,
         label = label,
         unit = unit,
-        isDecrementEnabled = fieldProperties.isValid || fieldProperties.errorMessage.value == null
+        isDecrementEnabled = isDecEnabled
     )
 }
 
-// --- Generic Number Overload ---
+data class TestNumberField(
+    val age: Double,
+)
 
-@JvmName("NumberPickerFieldGenericNumber")
-@Composable
-fun NumberPickerField(
-    modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<Number>,
-    initialValue: Number,
-    fieldName: String,
-    label: String,
-    unit: String? = null,
-) {
-    when (initialValue) {
-        is Double -> NumberPickerField(
-            modifier = modifier,
-            fieldProperties = @Suppress("UNCHECKED_CAST") (fieldProperties as FieldProperties<Double>),
-            initialValue = initialValue,
-            fieldName = fieldName,
-            label = label,
-            unit = unit
-        )
-        is Float -> NumberPickerField(
-            modifier = modifier,
-            fieldProperties = @Suppress("UNCHECKED_CAST") (fieldProperties as FieldProperties<Float>),
-            initialValue = initialValue,
-            fieldName = fieldName,
-            label = label,
-            unit = unit
-        )
-        is Long -> NumberPickerField(
-            modifier = modifier,
-            fieldProperties = @Suppress("UNCHECKED_CAST") (fieldProperties as FieldProperties<Long>),
-            initialValue = initialValue,
-            fieldName = fieldName,
-            label = label,
-            unit = unit
-        )
-        else -> NumberPickerField(
-            modifier = modifier,
-            fieldProperties = @Suppress("UNCHECKED_CAST") (fieldProperties as FieldProperties<Int>),
-            initialValue = initialValue.toInt(),
-            fieldName = fieldName,
-            label = label,
-            unit = unit
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun NumberPickerFieldPreview() {
-    NutritionTrackerTheme {
-        Form {
-            NumberPickerField(
-                fieldProperties = FieldProperties(
-                    validator = MockNumberValidator(),
-                    isRequired = true
-                ),
-                initialValue = 0,
-                fieldName = "Age",
-                unit = "CM",
-                label = "SOMETHING"
-            )
-        }
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun NumberPickerFieldPreview() {
+//    NutritionTrackerTheme {
+//        Form<TestNumberField> {
+//            NumberPickerField(
+//                fieldProperties = FieldProperties(
+//                    validator = MockNumberValidator(),
+//                    isRequired = true
+//                ),
+//                initialValue = 0,
+//                fieldName = TestNumberField::age,
+//                unit = "CM",
+//                label = "SOMETHING"
+//            )
+//        }
+//    }
+//}

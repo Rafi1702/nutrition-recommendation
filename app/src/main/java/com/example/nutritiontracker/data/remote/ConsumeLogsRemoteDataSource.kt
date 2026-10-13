@@ -1,9 +1,9 @@
-package com.example.nutritiontracker.datasource.remote
+package com.example.nutritiontracker.data.remote
 
-import com.example.nutritiontracker.domain.ConsumeLog
-import com.example.nutritiontracker.domain.Food
-import com.example.nutritiontracker.domain.MacroNutrients
-import com.example.nutritiontracker.domain.MacroType
+import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.Food
+import com.example.nutritiontracker.domain.model.MacroNutrients
+import com.example.nutritiontracker.domain.model.MacroType
 
 
 val MOCK_CONSUME_LOGS = listOf(

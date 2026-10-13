@@ -58,6 +58,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.reflect.KProperty1
 import androidx.compose.material3.DatePicker as M3DatePicker
 
 
@@ -209,24 +210,36 @@ fun DatePicker(
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerField(fieldName: String, fieldProperties: FieldProperties<String>) {
+fun <T : Any> DatePickerField(
+    fieldName: KProperty1<T, String>,
+    modifier: Modifier = Modifier,
+    label: String = "Date",
+) {
     var showDatePicker by remember { mutableStateOf(false) }
+    val formBuilder = currentForm<T>()
+    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
     )
 
+    val selectedDateText = remember {
+        derivedStateOf { datePickerState.getSelectedDate()?.toString() ?: "" }
+    }
+
+
 
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         FieldRegister(
             name = fieldName,
-            fieldProperties = fieldProperties.copy(valueState = remember { derivedStateOf { datePickerState.toString() } })
+            fieldProperties = existingField,
         ) {
             TextFormField(
-                value = datePickerState.getSelectedDate().toString(),
+                value = selectedDateText.value,
                 readOnly = true,
-                label = "Date",
+                label = label,
                 enabled = false,
                 trailingIcon = {
                     IconButton(onClick = { showDatePicker = !showDatePicker }) {
@@ -236,7 +249,6 @@ fun DatePickerField(fieldName: String, fieldProperties: FieldProperties<String>)
                         )
                     }
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp)
@@ -266,27 +278,14 @@ fun DatePickerField(fieldName: String, fieldProperties: FieldProperties<String>)
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun DatePickerFieldReview() {
-    NutritionTrackerTheme {
-        Form {
-            DatePickerField(
-                fieldName = "date", fieldProperties = FieldProperties(
-                    validator = CannotEmptyValidator(),
-                    isRequired = true
-                )
-            )
-        }
-    }
-}
-
+data class MockPurpose(
+    val date: String
+)
 
 
 @Preview(showBackground = true)
 @Composable
-private fun DatePickerPreview(){
+private fun DatePickerPreview() {
     NutritionTrackerTheme {
         DatePicker()
     }

@@ -6,24 +6,33 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlin.reflect.KProperty1
 
 
 @Composable
-private fun OptionForm(
-    fieldProperties: FieldProperties<String>,
-    initialValue: String,
-    fieldName: String,
+private fun <T : Any> OptionForm(
+    fieldName: KProperty1<T, String>,
     content: @Composable ((state: MutableState<String>) -> Unit),
 ) {
-    val state = remember { mutableStateOf(initialValue) }
+    val formBuilder = currentForm<T>()
+    val state = remember { mutableStateOf("") }
+    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.value }.collect {
+            existingField.onValueStateChange(it)
+        }
+    }
 
     FieldRegister(
-        fieldProperties = fieldProperties.copy(valueState = state),
+        fieldProperties = existingField,
         name = fieldName
     ) {
         content.invoke(state)
@@ -31,10 +40,8 @@ private fun OptionForm(
 }
 
 @Composable
-fun ColumnOptionForm(
-    fieldProperties: FieldProperties<String>,
-    fieldName: String,
-    initialValue: String = "",
+fun <T : Any> ColumnOptionForm(
+    fieldName: KProperty1<T, String>,
     items: List<String> = emptyList(),
     itemWeight: Float = 0f,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
@@ -42,11 +49,12 @@ fun ColumnOptionForm(
     placeholder: @Composable ((String, String) -> Unit)? = null,
 ) {
     OptionForm(
-        fieldProperties = fieldProperties,
         fieldName = fieldName,
-        initialValue = initialValue
     ) { state ->
-        Column(verticalArrangement = verticalArrangement, horizontalAlignment = horizontalAlignment) {
+        Column(
+            verticalArrangement = verticalArrangement,
+            horizontalAlignment = horizontalAlignment
+        ) {
             items.forEach { item ->
                 ClickableBox(
                     modifier = Modifier.then(
@@ -66,9 +74,9 @@ fun ColumnOptionForm(
 }
 
 @Composable
-fun RowOptionForm(
-    fieldProperties: FieldProperties<String>,
-    fieldName: String,
+fun <T : Any> RowOptionForm(
+    fieldName: KProperty1<T, String>,
+    fieldProperties: FieldProperties<String>? = null,
     items: List<String> = emptyList(),
     initialValue: String = "",
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
@@ -76,9 +84,7 @@ fun RowOptionForm(
     placeholder: @Composable ((String, String) -> Unit)? = null,
 ) {
     OptionForm(
-        fieldProperties = fieldProperties,
         fieldName = fieldName,
-        initialValue = initialValue
     ) { state ->
         Row(horizontalArrangement = horizontalArrangement) {
             items.forEach { item ->
