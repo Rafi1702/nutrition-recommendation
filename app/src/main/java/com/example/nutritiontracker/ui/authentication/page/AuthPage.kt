@@ -364,10 +364,6 @@ private fun SignInContent(
                 CheckBoxForm(
                     modifier = Modifier.minimumInteractiveComponentSize(),
                     fieldName = SignInForm::isChecked,
-                    fieldProperties = FieldProperties(
-                        validator = CheckRequiredValidator(),
-                        isRequired = true
-                    ),
                     onCheckedChange = { },
                     removePadding = true,
                 )

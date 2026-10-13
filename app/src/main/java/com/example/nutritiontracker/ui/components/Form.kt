@@ -6,65 +6,63 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.example.nutritiontracker.ui.theme.Spacing
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlin.reflect.KProperty1
 
 
 data class FieldProperties<T>(
     val validator: List<FieldValidator<T>>,
-    val errorMessage: MutableState<String?> = mutableStateOf(null),
-    val isDirty: MutableState<Boolean?> = mutableStateOf(null),
     val isRequired: Boolean = false,
     val persist: Boolean = false,
-    val valueState: State<T>? = null,
+    val initialValue: T? = null,
 ) {
     constructor(
         validator: FieldValidator<T>,
-        errorMessage: MutableState<String?> = mutableStateOf(null),
-        isDirty: MutableState<Boolean?> = mutableStateOf(null),
         isRequired: Boolean = false,
         persist: Boolean = false,
-        valueState: State<T>? = null,
+        initialValue: T? = null,
     ) : this(
         validator = listOf(validator),
-        errorMessage = errorMessage,
-        isDirty = isDirty,
         isRequired = isRequired,
         persist = persist,
-        valueState = valueState,
+        initialValue = initialValue,
     )
 
+    val state = mutableStateOf(initialValue)
+    val errorMessage = mutableStateOf<String?>(null)
+    val isValid: Boolean by derivedStateOf { errorMessage.value == null && isDirty }
 
-    val isValid: Boolean by derivedStateOf { errorMessage.value == null && isDirty.value == true }
+    val isDirty: Boolean by derivedStateOf { state.value != initialValue }
+
+    fun onValueStateChange(newValue: T) {
+        if(state.value == newValue) return
+
+        state.value = newValue
+        errorMessage.value = validator.firstNotNullOfOrNull { it.validate(newValue) }
+    }
 }
 
-class FormBuilder<T : Any>(persist: Boolean = false) {
+class FormBuilder<T>(persist: Boolean = false) {
     val fieldRegistry = mutableStateMapOf<KProperty1<T, *>, FieldProperties<*>>()
 
     private val _persistState = mutableStateOf(persist)
 
     val persistState: Boolean by derivedStateOf { _persistState.value }
     val isValid: Boolean by derivedStateOf {
-        val activeFields = fieldRegistry.values.filter { it.valueState != null && it.isRequired }
+        val activeFields = fieldRegistry.values.filter { it.isRequired }
 
         if (activeFields.isEmpty()) return@derivedStateOf false
 
-        activeFields.all { it.isDirty.value == true && it.isValid }
+        activeFields.all { it.isDirty && it.isValid }
     }
 
 
@@ -108,7 +106,6 @@ class FormBuilder<T : Any>(persist: Boolean = false) {
     ) {
         val properties = fieldRegistry[name] ?: return
         properties.errorMessage.value = errorMessage
-        properties.isDirty.value = isDirty
     }
 }
 
@@ -151,7 +148,6 @@ fun <T : Any> Form(
 fun <T : Any, V> FieldRegister(
     fieldProperties: FieldProperties<V>,
     name: KProperty1<T, V>,
-    effectKey: Any? = Unit,
     content: @Composable (() -> Unit)?
 ) {
     val form = currentForm<T>()
@@ -165,36 +161,6 @@ fun <T : Any, V> FieldRegister(
             form.removeField(name)
         }
     }
-
-    LaunchedEffect(effectKey) {
-        val rawInitialValue = fieldProperties.valueState?.value ?: return@LaunchedEffect
-
-        Log.d("[REGISTER_FORM_LISTENER]", "initial value: $rawInitialValue")
-
-        snapshotFlow { fieldProperties.valueState.value }.filterNotNull()
-            .distinctUntilChanged()
-            .collect { rawCurrentValue ->
-                val currentProps = form.getField(name) ?: fieldProperties
-                val validators = currentProps.validator
-                val firstError =
-                    validators.firstNotNullOfOrNull { it.validate(rawCurrentValue) }
-
-                val isDirty =
-                    currentProps.isDirty.value == true || rawCurrentValue != rawInitialValue
-
-                form.updateFieldState(
-                    name = name,
-                    errorMessage = firstError,
-                    isDirty = isDirty
-                )
-
-                Log.d(
-                    "[FORM_LISTENER]",
-                    "field: $name, current: $rawCurrentValue, error: $firstError, isDirty: $isDirty"
-                )
-            }
-    }
-
     content?.invoke()
 }
 
@@ -202,8 +168,8 @@ interface FieldValidator<T> {
     fun validate(value: T): String?
 }
 
-class EmailValidator : FieldValidator<CharSequence> {
-    override fun validate(value: CharSequence): String? {
+class EmailValidator : FieldValidator<String> {
+    override fun validate(value: String): String? {
         Log.d("[DEBUG]", "EMAIL VALIDATOR $value")
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-z|A-Z]{2,}$".toRegex()
         return when {
@@ -216,8 +182,8 @@ class EmailValidator : FieldValidator<CharSequence> {
 
 class UsernameValidator(
     private val minimumUsernameLength: Int = 4
-) : FieldValidator<CharSequence> {
-    override fun validate(value: CharSequence): String? {
+) : FieldValidator<String> {
+    override fun validate(value: String): String? {
         return when {
             value.isBlank() -> "Username cannot be empty"
             value.length < minimumUsernameLength -> "Username cannot less than $minimumUsernameLength characters"
@@ -233,8 +199,8 @@ class CannotEmptyValidator : FieldValidator<String> {
     }
 }
 
-class PasswordValidator : FieldValidator<CharSequence> {
-    override fun validate(value: CharSequence): String? {
+class PasswordValidator : FieldValidator<String> {
+    override fun validate(value: String): String? {
         return when {
             value.isBlank() -> "Password cannot be empty"
             value.length < 8 -> "Password must be at least 8 characters"
@@ -268,12 +234,12 @@ class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValid
 
 class MatchValidator<T : Any>(
     private val form: FormBuilder<T>,
-    private val targetFieldKey: KProperty1<T, CharSequence>,
+    private val targetFieldKey: KProperty1<T, String>,
     private val customErrorMessage: String = "Passwords do not match"
-) : FieldValidator<CharSequence> {
-    override fun validate(value: CharSequence): String? {
+) : FieldValidator<String> {
+    override fun validate(value: String): String? {
         val targetProps = form.getField(targetFieldKey)
-        val targetValue = targetProps?.valueState?.value
+        val targetValue = targetProps?.state?.value
 
         Log.d("[MATCH_VALIDATOR]", "targetValue: $targetValue, currentValue: $value")
 
@@ -281,6 +247,6 @@ class MatchValidator<T : Any>(
             return "Password confirmation cannot be empty"
         }
 
-        return if (value.toString() != targetValue?.toString()) customErrorMessage else null
+        return if (value != targetValue) customErrorMessage else null
     }
 }

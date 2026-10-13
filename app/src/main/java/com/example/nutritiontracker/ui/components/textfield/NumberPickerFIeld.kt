@@ -173,7 +173,7 @@ private fun <M : Any, T> NumberPickerFieldContent(
     isDecrementEnabled: Boolean = true,
 ) {
     val formBuilder = currentForm<M>()
-    val existingField = formBuilder.getField<T>(fieldName)
+    val existingField = formBuilder.getField<T>(fieldName) ?: FieldProperties(validator = listOf())
 
     var textInput by remember { mutableStateOf(state.value.toString()) }
 
@@ -183,19 +183,15 @@ private fun <M : Any, T> NumberPickerFieldContent(
         }
     }
 
-    val boundProps = remember(fieldName) {
-        val base = existingField ?: fieldProperties ?: FieldProperties(validator = emptyList())
-        base.copy(valueState = state.valueState)
-    }
 
     FieldRegister(
-        fieldProperties = boundProps,
+        fieldProperties = existingField,
         name = fieldName,
     ) {
-        val registeredProps = formBuilder.getField<T>(fieldName) ?: boundProps
+
         val currentValue = state.value
-        val hasError = registeredProps.errorMessage.value != null
-        val isValidValue = registeredProps.validator.none { it.validate(currentValue) != null }
+        val hasError = existingField.errorMessage.value != null
+        val isValidValue = existingField.validator.none { it.validate(currentValue) != null }
         val canDecrement = isDecrementEnabled && !hasError && isValidValue
 
         TextFormField(
@@ -303,13 +299,13 @@ fun <M : Any> NumberPickerField(
 ) {
     val formBuilder = currentForm<M>()
     val existingField = formBuilder.getField<Int>(fieldName)
-    val startValue = existingField?.valueState?.value ?: initialValue
+    val startValue = existingField?.state?.value ?: initialValue
 
     val props = existingField ?: fieldProperties
     LaunchedEffect(props?.isValid, props?.isDirty) {
         Log.d(
             "[NUMBER_PICKER_FIELD]",
-            "field valid: ${props?.isValid}, errorMessage: ${props?.errorMessage?.value}, dirty: ${props?.isDirty?.value}"
+            "field valid: ${props?.isValid}, errorMessage: ${props?.errorMessage?.value}, dirty: ${props?.isDirty}"
         )
     }
 
@@ -368,7 +364,7 @@ fun <M : Any> NumberPickerField(
 ) {
     val formBuilder = currentForm<M>()
     val existingField = formBuilder.getField<Double>(fieldName)
-    val startValue = existingField?.valueState?.value ?: initialValue
+    val startValue = existingField?.state?.value ?: initialValue
 
     val state = rememberDoublePickerState(initialValue = startValue, step = step)
     val props = existingField ?: fieldProperties
@@ -426,7 +422,7 @@ fun <M : Any> NumberPickerField(
 ) {
     val formBuilder = currentForm<M>()
     val existingField = formBuilder.getField<Float>(fieldName)
-    val startValue = existingField?.valueState?.value ?: initialValue
+    val startValue = existingField?.state?.value ?: initialValue
 
     val state = rememberFloatPickerState(initialValue = startValue, step = step)
     val props = existingField ?: fieldProperties
@@ -484,7 +480,7 @@ fun <M : Any> NumberPickerField(
 ) {
     val formBuilder = currentForm<M>()
     val existingField = formBuilder.getField<Long>(fieldName)
-    val startValue = existingField?.valueState?.value ?: initialValue
+    val startValue = existingField?.state?.value ?: initialValue
 
     val state = rememberLongPickerState(initialValue = startValue, step = step)
     val props = existingField ?: fieldProperties

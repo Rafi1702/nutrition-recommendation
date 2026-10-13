@@ -23,15 +23,15 @@ import javax.inject.Inject
 
 
 data class SignInForm(
-    val username: CharSequence,
-    val password: CharSequence,
+    val username: String,
+    val password: String,
     val isChecked: Boolean,
 )
 
 data class SignUpForm(
-    val username: CharSequence,
-    val password: CharSequence,
-    val confirmPassword: CharSequence,
+    val username: String,
+    val password: String,
+    val confirmPassword: String,
 )
 
 enum class AuthContentType {
@@ -75,6 +75,7 @@ class AuthenticationViewModel @Inject constructor(
             FieldProperties(
                 validator = CheckRequiredValidator(),
                 persist = true,
+                isRequired = true,
             )
         )
     }
@@ -120,17 +121,17 @@ class AuthenticationViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("[SIGN_IN]", "PRESSED SIGN IN")
             val username =
-                signInForm.getField<CharSequence>(SignInForm::username)?.valueState?.value
+                signInForm.getField(SignInForm::username)?.state?.value
             val password =
-                signInForm.getField<CharSequence>(SignInForm::password)?.valueState?.value
+                signInForm.getField(SignInForm::password)?.state?.value
 
             if (username != null && password != null) {
                 _uiState.update { it.copy(isLoading = true) }
                 delay(1000)
                 signInUseCase(
                     SignInAuth(
-                        username = username.toString(),
-                        password = password.toString()
+                        username = username,
+                        password = password
                     )
                 ).fold(
                     onSuccess = {
@@ -146,19 +147,19 @@ class AuthenticationViewModel @Inject constructor(
 
     override fun signUp() {
         viewModelScope.launch {
-            val username = signUpForm.getField(SignUpForm::username)?.valueState?.value
-            val password = signUpForm.getField(SignUpForm::password)?.valueState?.value
+            val username = signUpForm.getField(SignUpForm::username)?.state?.value
+            val password = signUpForm.getField(SignUpForm::password)?.state?.value
             val confirmPassword =
-                signUpForm.getField(SignUpForm::confirmPassword)?.valueState?.value
+                signUpForm.getField(SignUpForm::confirmPassword)?.state?.value
 
             if (username != null && password != null && confirmPassword != null) {
                 _uiState.update { it.copy(isLoading = true) }
                 delay(1000)
                 signUpUseCase(
                     SignUpAuth(
-                        username = username.toString(),
-                        password = password.toString(),
-                        confirmPassword = confirmPassword.toString()
+                        username = username,
+                        password = password,
+                        confirmPassword = confirmPassword
                     )
                 ).fold(
                     onSuccess = {

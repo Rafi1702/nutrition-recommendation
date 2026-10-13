@@ -43,6 +43,7 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
         addField(
             UserProfileForm::gender, FieldProperties(
                 validator = CannotEmptyValidator(),
+                initialValue = "Male"
             )
         )
 

@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import kotlin.reflect.KProperty1
@@ -17,22 +19,20 @@ import kotlin.reflect.KProperty1
 @Composable
 private fun <T : Any> OptionForm(
     fieldName: KProperty1<T, String>,
-    fieldProperties: FieldProperties<String>? = null,
-    initialValue: String = "",
     content: @Composable ((state: MutableState<String>) -> Unit),
 ) {
     val formBuilder = currentForm<T>()
-    val existingField = formBuilder.getField(fieldName)
-    val startValue = existingField?.valueState?.value ?: initialValue
-    val state = remember { mutableStateOf(startValue) }
+    val state = remember { mutableStateOf("") }
+    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
 
-    val boundProps = remember(fieldName) {
-        val base = existingField ?: fieldProperties ?: FieldProperties(validator = emptyList())
-        base.copy(valueState = state)
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.value }.collect {
+            existingField.onValueStateChange(it)
+        }
     }
 
     FieldRegister(
-        fieldProperties = boundProps,
+        fieldProperties = existingField,
         name = fieldName
     ) {
         content.invoke(state)
@@ -42,8 +42,6 @@ private fun <T : Any> OptionForm(
 @Composable
 fun <T : Any> ColumnOptionForm(
     fieldName: KProperty1<T, String>,
-    fieldProperties: FieldProperties<String>? = null,
-    initialValue: String = "",
     items: List<String> = emptyList(),
     itemWeight: Float = 0f,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
@@ -52,8 +50,6 @@ fun <T : Any> ColumnOptionForm(
 ) {
     OptionForm(
         fieldName = fieldName,
-        fieldProperties = fieldProperties,
-        initialValue = initialValue
     ) { state ->
         Column(
             verticalArrangement = verticalArrangement,
@@ -89,8 +85,6 @@ fun <T : Any> RowOptionForm(
 ) {
     OptionForm(
         fieldName = fieldName,
-        fieldProperties = fieldProperties,
-        initialValue = initialValue
     ) { state ->
         Row(horizontalArrangement = horizontalArrangement) {
             items.forEach { item ->

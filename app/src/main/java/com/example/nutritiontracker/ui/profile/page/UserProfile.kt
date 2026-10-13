@@ -56,7 +56,6 @@ import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
-import com.example.nutritiontracker.ui.components.MockNumberValidator
 import com.example.nutritiontracker.ui.components.OptionFieldValidator
 import com.example.nutritiontracker.ui.components.RowOptionForm
 import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
@@ -387,10 +386,6 @@ private fun DailyActivitiesSection() {
 private fun DailyActivitiesContent() {
     ColumnOptionForm(
         fieldName = UserProfileForm::gender,
-        fieldProperties = FieldProperties(
-            validator = OptionFieldValidator(),
-            isRequired = true
-        ),
         verticalArrangement = Arrangement.spacedBy(Spacing.s),
         items = PersonalActivities.entries.map { it.name }
     ) { activity, activityState ->

@@ -3,9 +3,10 @@ package com.example.nutritiontracker.ui.components
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlin.reflect.KProperty1
@@ -15,25 +16,22 @@ import androidx.compose.material3.Checkbox as M3Checkbox
 fun <T : Any> CheckBoxForm(
     modifier: Modifier = Modifier,
     fieldName: KProperty1<T, Boolean>,
-    fieldProperties: FieldProperties<Boolean>? = null,
     removePadding: Boolean = false,
     onCheckedChange: (Boolean) -> Unit = {}
 ) {
+    val formBuilder = currentForm<T>()
 
     val isCheckedState = remember { mutableStateOf(false) }
 
-    val formBuilder = currentForm<T>()
+    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
 
-    val boundProps = remember(fieldName) {
-        val base = formBuilder.getField(fieldName)
-            ?: fieldProperties
-            ?: FieldProperties(validator = emptyList())
-        base.copy(valueState = derivedStateOf { isCheckedState.value })
+    LaunchedEffect(Unit) {
+        snapshotFlow { isCheckedState.value }.collect { existingField.onValueStateChange(it) }
     }
 
     val checkboxContent = @Composable {
         FieldRegister(
-            fieldProperties = boundProps,
+            fieldProperties = existingField,
             name = fieldName,
         ) {
             M3Checkbox(

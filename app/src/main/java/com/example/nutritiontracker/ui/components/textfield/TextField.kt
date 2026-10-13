@@ -25,8 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
@@ -203,7 +205,7 @@ fun TextField(
 
     val prefixContent: @Composable (() -> Unit)? = prefix?.let {
         {
-            Box(modifier = Modifier.padding(end = Spacing.s)){
+            Box(modifier = Modifier.padding(end = Spacing.s)) {
                 prefix.invoke()
             }
         }
@@ -288,7 +290,7 @@ fun <T> TextFormField(
         modifier = modifier,
         isRequired = isRequired,
         label = label,
-        errorMessage = errorMessage.value,
+        errorMessage = properties.errorMessage.value,
         isSecure = resolvedIsSecure,
         placeholder = placeholder,
         cornerRadius = cornerRadius,
@@ -297,7 +299,7 @@ fun <T> TextFormField(
         backgroundColor = backgroundColor,
         suffix = suffix,
         trailingIcon = trailingIcon,
-        isError = properties.isDirty.value,
+        isError = properties.isDirty,
         keyboardOptions = keyboardOption,
     )
 }
@@ -347,8 +349,7 @@ fun TextFormField(
 @Composable
 fun <T : Any> TextFormField(
     modifier: Modifier = Modifier,
-    fieldName: KProperty1<T, CharSequence>,
-    fieldProperties: FieldProperties<CharSequence>? = null,
+    fieldName: KProperty1<T, String>,
     label: String = "Label",
     cornerRadius: Dp = Spacing.s,
     borderColor: Color = Color.Unspecified,
@@ -362,30 +363,33 @@ fun <T : Any> TextFormField(
 
     val formBuilder = currentForm<T>()
 
-    val existingField = formBuilder.getField(fieldName)
-    val initialText = existingField?.valueState?.value?.toString() ?: ""
+    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
+
+    val initialText = existingField.state.value ?: ""
 
     val state = rememberTextFieldState(initialText)
 
-    val boundProps = remember(fieldName) {
-        val base = existingField ?: fieldProperties ?: FieldProperties(validator = emptyList())
-        base.copy(valueState = derivedStateOf { state.text })
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.text.toString() }.collect {
+            if (it.isNotBlank()) existingField.onValueStateChange(
+                it
+            )
+        }
     }
 
     FieldRegister(
-        fieldProperties = boundProps,
+        fieldProperties = existingField,
         name = fieldName,
     ) {
-        val currentProps = formBuilder.getField(fieldName) ?: boundProps
         TextFormField(
             state = state,
-            properties = currentProps,
+            properties = existingField,
             modifier = modifier,
             cornerRadius = cornerRadius,
             label = label,
             prefix = prefix,
             borderColor = borderColor,
-            isRequired = boundProps.isRequired,
+            isRequired = existingField.isRequired,
             placeholder = placeholder,
             backgroundColor = backgroundColor,
             suffix = suffix,

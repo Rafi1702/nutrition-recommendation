@@ -213,12 +213,11 @@ fun DatePicker(
 fun <T : Any> DatePickerField(
     fieldName: KProperty1<T, String>,
     modifier: Modifier = Modifier,
-    fieldProperties: FieldProperties<String>? = null,
     label: String = "Date",
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     val formBuilder = currentForm<T>()
-    val existingField = formBuilder.getField(fieldName)
+    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -228,17 +227,14 @@ fun <T : Any> DatePickerField(
         derivedStateOf { datePickerState.getSelectedDate()?.toString() ?: "" }
     }
 
-    val boundProps = remember(fieldName) {
-        val base = existingField ?: fieldProperties ?: FieldProperties(validator = emptyList())
-        base.copy(valueState = selectedDateText)
-    }
+
 
     Box(
         modifier = modifier.fillMaxWidth()
     ) {
         FieldRegister(
             name = fieldName,
-            fieldProperties = boundProps,
+            fieldProperties = existingField,
         ) {
             TextFormField(
                 value = selectedDateText.value,
@@ -285,24 +281,6 @@ fun <T : Any> DatePickerField(
 data class MockPurpose(
     val date: String
 )
-
-//@RequiresApi(Build.VERSION_CODES.O)
-//@Preview(showBackground = true)
-//@Composable
-//fun DatePickerFieldReview() {
-//    NutritionTrackerTheme {
-//        Form{ isValid,->
-//            DatePickerField(
-//                fieldName = MockPurpose::date,
-//                formBuilder = form,
-//                fieldProperties = FieldProperties(
-//                    validator = CannotEmptyValidator(),
-//                    isRequired = true
-//                )
-//            )
-//        }
-//    }
-//}
 
 
 @Preview(showBackground = true)
