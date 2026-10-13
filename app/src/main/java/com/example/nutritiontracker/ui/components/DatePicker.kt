@@ -211,27 +211,39 @@ fun DatePicker(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T : Any> DatePickerField(
-    fieldName: KProperty1<T, *>,
-    fieldProperties: FieldProperties<String>,
-    formBuilder: FormBuilder<T>
+    fieldName: KProperty1<T, String>,
+    modifier: Modifier = Modifier,
+    fieldProperties: FieldProperties<String>? = null,
+    label: String = "Date",
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
+    val formBuilder = currentForm<T>()
+    val existingField = formBuilder.getField(fieldName)
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
     )
 
+    val selectedDateText = remember {
+        derivedStateOf { datePickerState.getSelectedDate()?.toString() ?: "" }
+    }
+
+    val boundProps = remember(fieldName) {
+        val base = existingField ?: fieldProperties ?: FieldProperties(validator = emptyList())
+        base.copy(valueState = selectedDateText)
+    }
 
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         FieldRegister(
             name = fieldName,
-            fieldProperties = fieldProperties.copy(valueState = remember { derivedStateOf { datePickerState.toString() } }),
+            fieldProperties = boundProps,
         ) {
             TextFormField(
-                value = datePickerState.getSelectedDate().toString(),
+                value = selectedDateText.value,
                 readOnly = true,
-                label = "Date",
+                label = label,
                 enabled = false,
                 trailingIcon = {
                     IconButton(onClick = { showDatePicker = !showDatePicker }) {
@@ -241,7 +253,6 @@ fun <T : Any> DatePickerField(
                         )
                     }
                 },
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp)

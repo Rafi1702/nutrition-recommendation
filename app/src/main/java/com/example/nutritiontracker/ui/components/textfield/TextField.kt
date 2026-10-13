@@ -347,7 +347,7 @@ fun TextFormField(
 @Composable
 fun <T : Any> TextFormField(
     modifier: Modifier = Modifier,
-    fieldName: KProperty1<T, *>,
+    fieldName: KProperty1<T, CharSequence>,
     fieldProperties: FieldProperties<CharSequence>? = null,
     label: String = "Label",
     cornerRadius: Dp = Spacing.s,
@@ -362,7 +362,7 @@ fun <T : Any> TextFormField(
 
     val formBuilder = currentForm<T>()
 
-    val existingField = formBuilder.getField<CharSequence>(fieldName)
+    val existingField = formBuilder.getField(fieldName)
     val initialText = existingField?.valueState?.value?.toString() ?: ""
 
     val state = rememberTextFieldState(initialText)

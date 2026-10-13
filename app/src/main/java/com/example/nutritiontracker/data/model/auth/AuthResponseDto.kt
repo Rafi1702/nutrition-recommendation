@@ -1,4 +1,4 @@
-package com.example.nutritiontracker.data.model
+package com.example.nutritiontracker.data.model.auth
 import com.google.gson.annotations.SerializedName
 
 data class AuthResponseDto(

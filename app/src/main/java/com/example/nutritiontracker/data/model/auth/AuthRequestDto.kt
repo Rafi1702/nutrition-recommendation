@@ -1,4 +1,4 @@
-package com.example.nutritiontracker.data.model
+package com.example.nutritiontracker.data.model.auth
 
 data class SignInRequestDto(
     val username: String,

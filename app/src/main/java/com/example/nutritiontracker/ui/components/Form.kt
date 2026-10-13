@@ -73,12 +73,12 @@ class FormBuilder<T : Any>(persist: Boolean = false) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <V> getField(key: KProperty1<T, *>): FieldProperties<V>? {
+    fun <V> getField(key: KProperty1<T, V>): FieldProperties<V>? {
         val properties = fieldRegistry[key] ?: return null
         return properties as FieldProperties<V>?
     }
 
-    fun <V> addField(name: KProperty1<T, *>, field: FieldProperties<V>): FormBuilder<T> {
+    fun <V> addField(name: KProperty1<T, V>, field: FieldProperties<V>): FormBuilder<T> {
         fieldRegistry[name] = field
         return this
     }
@@ -150,7 +150,7 @@ fun <T : Any> Form(
 @Composable
 fun <T : Any, V> FieldRegister(
     fieldProperties: FieldProperties<V>,
-    name: KProperty1<T, *>,
+    name: KProperty1<T, V>,
     effectKey: Any? = Unit,
     content: @Composable (() -> Unit)?
 ) {
@@ -249,8 +249,8 @@ class CheckRequiredValidator : FieldValidator<Boolean> {
     }
 }
 
-class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValidator<Int> {
-    override fun validate(value: Int): String? {
+class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValidator<Number> {
+    override fun validate(value: Number): String? {
         Log.d("[VALIDATOR]", "Number Validator: $value")
         val isGreaterThanZero = when (value) {
             is Int -> value > 0
@@ -268,11 +268,11 @@ class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValid
 
 class MatchValidator<T : Any>(
     private val form: FormBuilder<T>,
-    private val targetFieldKey: KProperty1<T, *>,
+    private val targetFieldKey: KProperty1<T, CharSequence>,
     private val customErrorMessage: String = "Passwords do not match"
 ) : FieldValidator<CharSequence> {
     override fun validate(value: CharSequence): String? {
-        val targetProps = form.getField<CharSequence>(targetFieldKey)
+        val targetProps = form.getField(targetFieldKey)
         val targetValue = targetProps?.valueState?.value
 
         Log.d("[MATCH_VALIDATOR]", "targetValue: $targetValue, currentValue: $value")

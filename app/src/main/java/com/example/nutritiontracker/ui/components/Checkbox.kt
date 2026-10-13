@@ -1,8 +1,5 @@
 package com.example.nutritiontracker.ui.components
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -15,9 +12,9 @@ import kotlin.reflect.KProperty1
 import androidx.compose.material3.Checkbox as M3Checkbox
 
 @Composable
-fun <T: Any> CheckBoxForm(
+fun <T : Any> CheckBoxForm(
     modifier: Modifier = Modifier,
-    fieldName: KProperty1<T, *>,
+    fieldName: KProperty1<T, Boolean>,
     fieldProperties: FieldProperties<Boolean>? = null,
     removePadding: Boolean = false,
     onCheckedChange: (Boolean) -> Unit = {}
@@ -34,9 +31,11 @@ fun <T: Any> CheckBoxForm(
         base.copy(valueState = derivedStateOf { isCheckedState.value })
     }
 
-
     val checkboxContent = @Composable {
-        FieldRegister (fieldProperties = boundProps, fieldName,){
+        FieldRegister(
+            fieldProperties = boundProps,
+            name = fieldName,
+        ) {
             M3Checkbox(
                 modifier = modifier,
                 checked = isCheckedState.value,
@@ -48,10 +47,10 @@ fun <T: Any> CheckBoxForm(
         }
     }
     if (removePadding) {
-        return CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
             checkboxContent()
         }
+    } else {
+        checkboxContent()
     }
-
-    return checkboxContent()
 }

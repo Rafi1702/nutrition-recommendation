@@ -1,8 +1,8 @@
 package com.example.nutritiontracker.data.repository
 
 import android.util.Log
-import com.example.nutritiontracker.data.model.SignInRequestDto
-import com.example.nutritiontracker.data.model.SignUpRequestDto
+import com.example.nutritiontracker.data.model.auth.SignInRequestDto
+import com.example.nutritiontracker.data.model.auth.SignUpRequestDto
 import com.example.nutritiontracker.data.remote.AuthService
 import com.example.nutritiontracker.domain.model.SignInAuth
 import com.example.nutritiontracker.domain.model.SignUpAuth

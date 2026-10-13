@@ -3,8 +3,10 @@ package com.example.nutritiontracker
 import org.junit.Test
 
 import kotlin.reflect.full.functions
-import com.example.nutritiontracker.AuthorizationPolicy.*
-import com.example.nutritiontracker.ContentType.*
+import com.example.nutritiontracker.ui.utils.network.AuthorizationPolicy.*
+import com.example.nutritiontracker.ui.utils.network.ContentType.*
+import com.example.nutritiontracker.ui.utils.network.CustomHeader
+
 /**
  * Example local unit test, which will execute on the development machine (host).
  *

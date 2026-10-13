@@ -146,19 +146,19 @@ class AuthenticationViewModel @Inject constructor(
 
     override fun signUp() {
         viewModelScope.launch {
-            val username = signUpForm.getField<String>(SignUpForm::username)?.valueState?.value
-            val password = signUpForm.getField<String>(SignUpForm::password)?.valueState?.value
+            val username = signUpForm.getField(SignUpForm::username)?.valueState?.value
+            val password = signUpForm.getField(SignUpForm::password)?.valueState?.value
             val confirmPassword =
-                signUpForm.getField<String>(SignUpForm::confirmPassword)?.valueState?.value
+                signUpForm.getField(SignUpForm::confirmPassword)?.valueState?.value
 
             if (username != null && password != null && confirmPassword != null) {
                 _uiState.update { it.copy(isLoading = true) }
                 delay(1000)
                 signUpUseCase(
                     SignUpAuth(
-                        username = username,
-                        password = password,
-                        confirmPassword = confirmPassword
+                        username = username.toString(),
+                        password = password.toString(),
+                        confirmPassword = confirmPassword.toString()
                     )
                 ).fold(
                     onSuccess = {
