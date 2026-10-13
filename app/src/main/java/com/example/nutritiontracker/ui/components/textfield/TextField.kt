@@ -290,7 +290,7 @@ fun <T> TextFormField(
         modifier = modifier,
         isRequired = isRequired,
         label = label,
-        errorMessage = properties.errorMessage.value,
+        errorMessage = properties.errorMessage,
         isSecure = resolvedIsSecure,
         placeholder = placeholder,
         cornerRadius = cornerRadius,

@@ -38,19 +38,24 @@ data class FieldProperties<T>(
     )
 
     val state = mutableStateOf(initialValue)
-    val errorMessage = mutableStateOf<String?>(null)
-    val isValid: Boolean by derivedStateOf { errorMessage.value == null && isDirty }
 
+    val errorMessage: String? by derivedStateOf {
+        validator.firstNotNullOfOrNull {
+            state.value?.let { state ->
+                it.validate(state)
+            }
+        }
+    }
+    val isValid: Boolean by derivedStateOf { errorMessage == null && isDirty }
     val isDirty: Boolean by derivedStateOf { state.value != initialValue }
 
     fun onValueStateChange(newValue: T) {
-        if(state.value == newValue) return
-
+        if (state.value == newValue) return
         state.value = newValue
-        errorMessage.value = validator.firstNotNullOfOrNull { it.validate(newValue) }
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 class FormBuilder<T>(persist: Boolean = false) {
     val fieldRegistry = mutableStateMapOf<KProperty1<T, *>, FieldProperties<*>>()
 
@@ -70,7 +75,7 @@ class FormBuilder<T>(persist: Boolean = false) {
         _persistState.value = isPersist
     }
 
-    @Suppress("UNCHECKED_CAST")
+
     fun <V> getField(key: KProperty1<T, V>): FieldProperties<V>? {
         val properties = fieldRegistry[key] ?: return null
         return properties as FieldProperties<V>?
@@ -81,8 +86,10 @@ class FormBuilder<T>(persist: Boolean = false) {
         return this
     }
 
-    fun addField(fields: Map<KProperty1<T, *>, FieldProperties<*>>) {
-        fieldRegistry.putAll(fields)
+    //To lazily initiate the value of fields
+    fun <V> setFieldValue(property: KProperty1<T, V>, value: V) {
+        val field = fieldRegistry[property] as? FieldProperties<V>
+        field?.onValueStateChange(value)
     }
 
     fun removeField(name: KProperty1<T, *>) {
@@ -97,15 +104,6 @@ class FormBuilder<T>(persist: Boolean = false) {
     fun getValidator(key: KProperty1<T, *>): List<FieldValidator<T>>? {
         val properties = fieldRegistry[key] as? FieldProperties<T>
         return properties?.validator
-    }
-
-    fun updateFieldState(
-        name: KProperty1<T, *>,
-        errorMessage: String?,
-        isDirty: Boolean
-    ) {
-        val properties = fieldRegistry[name] ?: return
-        properties.errorMessage.value = errorMessage
     }
 }
 

@@ -23,7 +23,7 @@ import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 fun AppNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = AuthPath.AUTH
+    startDestination: String = AuthPath.AUTH,
 ) {
     NavHost(
         navController = navController,

@@ -58,7 +58,7 @@ class AuthenticationViewModel @Inject constructor(
             SignInForm::username, FieldProperties(
                 validator = UsernameValidator(),
                 isRequired = true,
-                persist = true
+                persist = true,
             )
         )
         addField(
@@ -95,7 +95,7 @@ class AuthenticationViewModel @Inject constructor(
             FieldProperties(
                 persist = true,
                 validator = PasswordValidator(),
-                isRequired = true
+                isRequired = true,
             ),
         )
 

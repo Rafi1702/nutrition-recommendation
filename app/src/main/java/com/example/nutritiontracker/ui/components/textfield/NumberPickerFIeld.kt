@@ -190,7 +190,7 @@ private fun <M : Any, T> NumberPickerFieldContent(
     ) {
 
         val currentValue = state.value
-        val hasError = existingField.errorMessage.value != null
+        val hasError = existingField.errorMessage!= null
         val isValidValue = existingField.validator.none { it.validate(currentValue) != null }
         val canDecrement = isDecrementEnabled && !hasError && isValidValue
 
@@ -305,12 +305,12 @@ fun <M : Any> NumberPickerField(
     LaunchedEffect(props?.isValid, props?.isDirty) {
         Log.d(
             "[NUMBER_PICKER_FIELD]",
-            "field valid: ${props?.isValid}, errorMessage: ${props?.errorMessage?.value}, dirty: ${props?.isDirty}"
+            "field valid: ${props?.isValid}, errorMessage: ${props?.errorMessage}, dirty: ${props?.isDirty}"
         )
     }
 
     val state = rememberIntPickerState(initialValue = startValue, step = step)
-    val isDecEnabled = props?.let { it.isValid || it.errorMessage.value == null } ?: true
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
@@ -368,7 +368,7 @@ fun <M : Any> NumberPickerField(
 
     val state = rememberDoublePickerState(initialValue = startValue, step = step)
     val props = existingField ?: fieldProperties
-    val isDecEnabled = props?.let { it.isValid || it.errorMessage.value == null } ?: true
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
@@ -426,7 +426,7 @@ fun <M : Any> NumberPickerField(
 
     val state = rememberFloatPickerState(initialValue = startValue, step = step)
     val props = existingField ?: fieldProperties
-    val isDecEnabled = props?.let { it.isValid || it.errorMessage.value == null } ?: true
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
@@ -484,7 +484,7 @@ fun <M : Any> NumberPickerField(
 
     val state = rememberLongPickerState(initialValue = startValue, step = step)
     val props = existingField ?: fieldProperties
-    val isDecEnabled = props?.let { it.isValid || it.errorMessage.value == null } ?: true
+    val isDecEnabled = props?.let { it.isValid || it.errorMessage== null } ?: true
 
     NumberPickerField(
         modifier = modifier,
