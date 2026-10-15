@@ -4,7 +4,7 @@ package com.example.nutritiontracker.ui.utils.network
 /*
 TODO: This only possible using another client that support intercepting such as OkHttpClient
 */
-enum class AuthorizationPolicy(name: String){
+enum class AuthorizationPolicy(val key: String){
     BEARER("Authorization"),
     API_KEY("X-API-KEY");
 
