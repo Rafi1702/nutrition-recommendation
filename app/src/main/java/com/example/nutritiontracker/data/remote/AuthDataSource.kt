@@ -21,5 +21,5 @@ interface AuthService{
 
     @GET(value = "/auth/refresh/token")
     @CustomHeader(contentType = ContentType.JSON)
-    suspend fun refreshToken(@Body refreshToken: String): String
+    suspend fun refreshToken(@Body refreshToken: String): AuthResponseDto
 }

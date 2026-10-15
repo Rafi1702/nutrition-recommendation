@@ -39,7 +39,7 @@
     <string name="user_profile_sample_age">26 Tahun</string>
     <string name="user_profile_height_label">TINGGI BADAN</string>
     <string name="user_profile_height_unit">cm</string>
-    <string name="user_profile_weight_label">BERAT SAAT INI</string>
+    <string name="user_profile_weight_label">BERAT BADAN</string>
     <string name="user_profile_weight_unit">kg</string>
     <string name="user_profile_kcal_per_day">kkal / day</string>
     <string name="user_profile_tdee_ready">TDEE Siap</string>

@@ -53,10 +53,8 @@ import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
 import com.example.nutritiontracker.ui.components.DatePickerField
-import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
-import com.example.nutritiontracker.ui.components.OptionFieldValidator
 import com.example.nutritiontracker.ui.components.RowOptionForm
 import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection

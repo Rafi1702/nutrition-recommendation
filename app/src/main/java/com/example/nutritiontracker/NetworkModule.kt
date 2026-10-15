@@ -1,7 +1,8 @@
 package com.example.nutritiontracker
 
-import com.example.nutritiontracker.ui.utils.network.AuthorizationInterceptor
-import com.example.nutritiontracker.ui.utils.network.ContentTypeInterceptor
+import com.example.nutritiontracker.data.local.LocalTokenDataSource
+import com.example.nutritiontracker.ui.utils.network.HeaderInterceptor
+import com.example.nutritiontracker.ui.utils.network.ResponseInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,17 +18,17 @@ object NetworkModule {
 
     @Singleton
     @Provides
-    fun httpClient(): OkHttpClient {
-        return OkHttpClient.Builder().addInterceptor(AuthorizationInterceptor()).addInterceptor(
-            ContentTypeInterceptor()
+    fun httpClient(localTokenDataSource: LocalTokenDataSource): OkHttpClient {
+        return OkHttpClient.Builder().addInterceptor(HeaderInterceptor()).addNetworkInterceptor(
+            ResponseInterceptor(localTokenDataSource)
         ).build()
     }
 
     @Singleton
     @Provides
-    fun provideNetworkClient(): Retrofit {
+    fun provideNetworkClient(localTokenDataSource: LocalTokenDataSource): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL).client(httpClient())
+            .baseUrl(BuildConfig.BASE_URL).client(httpClient(localTokenDataSource))
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

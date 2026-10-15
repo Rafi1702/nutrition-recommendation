@@ -2,6 +2,7 @@
 agp = "9.2.1"
 converterGson = "2.9.0"
 coreKtx = "1.15.0"
+datastorePreferences = "1.2.1"
 desugar_jdk_libs = "2.1.5"
 hiltAndroid = "2.60"
 hiltNavigationCompose = "1.4.0"
@@ -17,12 +18,14 @@ coil = "3.1.0"
 material3WindowSizeClass = "1.4.0"
 navigationRuntimeKtx = "2.10.1"
 navigationCompose = "2.10.1"
+protobufKotlinLite = "4.36.2"
 retrofit = "3.0.0"
 kspVersion = "2.3.12"
 securityCryptoVersion = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
@@ -48,6 +51,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 androidx-compose-material3-window-size-class1 = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3WindowSizeClass" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobufKotlinLite" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCryptoVersion" }
 
