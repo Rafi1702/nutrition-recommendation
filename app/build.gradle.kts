@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinAndroidKsp)
     alias(libs.plugins.hiltAndroid)
+    id("com.google.protobuf") version "0.10.0"
 }
 
 android {
@@ -81,7 +82,10 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.retrofit)
     implementation(libs.hilt.android)
+    implementation(libs.error.prone.annotations)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.protobuf.kotlin.lite)
     ksp(libs.hilt.android.compiler)
     implementation(libs.security.crypto)
     implementation(libs.converter.gson)
@@ -93,3 +97,23 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.32.1"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+                create("kotlin")
+            }
+        }
+    }
+}
+
+
+
+

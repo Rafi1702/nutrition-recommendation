@@ -53,7 +53,7 @@
     <string name="user_profile_sample_age">26 Years</string>
     <string name="user_profile_height_label">HEIGHT</string>
     <string name="user_profile_height_unit">cm</string>
-    <string name="user_profile_weight_label">CURRENT WEIGHT</string>
+    <string name="user_profile_weight_label">WEIGHT</string>
     <string name="user_profile_weight_unit">kg</string>
     <string name="user_profile_kcal_per_day">kcal / day</string>
     <string name="user_profile_tdee_ready">TDEE Ready</string>

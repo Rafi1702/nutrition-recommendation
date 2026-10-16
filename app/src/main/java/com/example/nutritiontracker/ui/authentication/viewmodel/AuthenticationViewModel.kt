@@ -1,6 +1,5 @@
 package com.example.nutritiontracker.ui.authentication.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.SignInAuth
@@ -119,7 +118,6 @@ class AuthenticationViewModel @Inject constructor(
 
     override fun signIn() {
         viewModelScope.launch {
-            Log.d("[SIGN_IN]", "PRESSED SIGN IN")
             val username =
                 signInForm.getField(SignInForm::username)?.state?.value
             val password =
