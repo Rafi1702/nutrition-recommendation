@@ -1,12 +1,21 @@
 package com.example.nutritiontracker.data.remote
 
+import com.example.nutritiontracker.data.CursorPaginate
+import com.example.nutritiontracker.data.model.food.FoodResponseDto
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MacroNutrients
 import com.example.nutritiontracker.domain.model.MacroType
+import retrofit2.Response
+import retrofit2.http.QueryMap
+
+
+interface FoodRemoteDataSource {
+    suspend fun getFoods(@QueryMap(encoded = true) query: Map<String, String>): Response<CursorPaginate<FoodResponseDto>>
+}
 
 val MOCK_FOODS = listOf(
     Food(
-        id = "1",
+        id = 1,
         name = "Nasi Goreng Spesial",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 45.0),
@@ -15,7 +24,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "2",
+        id = 2,
         name = "Mie Ayam Pangsit",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 52.0),
@@ -24,7 +33,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "3",
+        id = 3,
         name = "Sate Ayam Madura",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 10.0),
@@ -33,7 +42,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "4",
+        id = 4,
         name = "Gado-Gado Betawi",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 30.0),
@@ -42,7 +51,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "5",
+        id = 5,
         name = "Rendang Sapi",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 5.0),
@@ -51,7 +60,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "6",
+        id = 6,
         name = "Soto Ayam Kuning",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 15.0),
@@ -60,7 +69,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "7",
+        id = 7,
         name = "Bakso Malang",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 35.0),
@@ -69,7 +78,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "8",
+        id = 8,
         name = "Nasi Uduk Komplit",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 50.0),
@@ -78,7 +87,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "9",
+        id = 9,
         name = "Bubur Ayam",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 38.0),
@@ -87,7 +96,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "10",
+        id = 10,
         name = "Ketoprak Jakarta",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 48.0),
@@ -96,7 +105,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "11",
+        id = 11,
         name = "Pecel Lele",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 25.0),
@@ -105,7 +114,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "12",
+        id = 12,
         name = "Ikan Bakar Jimbaran",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 8.0),
@@ -114,7 +123,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "13",
+        id = 13,
         name = "Ayam Penyet",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 12.0),
@@ -123,7 +132,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "14",
+        id = 14,
         name = "Nasi Campur Bali",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 55.0),
@@ -132,7 +141,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "15",
+        id = 15,
         name = "Rawon Daging",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 14.0),
@@ -141,7 +150,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "16",
+        id = 16,
         name = "Siomay Bandung",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 32.0),
@@ -150,7 +159,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "17",
+        id = 17,
         name = "Batagor",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 36.0),
@@ -159,7 +168,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "18",
+        id = 18,
         name = "Martabak Telur",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 40.0),
@@ -168,7 +177,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "19",
+        id = 19,
         name = "Gulai Kambing",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 10.0),
@@ -177,7 +186,7 @@ val MOCK_FOODS = listOf(
         )
     ),
     Food(
-        id = "20",
+        id = 20,
         name = "Es Campur",
         macros = listOf(
             MacroNutrients(MacroType.CARBS, 45.0),

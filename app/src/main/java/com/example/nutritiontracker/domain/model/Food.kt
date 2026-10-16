@@ -23,7 +23,7 @@ data class MacroNutrients(
     to correctly calculate totalCalories
 */
 data class Food(
-    val id: String,
+    val id: Int,
     val name: String,
     val macros: List<MacroNutrients>
 ) {

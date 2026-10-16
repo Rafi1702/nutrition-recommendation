@@ -4,7 +4,6 @@ converterGson = "2.9.0"
 coreKtx = "1.15.0"
 datastorePreferences = "1.2.1"
 desugar_jdk_libs = "2.1.5"
-error_prone_annotations = "2.50.0"
 hiltAndroid = "2.60"
 hiltNavigationCompose = "1.4.0"
 junit = "4.13.2"
@@ -19,6 +18,7 @@ coil = "3.1.0"
 material3WindowSizeClass = "1.4.0"
 navigationRuntimeKtx = "2.10.1"
 navigationCompose = "2.10.1"
+pagingCompose = "3.5.3"
 protobufKotlinLite = "4.36.2"
 retrofit = "3.0.0"
 kspVersion = "2.3.12"
@@ -28,9 +28,10 @@ securityCryptoVersion = "1.1.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "pagingCompose" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
-error_prone_annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "error_prone_annotations" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
