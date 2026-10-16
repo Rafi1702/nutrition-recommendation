@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.data.di
 
+import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.remote.AuthService
 import com.example.nutritiontracker.data.repository.AuthRepositoryImpl
 import com.example.nutritiontracker.domain.repository.AuthRepository
@@ -22,7 +23,7 @@ object AuthServiceModule {
 @InstallIn(SingletonComponent::class)
 object AuthRepositoryModule {
     @Provides
-    fun providesAuthRepository(authService: AuthService): AuthRepository{
-        return AuthRepositoryImpl(authService = authService)
+    fun providesAuthRepository(authService: AuthService, localTokenDataSource: LocalTokenDataSource): AuthRepository{
+        return AuthRepositoryImpl(authService = authService, localTokenDataSource)
     }
 }

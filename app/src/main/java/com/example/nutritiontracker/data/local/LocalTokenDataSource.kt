@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.google.errorprone.annotations.CanIgnoreReturnValue
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,17 +26,22 @@ interface LocalTokenDataSource {
 
     suspend fun setRefreshToken(newToken: String)
     suspend fun getUserToken(): Flow<UserToken>
+
+    suspend fun clearToken()
 }
 
 class LocalTokenDataSourceImpl @Inject constructor(private val dataStore: DataStore<Preferences>) :
     LocalTokenDataSource {
     private val TOKEN_KEY = stringPreferencesKey("EXAMPLE_TOKEN_KEY")
     private val REFRESH_TOKEN_KEY = stringPreferencesKey("EXAMPLE_REFRESH_TOKEN_KEY")
+
+
     override suspend fun setToken(newToken: String) {
         dataStore.edit { preferences ->
             preferences[TOKEN_KEY] = newToken
         }
     }
+
 
     override suspend fun setRefreshToken(newToken: String) {
         dataStore.edit { preferences ->
@@ -50,6 +56,11 @@ class LocalTokenDataSourceImpl @Inject constructor(private val dataStore: DataSt
         }
     }
 
+    override suspend fun clearToken() {
+        dataStore.edit { preferences -> preferences.remove(TOKEN_KEY) }
+        dataStore.edit { preferences -> preferences.remove(REFRESH_TOKEN_KEY) }
+    }
+
     fun getPreferencesFlow(key: Preferences.Key<String>): Flow<String?> {
         return dataStore.data.map { preferences -> preferences[key] }
     }
@@ -58,6 +69,8 @@ class LocalTokenDataSourceImpl @Inject constructor(private val dataStore: DataSt
 @Module
 @InstallIn(SingletonComponent::class)
 object LocalDataSourceModule {
+
+    @CanIgnoreReturnValue
     @Singleton
     @Provides
     fun provideLocalTokenDataSource(dataStore: DataStore<Preferences>): LocalTokenDataSource {

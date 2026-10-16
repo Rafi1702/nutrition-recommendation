@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.model.MacroType
 import com.example.nutritiontracker.ui.components.DatePicker
@@ -32,9 +33,7 @@ import com.example.nutritiontracker.ui.theme.typography
 
 @Preview(showBackground = true)
 @Composable
-internal fun HomePage(modifier: Modifier = Modifier) {
-    val navController = LocalNavController.current
-
+internal fun HomePage(modifier: Modifier = Modifier, navController: NavHostController? = null) {
     Surface(
         modifier = modifier,
         color = colorScheme.surface

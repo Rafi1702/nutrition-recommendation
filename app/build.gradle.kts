@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.retrofit)
     implementation(libs.hilt.android)
+    implementation(libs.error.prone.annotations)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.protobuf.kotlin.lite)

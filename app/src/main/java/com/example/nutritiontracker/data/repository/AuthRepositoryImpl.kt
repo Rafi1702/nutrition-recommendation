@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.data.repository
 
 import android.util.Log
+import com.example.nutritiontracker.data.NetworkException
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.model.auth.SignInRequestDto
 import com.example.nutritiontracker.data.model.auth.SignUpRequestDto
@@ -13,6 +14,7 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     private val authService: AuthService,
+    private val localTokenDataSource: LocalTokenDataSource,
 ) :
     AuthRepository {
     override suspend fun signIn(authModel: SignInAuth): Result<Unit> {
@@ -23,6 +25,9 @@ class AuthRepositoryImpl @Inject constructor(
                     password = authModel.password,
                 )
             )
+
+            localTokenDataSource.setToken(response.accessToken)
+            localTokenDataSource.setRefreshToken(response.refreshToken)
             Log.d("[AuthRepositoryImpl]", "Sign In $response")
             Result.success(Unit)
         } catch (e: Exception) {
