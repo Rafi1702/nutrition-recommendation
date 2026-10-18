@@ -15,7 +15,7 @@ enum class AuthorizationPolicy(val key: String){
         }
     }
 }
-enum class ContentType(name: String){
+enum class ContentType(val value : String){
     JSON("application/json"),
     HTML(""),
     XML("");

@@ -1,10 +1,13 @@
 package com.example.nutritiontracker.ui.utils.network
 
+import android.util.Log
 import com.example.nutritiontracker.BuildConfig
+import com.example.nutritiontracker.data.NetworkException
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.local.UserToken
+import com.example.nutritiontracker.data.model.auth.RefreshTokenRequestDto
 import com.example.nutritiontracker.data.remote.AuthService
-import kotlinx.coroutines.flow.first
+import com.example.nutritiontracker.ui.authentication.AuthEventManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -32,9 +35,7 @@ class HeaderInterceptor(private val localTokenDataSource: LocalTokenDataSource) 
                     val headerValue = when (authorizationPolicy) {
                         AuthorizationPolicy.BEARER -> {
                             val accessToken =
-                                runBlocking {
-                                    localTokenDataSource.getUserToken().first().accessToken
-                                }
+                                localTokenDataSource.getUserToken().accessToken
                             accessToken?.let {
                                 "Bearer $accessToken"
                             }
@@ -64,22 +65,38 @@ class HeaderInterceptor(private val localTokenDataSource: LocalTokenDataSource) 
 class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource) :
     OkHttpInterceptor {
 
-    private fun updateUserToken(authService: AuthService): UserToken {
-        return runBlocking {
-            val oldToken = localTokenDataSource.getUserToken().first().refreshToken
+    private fun updateUserToken(authService: AuthService): Result<UserToken> {
+        val oldToken = localTokenDataSource.getUserToken()
 
-            val updatedToken = oldToken?.let {
-                val newToken = authService.refreshToken(oldToken)
-                localTokenDataSource.setRefreshToken(newToken.refreshToken)
-                newToken.accessToken
+        val refreshTokenResponse = oldToken.refreshToken?.let {
+            runBlocking {
+                authService.refreshToken(RefreshTokenRequestDto(refreshToken = oldToken.refreshToken))
             }
-
-            updatedToken?.let {
-                localTokenDataSource.setToken(updatedToken)
-            }
-
-            localTokenDataSource.getUserToken().first()
         }
+
+        refreshTokenResponse?.let { response ->
+            if (response.code() != 200) return Result.failure(
+                NetworkException.GenericHttpError(
+                    refreshTokenResponse.code(),
+                    message = response.message()
+                )
+            )
+
+            response.body()?.let { body ->
+                localTokenDataSource.setToken(body.accessToken)
+                localTokenDataSource.setRefreshToken(body.refreshToken)
+            }
+            val newStoreToken = localTokenDataSource.getUserToken()
+
+            Log.d(
+                "[TOKEN_COMPARISON]",
+                "refresh_token: ${oldToken.refreshToken == newStoreToken.refreshToken}, access_token: ${oldToken.accessToken == newStoreToken.accessToken}"
+            )
+
+            return Result.success(newStoreToken)
+        }
+
+        return Result.failure(Exception("Unknown Error"))
     }
 
     override fun intercept(chain: OkHttpInterceptor.Chain): Response {
@@ -88,7 +105,6 @@ class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource
 
         synchronized(this) {
             if (response.code == 401) {
-                //CREATE new Client Builder to handle request to refresh token endpoint
                 val refreshClient = OkHttpClient.Builder().build()
                 val retrofitRefresh = Retrofit.Builder()
                     .baseUrl(BuildConfig.BASE_URL)
@@ -100,15 +116,28 @@ class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource
 
                 val newUserToken = updateUserToken(authService)
 
-                newUserToken.accessToken?.let { accessToken ->
-                    return chain.proceed(
-                        request.newBuilder()
+                var finalResponse: Response? = null
+                newUserToken.fold(
+                    onSuccess = { (accessToken, refreshToken) ->
+                        response.close()
+                        val newRequest = request.newBuilder()
                             .header(AuthorizationPolicy.BEARER.key, "Bearer $accessToken")
+                            .header("Content-Type", ContentType.JSON.value)
                             .build()
-                    )
-                }
+
+                        finalResponse = chain.proceed(newRequest)
+
+                    },
+                    onFailure = { err ->
+                        if (err is NetworkException.GenericHttpError) {
+                            runBlocking { AuthEventManager.triggerLogout() }
+                        }
+                        finalResponse = response
+                    }
+                )
+                return finalResponse!!
             }
-            return response
         }
+        return response
     }
 }
