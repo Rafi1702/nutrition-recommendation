@@ -32,9 +32,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val (accessToken, refreshToken) = runBlocking {
-            localTokenDataSource.getUserToken().first()
-        }
+        val (accessToken, refreshToken) =  localTokenDataSource.getUserToken()
         enableEdgeToEdge()
         setContent {
             NutritionTrackerTheme {
