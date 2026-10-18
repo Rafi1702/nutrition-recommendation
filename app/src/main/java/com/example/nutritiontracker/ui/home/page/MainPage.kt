@@ -30,17 +30,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nutritiontracker.data.remote.FoodRemoteDataSource
+import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
+import com.example.nutritiontracker.ui.food.page.foodGraph
+import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
 import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
+import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
 
 
 data class DrawerRequirementProps(
@@ -53,23 +61,30 @@ data class DrawerRequirementProps(
 @Composable
 fun MainPage(
     modifier: Modifier = Modifier,
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
 ) {
     BackHandler { onNavigateBack() }
+    val bottomBarNavController: NavHostController? = when (screenSize) {
+        ScreenSize.MOBILE -> rememberNavController()
+        else -> null
+    }
+
     when (screenSize) {
         ScreenSize.MOBILE -> {
-            val bottomBarNavController = rememberNavController()
-            MainScaffold(bottomNavController = bottomBarNavController)
+            MainScaffold(
+                modifier = modifier,
+                bottomNavController = bottomBarNavController,
+            )
         }
 
         else -> {
-
             val drawerRequirementProps =
                 DrawerRequirementProps(
                     drawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
                     coroutineScope = rememberCoroutineScope()
                 )
             ModalNavigationDrawer(
+                modifier = modifier,
                 drawerState = drawerRequirementProps.drawerState,
                 drawerContent = {
                     ModalDrawerSheet { /* Drawer content */
@@ -83,7 +98,8 @@ fun MainPage(
                     }
                 }) {
                 MainScaffold(
-                    drawerProps = drawerRequirementProps
+                    bottomNavController = bottomBarNavController,
+                    drawerProps = drawerRequirementProps,
                 )
             }
         }
@@ -93,39 +109,52 @@ fun MainPage(
 
 @Composable
 private fun MainScaffold(
+    modifier: Modifier = Modifier,
     bottomNavController: NavHostController? = null,
     drawerProps: DrawerRequirementProps? = null,
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             AdaptiveTopBar(
                 bottomNavController = bottomNavController,
                 drawerProps = drawerProps,
             )
         },
-
-        bottomBar = { BottomNavBar(navController = bottomNavController) }
+        bottomBar = {
+            bottomNavController?.let { navController ->
+                BottomNavBar(navController = navController)
+            }
+        }
     ) { innerPadding ->
-        MainLayout(padding = innerPadding, bottomNavController)
+        MainLayout(
+            padding = innerPadding,
+            bottomNavController = bottomNavController,
+        )
     }
 }
 
 @Composable
 private fun MainLayout(
     padding: PaddingValues = PaddingValues(Spacing.none),
-    bottomNavController: NavHostController? = null
+    bottomNavController: NavHostController? = null,
 ) {
     when (screenSize) {
         ScreenSize.MOBILE -> {
-
-            bottomNavController?.let {
+            bottomNavController?.let { navController ->
                 NavHost(
-                    navController = bottomNavController,
-                    startDestination = HomePath.BASE_HOME_PATH
+                    navController = navController,
+                    startDestination = HomePath.HOME,
+                    modifier = Modifier.padding(padding),
                 ) {
-                    homeGraph(
-                        modifier = Modifier.padding(padding),
-                    )
+                    composable(route = HomePath.HOME) {
+                        HomePage(navController = navController)
+                    }
+                    composable(route = HomePath.FOOD_LIST) {
+                        val foodListViewModel: FoodListViewModel = hiltViewModel()
+                        FoodListPage(foodListViewModel)
+                    }
+                    foodGraph()
                 }
             }
         }
@@ -139,9 +168,8 @@ private fun MainLayout(
             ) {
                 Spacer(modifier = Modifier.weight(.5f))
                 HomePage(
-                    modifier = Modifier
-                        .weight(2f),
-                    navController = bottomNavController
+                    modifier = Modifier.weight(2f),
+                    navController = bottomNavController,
                 )
                 FoodRecommendationsContent(modifier = Modifier.weight(2f))
                 Spacer(modifier = Modifier.weight(.5f))
@@ -176,7 +204,7 @@ private fun AdaptiveTopBar(
             val title = remember(currentRoute) {
                 when (currentRoute) {
                     HomePath.HOME -> "Home"
-                    HomePath.CONSUME_LOG -> "Consume"
+                    HomePath.FOOD_LIST -> "Consume List"
                     else -> null
                 }
             }
@@ -190,33 +218,48 @@ private fun AdaptiveTopBar(
 @Preview
 @Composable
 private fun BottomNavBar(
-    navController: NavHostController? = null
+    navController: NavHostController? = null,
 ) {
-    val navController = navController
     val navBackStackEntry = navController?.currentBackStackEntryAsState()?.value
     val currentRoute = navBackStackEntry?.destination?.route
 
     navController?.let {
         NavigationBar(containerColor = colorScheme.surfaceContainer) {
-            NavigationBarItem(selected = currentRoute == HomePath.HOME, onClick = {
-                navController.navigate(HomePath.HOME) {
-                    launchSingleTop = true
-                    popUpTo(HomePath.HOME)
+            NavigationBarItem(
+                selected = currentRoute == HomePath.HOME,
+                onClick = {
+                    if (currentRoute != HomePath.HOME) {
+                        navController.navigate(HomePath.HOME) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                },
+                icon = {
+                    Icon(Icons.Default.Home, contentDescription = "navigation_home")
                 }
-            }, icon = {
-                Icon(Icons.Default.Home, contentDescription = "navigation_home")
-            })
+            )
 
             NavigationBarItem(
-                selected = currentRoute == HomePath.CONSUME_LOG,
+                selected = currentRoute == HomePath.FOOD_LIST,
                 onClick = {
-                    navController.navigate(HomePath.CONSUME_LOG) {
-                        launchSingleTop = true
-                        popUpTo(HomePath.HOME)
+                    if (currentRoute != HomePath.FOOD_LIST) {
+                        navController.navigate(HomePath.FOOD_LIST) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }, icon = {
+                },
+                icon = {
                     Icon(Icons.Default.Home, contentDescription = "navigation_home")
-                })
+                }
+            )
         }
     }
 }
