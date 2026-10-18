@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.error.prone.annotations)
     implementation(libs.protobuf.kotlin.lite)
     ksp(libs.hilt.android.compiler)
     implementation(libs.security.crypto)

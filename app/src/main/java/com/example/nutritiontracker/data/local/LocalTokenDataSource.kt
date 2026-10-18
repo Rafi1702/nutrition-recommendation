@@ -11,7 +11,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,10 +24,10 @@ data class UserToken(
 )
 
 interface LocalTokenDataSource {
-    suspend fun setToken(newToken: String)
+    fun setToken(newToken: String)
 
-    suspend fun setRefreshToken(newToken: String)
-    suspend fun getUserToken(): Flow<UserToken>
+    fun setRefreshToken(newToken: String)
+    fun getUserToken(): UserToken
 
     suspend fun clearToken()
 }
@@ -36,23 +38,31 @@ class LocalTokenDataSourceImpl @Inject constructor(private val dataStore: DataSt
     private val REFRESH_TOKEN_KEY = stringPreferencesKey("EXAMPLE_REFRESH_TOKEN_KEY")
 
 
-    override suspend fun setToken(newToken: String) {
-        dataStore.edit { preferences ->
-            preferences[TOKEN_KEY] = newToken
+    override fun setToken(newToken: String) {
+        runBlocking {
+            dataStore.edit { preferences ->
+                preferences[TOKEN_KEY] = newToken
+            }
         }
     }
 
 
-    override suspend fun setRefreshToken(newToken: String) {
-        dataStore.edit { preferences ->
-            preferences[REFRESH_TOKEN_KEY] = newToken
+    override fun setRefreshToken(newToken: String) {
+        runBlocking{
+            dataStore.edit { preferences ->
+                preferences[REFRESH_TOKEN_KEY] = newToken
+            }
         }
     }
 
+    override fun getUserToken(): UserToken {
+        return runBlocking {
+            val combinedToken =
+                getPreferencesFlow(TOKEN_KEY).combine(getPreferencesFlow(REFRESH_TOKEN_KEY)) { accessToken, refreshToken ->
+                    UserToken(accessToken, refreshToken)
+                }
 
-    override suspend fun getUserToken(): Flow<UserToken> {
-        return getPreferencesFlow(TOKEN_KEY).combine(getPreferencesFlow(REFRESH_TOKEN_KEY)) { accessToken, refreshToken ->
-            UserToken(accessToken, refreshToken)
+            combinedToken.first()
         }
     }
 
