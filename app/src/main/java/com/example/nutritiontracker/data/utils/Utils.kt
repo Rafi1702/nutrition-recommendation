@@ -1,7 +1,31 @@
-package com.example.nutritiontracker.data
+package com.example.nutritiontracker.data.utils
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import java.io.IOException
+
+
+const val ITEMS_LIMIT = 10
+
+data class CursorPaginate<out T>(
+    @SerializedName("next_cursor")
+    val nextCursor: Int,
+    @SerializedName("has_more")
+    val hasMore: Boolean,
+    val items: List<T>
+)
+
+data class CursorPaginateQuery(
+    val cursor: Int,
+    val limit: Int = ITEMS_LIMIT,
+) {
+    fun toMap(): Map<String, Int> {
+        return mapOf(
+            "cursor" to cursor,
+            "limit" to limit
+        )
+    }
+}
 
 sealed class NetworkException(val httpCode: Int, override val message: String) :
     Exception(message) {

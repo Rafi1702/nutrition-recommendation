@@ -25,7 +25,6 @@ import com.example.nutritiontracker.ui.home.components.ConsumeLogSurface
 import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
 import com.example.nutritiontracker.ui.home.components.ShowMoreButton
 import com.example.nutritiontracker.ui.home.components.UserNeedsCard
-import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -33,7 +32,14 @@ import com.example.nutritiontracker.ui.theme.typography
 
 @Preview(showBackground = true)
 @Composable
-internal fun HomePage(modifier: Modifier = Modifier, navController: NavHostController? = null) {
+internal fun HomePage(
+    modifier: Modifier = Modifier,
+    navController: NavHostController? = null,
+    onSeeMoreClick: (() -> Unit)? = null,
+) {
+    val handleSeeMore: (() -> Unit)? = onSeeMoreClick ?: if (navController != null) {
+        { navController.navigate(FoodPath.FOOD_RECOMMENDATIONS) }
+    } else null
     Surface(
         modifier = modifier,
         color = colorScheme.surface
@@ -52,13 +58,9 @@ internal fun HomePage(modifier: Modifier = Modifier, navController: NavHostContr
                 UserNeedSection()
             }
 
-            if (navController != null) {
-                item {
-                    Spacer(modifier = Modifier.height(Spacing.m))
-                    RecommendedFoodSection(onSeeMoreClick = {
-                        navController.navigate(FoodPath.FOOD_RECOMMENDATIONS)
-                    })
-                }
+            item {
+                Spacer(modifier = Modifier.height(Spacing.m))
+                RecommendedFoodSection(onSeeMoreClick = handleSeeMore)
             }
 
             item {
