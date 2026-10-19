@@ -2,7 +2,7 @@ package com.example.nutritiontracker.data.repository
 
 import com.example.nutritiontracker.data.model.user.toUserProfile
 import com.example.nutritiontracker.data.remote.UserProfileDataSource
-import com.example.nutritiontracker.data.safeCall
+import com.example.nutritiontracker.data.utils.safeCall
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.repository.UserProfileRepository
 import javax.inject.Inject
