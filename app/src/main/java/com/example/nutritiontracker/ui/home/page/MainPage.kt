@@ -36,7 +36,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.nutritiontracker.data.remote.FoodRemoteDataSource
 import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
 import com.example.nutritiontracker.ui.food.page.foodGraph
@@ -45,7 +44,6 @@ import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
-import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
@@ -72,7 +70,6 @@ fun MainPage(
     when (screenSize) {
         ScreenSize.MOBILE -> {
             MainScaffold(
-                modifier = modifier,
                 bottomNavController = bottomBarNavController,
             )
         }
@@ -84,7 +81,6 @@ fun MainPage(
                     coroutineScope = rememberCoroutineScope()
                 )
             ModalNavigationDrawer(
-                modifier = modifier,
                 drawerState = drawerRequirementProps.drawerState,
                 drawerContent = {
                     ModalDrawerSheet { /* Drawer content */
@@ -109,12 +105,10 @@ fun MainPage(
 
 @Composable
 private fun MainScaffold(
-    modifier: Modifier = Modifier,
     bottomNavController: NavHostController? = null,
     drawerProps: DrawerRequirementProps? = null,
 ) {
     Scaffold(
-        modifier = modifier,
         topBar = {
             AdaptiveTopBar(
                 bottomNavController = bottomNavController,
@@ -152,7 +146,10 @@ private fun MainLayout(
                     }
                     composable(route = HomePath.FOOD_LIST) {
                         val foodListViewModel: FoodListViewModel = hiltViewModel()
-                        FoodListPage(foodListViewModel)
+                        FoodListPage(
+                            modifier = Modifier.padding(horizontal = Spacing.m),
+                            viewModel = foodListViewModel
+                        )
                     }
                     foodGraph()
                 }

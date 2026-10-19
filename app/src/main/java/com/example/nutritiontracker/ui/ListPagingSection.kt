@@ -2,6 +2,7 @@ package com.example.nutritiontracker.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,8 @@ import com.example.nutritiontracker.ui.theme.Spacing
 
 @Composable
 fun <T : Any> ListPagingSection(
+    modifier: Modifier = Modifier,
+    paddingValues: PaddingValues = PaddingValues(horizontal = Spacing.m),
     pagingItems: LazyPagingItems<T>,
     key: ((@JvmSuppressWildcards T) -> Any),
     initialDataError: (@Composable () -> Unit)? = null,
@@ -25,7 +28,8 @@ fun <T : Any> ListPagingSection(
 
     ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
+        contentPadding = paddingValues,
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         items(
