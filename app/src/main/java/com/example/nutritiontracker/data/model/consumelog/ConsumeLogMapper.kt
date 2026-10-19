@@ -4,7 +4,7 @@ import com.example.nutritiontracker.data.model.food.toFood
 import com.example.nutritiontracker.domain.model.ConsumeLog
 import com.example.nutritiontracker.domain.model.MealType
 
-private fun String.toMealType(): MealType {
+fun String.toMealType(): MealType {
     return when (this.lowercase()) {
         "lunch" -> MealType.LUNCH
         "dinner" -> MealType.DINNER
