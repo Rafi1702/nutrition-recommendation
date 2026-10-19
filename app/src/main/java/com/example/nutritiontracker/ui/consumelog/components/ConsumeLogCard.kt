@@ -1,5 +1,6 @@
-package com.example.nutritiontracker.ui.home.components
+package com.example.nutritiontracker.ui.consumelog.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,10 @@ import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.model.NutrientsSubTotal
 import com.example.nutritiontracker.domain.model.nutrientsSubTotal
 import com.example.nutritiontracker.ui.food.components.FoodCard
+import com.example.nutritiontracker.ui.home.components.ShowMoreButton
+import com.example.nutritiontracker.ui.home.page.mockConsumeLogs
+import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
@@ -51,18 +56,24 @@ private fun MealType.properties(): MealTypeProperties = when (this) {
     )
 }
 
-@Preview(showBackground = true, backgroundColor = 4098)
 @Composable
-internal fun ConsumeLogSurface(consumeLog: List<ConsumeLog> = emptyList()) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+internal fun ConsumeLogSurface(
+    consumeLog: List<ConsumeLog> = mockConsumeLogs,
+    onNavigateToConsumeLogDetail: () -> Unit = {}
+) {
+    Column(
+        modifier = Modifier.background(colorScheme.surface),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m)
+    ) {
         MealType.entries.forEach { mealType ->
             ConsumeLogHeader(
                 nutrientsSubTotal = consumeLog.nutrientsSubTotal(),
+                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
                 mealType = mealType
             )
             Column(
                 modifier = Modifier
-                    .height(if (consumeLog.isEmpty()) 120.dp else 0.dp)
+                    .height(if (consumeLog.isNotEmpty()) 120.dp else 0.dp)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -85,15 +96,16 @@ internal fun ConsumeLogSurface(consumeLog: List<ConsumeLog> = emptyList()) {
 @Composable
 private fun ConsumeLogHeader(
     nutrientsSubTotal: NutrientsSubTotal? = null,
-    mealType: MealType = MealType.BREAKFAST
-) {
+    onNavigateToConsumeLogDetail: () -> Unit = {},
+    mealType: MealType = MealType.BREAKFAST,
 
+    ) {
     val (containerColor, contentColor, icon) = mealType.properties()
 
     Row(
         modifier = Modifier
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Surface(color = containerColor, shape = RoundedCornerShape(8.dp)) {
@@ -129,7 +141,7 @@ private fun ConsumeLogHeader(
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        ShowMoreButton(minimumInteractive = true)
+        ShowMoreButton(minimumInteractive = true, onClick = onNavigateToConsumeLogDetail)
     }
 }
 
@@ -145,4 +157,12 @@ private fun ConsumeLogHeaderPreview() {
     ConsumeLogHeader(
         nutrientsSubTotal = DUMMY_NUTRIENTS_SUB_TOTAL, mealType = MealType.BREAKFAST
     )
+}
+
+@Preview(showBackground = true, backgroundColor = 4098)
+@Composable
+private fun ConsumeLogSurfacePreview() {
+    NutritionTrackerTheme {
+        ConsumeLogSurface()
+    }
 }

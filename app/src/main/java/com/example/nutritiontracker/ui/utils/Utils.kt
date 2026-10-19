@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.utils
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -9,6 +10,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import kotlinx.coroutines.delay
 
 fun AnnotatedString.Builder.withStyle(
@@ -38,5 +41,23 @@ fun Debounce(query: String, delayInMillis: Long = 300L, callback: suspend (Strin
             delay(delayInMillis)
             currentCallback(query)
         }
+    }
+}
+
+operator fun PaddingValues.plus(other: PaddingValues): PaddingValues = object : PaddingValues {
+    override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp {
+        return this@plus.calculateLeftPadding(layoutDirection) + other.calculateLeftPadding(layoutDirection)
+    }
+
+    override fun calculateTopPadding(): Dp {
+        return this@plus.calculateTopPadding() + other.calculateTopPadding()
+    }
+
+    override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp {
+        return this@plus.calculateRightPadding(layoutDirection) + other.calculateRightPadding(layoutDirection)
+    }
+
+    override fun calculateBottomPadding(): Dp {
+        return this@plus.calculateBottomPadding() + other.calculateBottomPadding()
     }
 }
