@@ -22,30 +22,29 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.data.remote.MOCK_FOODS
 import com.example.nutritiontracker.domain.model.ConsumeLog
-import com.example.nutritiontracker.domain.model.EatTime
+import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.model.NutrientsSubTotal
 import com.example.nutritiontracker.domain.model.nutrientsSubTotal
 import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
-private data class EatTimeProperties(
+private data class MealTypeProperties(
     val containerColor: Color,
     val contentColor: Color,
     val icon: ImageVector? = null,
 )
 
 @Composable
-private fun EatTime.properties(): EatTimeProperties = when (this) {
-    EatTime.BREAKFAST -> EatTimeProperties(
+private fun MealType.properties(): MealTypeProperties = when (this) {
+    MealType.BREAKFAST -> MealTypeProperties(
         containerColor = colorScheme.secondaryContainer,
         contentColor = colorScheme.onSecondaryContainer,
         icon = Icons.Default.Adb
     )
 
-    else -> EatTimeProperties(
+    else -> MealTypeProperties(
         containerColor = colorScheme.primaryContainer,
         contentColor = colorScheme.onPrimaryContainer,
         icon = Icons.Default.Adb
@@ -54,32 +53,29 @@ private fun EatTime.properties(): EatTimeProperties = when (this) {
 
 @Preview(showBackground = true, backgroundColor = 4098)
 @Composable
-internal fun ConsumeLogSurface(consumeLog: ConsumeLog = ConsumeLog.empty()) {
+internal fun ConsumeLogSurface(consumeLog: List<ConsumeLog> = emptyList()) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        EatTime.entries.forEach { eatTime ->
+        MealType.entries.forEach { mealType ->
             ConsumeLogHeader(
-                nutrientsSubTotal = consumeLog.nutrientsSubTotal(eatTime),
-                eatTime = eatTime
+                nutrientsSubTotal = consumeLog.nutrientsSubTotal(),
+                mealType = mealType
             )
-
-
             Column(
                 modifier = Modifier
-                    .height(if (consumeLog[eatTime].isEmpty()) 120.dp else 0.dp)
+                    .height(if (consumeLog.isEmpty()) 120.dp else 0.dp)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                if (consumeLog[eatTime].isEmpty()) {
+                if (consumeLog.isEmpty()) {
                     Text(
                         "No Data",
                         style = typography.labelMedium.copy(color = colorScheme.onSurface)
                     )
                 } else {
-                    MOCK_FOODS.subList(0, 3).forEach { food -> FoodCard(food) }
+                    consumeLog.forEach { log -> FoodCard(log.food) }
                 }
-
             }
         }
     }
@@ -89,10 +85,10 @@ internal fun ConsumeLogSurface(consumeLog: ConsumeLog = ConsumeLog.empty()) {
 @Composable
 private fun ConsumeLogHeader(
     nutrientsSubTotal: NutrientsSubTotal? = null,
-    eatTime: EatTime = EatTime.BREAKFAST
+    mealType: MealType = MealType.BREAKFAST
 ) {
 
-    val (containerColor, contentColor, icon) = eatTime.properties()
+    val (containerColor, contentColor, icon) = mealType.properties()
 
     Row(
         modifier = Modifier
@@ -105,14 +101,14 @@ private fun ConsumeLogHeader(
                 Icon(
                     icon,
                     modifier = Modifier.padding(8.dp),
-                    contentDescription = "${eatTime.label}_consume_logs",
+                    contentDescription = "${mealType.label}_consume_logs",
                     tint = contentColor
                 )
             }
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(eatTime.label, style = typography.titleMedium.copy(color = colorScheme.onSurface))
+            Text(mealType.label, style = typography.titleMedium.copy(color = colorScheme.onSurface))
             nutrientsSubTotal?.let { subTotal ->
                 Text(
                     "Subtotal: ${subTotal.calories} ${stringResource(R.string.total_calories_unit)} • ${
@@ -147,6 +143,6 @@ private val DUMMY_NUTRIENTS_SUB_TOTAL = NutrientsSubTotal(
 @Composable
 private fun ConsumeLogHeaderPreview() {
     ConsumeLogHeader(
-        nutrientsSubTotal = DUMMY_NUTRIENTS_SUB_TOTAL, eatTime = EatTime.BREAKFAST
+        nutrientsSubTotal = DUMMY_NUTRIENTS_SUB_TOTAL, mealType = MealType.BREAKFAST
     )
 }
