@@ -2,6 +2,7 @@ package com.example.nutritiontracker.ui.food.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.usecase.GetFoodsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,23 +25,24 @@ class FoodListViewModel @Inject constructor(private val getFoodsUseCase: GetFood
 
     private val _uiState = MutableStateFlow(FoodUiState())
 
+    val foodsFlow = getFoodsUseCase().cachedIn(viewModelScope)
     val uiState = _uiState.asStateFlow()
 
-    init{
-        getFoods()
-    }
-
-    fun getFoods() {
-        _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
-            getFoodsUseCase().fold(
-                onSuccess = { foods ->
-                    _uiState.update { it.copy(isLoading = false, foods = foods) }
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
-                }
-            )
-        }
-    }
+//    init{
+//        getFoods()
+//    }
+//
+//    fun getFoods() {
+//        _uiState.update { it.copy(isLoading = true) }
+//        viewModelScope.launch {
+//            getFoodsUseCase().fold(
+//                onSuccess = { foods ->
+//                    _uiState.update { it.copy(isLoading = false, foods = foods) }
+//                },
+//                onFailure = { error ->
+//                    _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
+//                }
+//            )
+//        }
+//    }
 }

@@ -1,8 +1,11 @@
-package com.example.nutritiontracker.data
+package com.example.nutritiontracker.data.utils
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.Response
 import java.io.IOException
+
+
+const val ITEMS_LIMIT = 10
 
 data class CursorPaginate<out T>(
     @SerializedName("next_cursor")
@@ -12,9 +15,9 @@ data class CursorPaginate<out T>(
     val items: List<T>
 )
 
-data class CurSorPaginateQuery(
+data class CursorPaginateQuery(
     val cursor: Int,
-    val limit: Int = 10,
+    val limit: Int = ITEMS_LIMIT,
 ) {
     fun toMap(): Map<String, Int> {
         return mapOf(

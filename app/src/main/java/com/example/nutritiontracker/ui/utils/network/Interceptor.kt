@@ -2,7 +2,7 @@ package com.example.nutritiontracker.ui.utils.network
 
 import android.util.Log
 import com.example.nutritiontracker.BuildConfig
-import com.example.nutritiontracker.data.NetworkException
+import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.local.UserToken
 import com.example.nutritiontracker.data.model.auth.RefreshTokenRequestDto

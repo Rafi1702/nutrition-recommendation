@@ -1,6 +1,6 @@
 package com.example.nutritiontracker.data.remote
 
-import com.example.nutritiontracker.data.CursorPaginate
+import com.example.nutritiontracker.data.utils.CursorPaginate
 import com.example.nutritiontracker.data.model.food.FoodResponseDto
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MacroNutrients
