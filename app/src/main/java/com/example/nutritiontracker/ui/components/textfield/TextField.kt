@@ -4,29 +4,19 @@ package com.example.nutritiontracker.ui.components.textfield
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldDecorator
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.SecureTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -35,17 +25,13 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FieldRegister
 import com.example.nutritiontracker.ui.components.PasswordValidator
@@ -53,9 +39,8 @@ import com.example.nutritiontracker.ui.components.currentForm
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
-import com.example.nutritiontracker.ui.utils.withStyle
 import kotlin.reflect.KProperty1
-import androidx.compose.material3.TextField as M3TextField
+import androidx.compose.material3.OutlinedTextField as M3TextField
 
 @Composable
 fun TextField(
@@ -79,7 +64,7 @@ fun TextField(
 
     ) {
     val resolvedBorderColor = if (borderColor == Color.Unspecified) {
-        colorScheme.onSurfaceVariant
+        colorScheme.outline
     } else {
         borderColor
     }
@@ -120,22 +105,23 @@ fun TextField(
                 } else {
                     VisualTransformation.None
                 },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = if (isSecure) KeyboardType.Password else KeyboardType.Text
-                ),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent,
-
+                keyboardOptions = if (isSecure && keyboardOptions.keyboardType == KeyboardType.Text) {
+                    keyboardOptions.copy(keyboardType = KeyboardType.Password)
+                } else {
+                    keyboardOptions
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colorScheme.primary,
+                    unfocusedBorderColor = resolvedBorderColor,
+                    disabledBorderColor = resolvedBorderColor.copy(alpha = 0.38f),
+                    errorBorderColor = colorScheme.error,
 
                     focusedContainerColor = resolvedBackgroundColor,
                     unfocusedContainerColor = resolvedBackgroundColor,
                     disabledContainerColor = resolvedBackgroundColor,
                     errorContainerColor = resolvedBackgroundColor,
 
-                    focusedLabelColor = resolvedBorderColor,
+                    focusedLabelColor = colorScheme.primary,
                     unfocusedLabelColor = resolvedBorderColor
                 )
             )
@@ -165,22 +151,22 @@ fun TextField(
 ) {
 
     val resolvedBorderColor =
-        if (borderColor == Color.Unspecified) colorScheme.onSurfaceVariant else borderColor
+        if (borderColor == Color.Unspecified) colorScheme.outline else borderColor
     val resolvedBackgroundColor =
         if (backgroundColor == Color.Unspecified) colorScheme.surfaceVariant else backgroundColor
 
-    val textFieldColors = TextFieldDefaults.colors(
-        focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent,
-        disabledIndicatorColor = Color.Transparent,
-        errorIndicatorColor = Color.Transparent,
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = colorScheme.primary,
+        unfocusedBorderColor = resolvedBorderColor,
+        disabledBorderColor = resolvedBorderColor.copy(alpha = 0.38f),
+        errorBorderColor = colorScheme.error,
 
         focusedContainerColor = resolvedBackgroundColor,
         unfocusedContainerColor = resolvedBackgroundColor,
         disabledContainerColor = resolvedBackgroundColor,
         errorContainerColor = resolvedBackgroundColor,
 
-        focusedLabelColor = resolvedBorderColor,
+        focusedLabelColor = colorScheme.primary,
         unfocusedLabelColor = resolvedBorderColor
     )
 
@@ -219,23 +205,6 @@ fun TextField(
             )
         }
         when {
-            isSecure -> {
-                SecureTextField(
-                    state = state,
-                    modifier = modifier.onKeyEvent(ignoredKeyEvent),
-                    trailingIcon = trailingIcon,
-                    isError = hasError,
-                    supportingText = supportingTextContent,
-                    keyboardOptions = keyboardOptions,
-                    suffix = suffix,
-                    prefix = prefixContent,
-                    placeholder = placeholder,
-                    textStyle = textStyle,
-                    shape = RoundedCornerShape(cornerRadius),
-                    colors = textFieldColors,
-                )
-            }
-
             decorationBox != null -> {
                 BasicTextField(
                     state = state,
@@ -247,7 +216,12 @@ fun TextField(
 
             else -> {
                 M3TextField(
-                    state = state,
+                    value = state.text.toString(),
+                    onValueChange = { newText ->
+                        state.edit {
+                            replace(0, length, newText)
+                        }
+                    },
                     modifier = modifier.onPreviewKeyEvent(ignoredKeyEvent),
                     trailingIcon = trailingIcon,
                     isError = hasError,
@@ -256,8 +230,18 @@ fun TextField(
                     suffix = suffix,
                     prefix = prefixContent,
                     shape = RoundedCornerShape(cornerRadius),
+                    visualTransformation = if (isSecure) {
+                        remember { PasswordVisualTransformation() }
+                    } else {
+                        VisualTransformation.None
+                    },
+                    keyboardOptions = if (isSecure && keyboardOptions.keyboardType == KeyboardType.Text) {
+                        keyboardOptions.copy(keyboardType = KeyboardType.Password)
+                    } else {
+                        keyboardOptions
+                    },
                     colors = textFieldColors,
-                    textStyle = textStyle
+                    textStyle = textStyle,
                 )
             }
         }

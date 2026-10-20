@@ -130,7 +130,10 @@ class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource
                     },
                     onFailure = { err ->
                         if (err is NetworkException.GenericHttpError) {
-                            runBlocking { AuthEventManager.triggerLogout() }
+                            runBlocking {
+                                localTokenDataSource.clearToken()
+                                AuthEventManager.triggerLogout()
+                            }
                         }
                         finalResponse = response
                     }

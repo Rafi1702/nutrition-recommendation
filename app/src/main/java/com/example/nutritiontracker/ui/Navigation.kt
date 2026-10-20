@@ -3,8 +3,11 @@ package com.example.nutritiontracker.ui
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -26,6 +29,9 @@ import com.example.nutritiontracker.ui.home.page.homeGraph
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
+import com.example.nutritiontracker.ui.theme.snackBarHostState
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -35,43 +41,50 @@ fun AppNavigation(
     startDestination: String = AuthPath.AUTH,
 ) {
 
+    val snackBarHostState = snackBarHostState
     LaunchedEffect(Unit) {
         AuthEventManager.authEvent.collect {
             navController.navigate(AuthPath.AUTH)
+            snackBarHostState.showSnackbar(
+                message = "Unauthorized Access",
+            )
         }
     }
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier,
-    ) {
 
-        composable(AuthPath.AUTH) {
-            val authenticationViewModel: AuthenticationViewModel = hiltViewModel()
-            AuthPageRoute(viewModel = authenticationViewModel, onNavigateToHome = {
-                navController.navigate(HomePath.BASE_HOME_PATH)
-            })
-        }
+    Scaffold(snackbarHost = { SnackbarHost(snackBarHostState) }) { _ ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = modifier,
+        ) {
 
-        homeGraph(
-            onNavigateToHome = {
-                navController.navigate(route = HomePath.HOME)
-            },
-            onNavigateToRecommendedFoodList = {
-                navController.navigate(FoodPath.FOOD_RECOMMENDATIONS)
-            },
-            onNavigateToConsumeLogDetail = {
-                navController.navigate(ConsumeLogNav.ConsumeLogDetail("0").route)
+            composable(AuthPath.AUTH) {
+                val authenticationViewModel: AuthenticationViewModel = hiltViewModel()
+                AuthPageRoute(viewModel = authenticationViewModel, onNavigateToHome = {
+                    navController.navigate(HomePath.BASE_HOME_PATH)
+                })
             }
-        )
 
-        consumeGraph(onNavigateBack = {
-            navController.popBackStack()
-        })
+            homeGraph(
+                onNavigateToHome = {
+                    navController.navigate(route = HomePath.HOME)
+                },
+                onNavigateToRecommendedFoodList = {
+                    navController.navigate(FoodPath.FOOD_RECOMMENDATIONS)
+                },
+                onNavigateToConsumeLogDetail = {
+                    navController.navigate(ConsumeLogNav.ConsumeLogDetail("0").route)
+                }
+            )
 
-        composable(ProfileNav.USER_PROFILE) {
-            val userProfileViewModel: UserProfileViewModel = hiltViewModel()
-            UserProfilePageRoute(viewModel = userProfileViewModel)
+            consumeGraph(onNavigateBack = {
+                navController.popBackStack()
+            })
+
+            composable(ProfileNav.USER_PROFILE) {
+                val userProfileViewModel: UserProfileViewModel = hiltViewModel()
+                UserProfilePageRoute(viewModel = userProfileViewModel)
+            }
         }
     }
 }

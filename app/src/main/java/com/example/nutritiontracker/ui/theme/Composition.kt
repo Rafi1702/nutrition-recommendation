@@ -1,11 +1,13 @@
 package com.example.nutritiontracker.ui.theme
 
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.ui.components.FormBuilder
@@ -30,5 +32,12 @@ val screenSize: ScreenSize
     @Composable
     get() = rememberScreenSize()
 
-val LocalNavController = compositionLocalOf<NavHostController?> { error("No NavHostController Provided") }
+val LocalNavController =
+    compositionLocalOf<NavHostController?> { error("No NavHostController Provided") }
+
+val LocalSnackBarHost = compositionLocalOf<SnackbarHostState> { error("No SnackBar Host Provided") }
+
+val snackBarHostState: SnackbarHostState
+    @Composable
+    get() = remember { SnackbarHostState() }
 
