@@ -18,6 +18,7 @@ fun NutritionTrackerTheme(
         LocalTypography provides typography,
         LocalScreenSize provides screenSize,
         LocalColorScheme provides colorScheme,
+        LocalSnackBarHost provides snackBarHostState,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

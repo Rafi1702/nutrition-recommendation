@@ -46,8 +46,6 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-
 
 data class DrawerRequirementProps(
     val drawerState: DrawerState,
@@ -59,6 +57,8 @@ data class DrawerRequirementProps(
 @Composable
 fun MainPage(
     modifier: Modifier = Modifier,
+    onNavigateToConsumeLogDetail: () -> Unit = {},
+    onNavigateToRecommendedFoodList: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
     BackHandler { onNavigateBack() }
@@ -70,7 +70,10 @@ fun MainPage(
     when (screenSize) {
         ScreenSize.MOBILE -> {
             MainScaffold(
+                modifier = modifier,
                 bottomNavController = bottomBarNavController,
+                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+                onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
             )
         }
 
@@ -96,6 +99,8 @@ fun MainPage(
                 MainScaffold(
                     bottomNavController = bottomBarNavController,
                     drawerProps = drawerRequirementProps,
+                    onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+                    onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList
                 )
             }
         }
@@ -105,10 +110,14 @@ fun MainPage(
 
 @Composable
 private fun MainScaffold(
+    modifier: Modifier = Modifier,
     bottomNavController: NavHostController? = null,
     drawerProps: DrawerRequirementProps? = null,
+    onNavigateToConsumeLogDetail: () -> Unit = {},
+    onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             AdaptiveTopBar(
                 bottomNavController = bottomNavController,
@@ -124,6 +133,8 @@ private fun MainScaffold(
         MainLayout(
             padding = innerPadding,
             bottomNavController = bottomNavController,
+            onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+            onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList
         )
     }
 }
@@ -131,6 +142,8 @@ private fun MainScaffold(
 @Composable
 private fun MainLayout(
     padding: PaddingValues = PaddingValues(Spacing.none),
+    onNavigateToConsumeLogDetail: () -> Unit = {},
+    onNavigateToRecommendedFoodList: () -> Unit = {},
     bottomNavController: NavHostController? = null,
 ) {
     when (screenSize) {
@@ -142,12 +155,11 @@ private fun MainLayout(
                     modifier = Modifier.padding(padding),
                 ) {
                     composable(route = HomePath.HOME) {
-                        HomePage(navController = navController)
+                        HomePage(onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList, onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail)
                     }
                     composable(route = HomePath.FOOD_LIST) {
                         val foodListViewModel: FoodListViewModel = hiltViewModel()
                         FoodListPage(
-                            modifier = Modifier.padding(horizontal = Spacing.m),
                             viewModel = foodListViewModel
                         )
                     }
@@ -166,7 +178,6 @@ private fun MainLayout(
                 Spacer(modifier = Modifier.weight(.5f))
                 HomePage(
                     modifier = Modifier.weight(2f),
-                    navController = bottomNavController,
                 )
                 FoodRecommendationsContent(modifier = Modifier.weight(2f))
                 Spacer(modifier = Modifier.weight(.5f))

@@ -16,12 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavHostController
 import com.example.nutritiontracker.R
+import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.Food
+import com.example.nutritiontracker.domain.model.MacroNutrients
 import com.example.nutritiontracker.domain.model.MacroType
+import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.ui.components.DatePicker
-import com.example.nutritiontracker.ui.food.page.FoodPath
-import com.example.nutritiontracker.ui.home.components.ConsumeLogSurface
+import com.example.nutritiontracker.ui.consumelog.components.ConsumeLogSurface
 import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
 import com.example.nutritiontracker.ui.home.components.ShowMoreButton
 import com.example.nutritiontracker.ui.home.components.UserNeedsCard
@@ -30,16 +32,61 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
 
+val mockConsumeLogs = listOf(
+    ConsumeLog(
+        id = 1,
+        userId = 101,
+        eatTime = "2026-10-19T08:00:00Z",
+        mealType = MealType.BREAKFAST,
+        food = Food(
+            id = 1,
+            name = "Nasi Goreng Spesial",
+            macros = listOf(
+                MacroNutrients(type = MacroType.PROTEIN, serveValue = 12.5), // Indeks 0
+                MacroNutrients(type = MacroType.CARBS, serveValue = 45.0),   // Indeks 1
+                MacroNutrients(type = MacroType.FAT, serveValue = 15.0)      // Indeks 2
+            )
+        )
+    ),
+    ConsumeLog(
+        id = 2,
+        userId = 101,
+        eatTime = "2026-10-19T12:30:00Z",
+        mealType = MealType.LUNCH,
+        food = Food(
+            id = 2,
+            name = "Dada Ayam Bakar & Nasi Merah",
+            macros = listOf(
+                MacroNutrients(type = MacroType.PROTEIN, serveValue = 30.0),
+                MacroNutrients(type = MacroType.CARBS, serveValue = 35.0),
+                MacroNutrients(type = MacroType.FAT, serveValue = 5.5)
+            )
+        )
+    ),
+    ConsumeLog(
+        id = 3,
+        userId = 101,
+        eatTime = "2026-10-19T19:00:00Z",
+        mealType = MealType.DINNER,
+        food = Food(
+            id = 3,
+            name = "Sup Ikan Kuah Kuning",
+            macros = listOf(
+                MacroNutrients(type = MacroType.PROTEIN, serveValue = 22.0),
+                MacroNutrients(type = MacroType.CARBS, serveValue = 10.0),
+                MacroNutrients(type = MacroType.FAT, serveValue = 8.0)
+            )
+        )
+    )
+)
+
 @Preview(showBackground = true)
 @Composable
 internal fun HomePage(
     modifier: Modifier = Modifier,
-    navController: NavHostController? = null,
-    onSeeMoreClick: (() -> Unit)? = null,
+    onNavigateToConsumeLogDetail: () -> Unit = {},
+    onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
-    val handleSeeMore: (() -> Unit)? = onSeeMoreClick ?: if (navController != null) {
-        { navController.navigate(FoodPath.FOOD_RECOMMENDATIONS) }
-    } else null
     Surface(
         modifier = modifier,
         color = colorScheme.surface
@@ -60,12 +107,15 @@ internal fun HomePage(
 
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))
-                RecommendedFoodSection(onSeeMoreClick = handleSeeMore)
+                RecommendedFoodSection(onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList)
             }
 
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))
-                ConsumeLogSurface()
+                ConsumeLogSurface(
+                    consumeLog = mockConsumeLogs,
+                    onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail
+                )
             }
         }
     }
@@ -75,12 +125,12 @@ internal fun HomePage(
 @Composable
 private fun RecommendedFoodSection(
     modifier: Modifier = Modifier,
-    onSeeMoreClick: (() -> Unit)? = null
+    onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
 
     Row(modifier = modifier.fillMaxWidth()) {
         Column(
-          modifier = Modifier.weight(.6f)
+            modifier = Modifier.weight(.6f)
         ) {
             Text(
                 stringResource(R.string.food_recommendation_section_home),
@@ -91,10 +141,7 @@ private fun RecommendedFoodSection(
                 style = typography.titleSmall.copy(colorScheme.onSurface.copy(alpha = .5f))
             )
         }
-
-        onSeeMoreClick?.let {
-            ShowMoreButton(minimumInteractive = true, onClick = onSeeMoreClick)
-        }
+        ShowMoreButton(minimumInteractive = true, onClick = onNavigateToRecommendedFoodList)
     }
 }
 
