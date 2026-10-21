@@ -11,14 +11,16 @@ import com.example.nutritiontracker.data.utils.PagingSource
 import com.example.nutritiontracker.data.utils.defaultPageConfig
 import com.example.nutritiontracker.data.utils.safeCall
 import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.repository.ConsumeLogRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-class ConsumeLogRepositoryImpl @Inject constructor(private val consumeLogRemoteDataSource: ConsumeLogRemoteDataSource) : ConsumeLogRepository {
-    override fun getConsumeLog(): Flow<PagingData<ConsumeLog>> {
-        return  Pager(
+class ConsumeLogRepositoryImpl @Inject constructor(private val consumeLogRemoteDataSource: ConsumeLogRemoteDataSource) :
+    ConsumeLogRepository {
+    override fun getConsumeLog(currentTime: String): Flow<PagingData<ConsumeLog>> {
+        return Pager(
             config = defaultPageConfig(),
             pagingSourceFactory = {
                 PagingSource(
@@ -26,7 +28,16 @@ class ConsumeLogRepositoryImpl @Inject constructor(private val consumeLogRemoteD
                     networkCall = { cursor ->
                         safeCall {
                             consumeLogRemoteDataSource.getConsumeLog(
-                                CursorPaginateQuery(cursor = cursor, limit = ITEMS_LIMIT).toMap()
+                                buildMap {
+                                    putAll(
+                                        CursorPaginateQuery(
+                                            cursor = cursor,
+                                            limit = ITEMS_LIMIT
+                                        ).toMap()
+                                    )
+
+                                    put("meal_type", currentTime)
+                                }
                             )
                         }
                     }

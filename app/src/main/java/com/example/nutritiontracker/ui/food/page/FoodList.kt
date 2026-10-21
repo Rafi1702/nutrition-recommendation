@@ -21,6 +21,6 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
         initialDataError = {
             Text("Initial Data Error")
         }) { food ->
-        FoodCard(food)
+        FoodCard(food, onAddClick = {})
     }
 }

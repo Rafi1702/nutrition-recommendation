@@ -160,7 +160,6 @@ private fun MainLayout(
                     composable(route = HomePath.FOOD_LIST) {
                         val foodListViewModel: FoodListViewModel = hiltViewModel()
                         FoodListPage(
-                            modifier = Modifier.padding(horizontal = Spacing.m),
                             viewModel = foodListViewModel
                         )
                     }
