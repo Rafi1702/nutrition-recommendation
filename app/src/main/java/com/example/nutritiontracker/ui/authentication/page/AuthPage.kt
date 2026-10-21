@@ -336,9 +336,9 @@ private fun SignInContent(
                 modifier = Modifier.fillMaxWidth(),
                 fieldName = SignInForm::username,
                 label = "Username",
+                backgroundColor = colorScheme.surfaceVariant,
                 prefix = { Icon(Icons.Default.Person, contentDescription = "user_username") },
                 placeholder = { Text(stringResource(R.string.username_auth_textfield_placeholder)) },
-                backgroundColor = colorScheme.surfaceVariant,
             )
 
 
@@ -347,13 +347,13 @@ private fun SignInContent(
                 modifier = Modifier.fillMaxWidth(),
                 fieldName = SignInForm::password,
                 label = "Password",
+                backgroundColor = colorScheme.surfaceVariant,
                 suffix = {
                     passwordField.Suffix()
                 },
                 prefix = { Icon(Icons.Default.Lock, contentDescription = "user_password") },
                 placeholder = { Text(stringResource(R.string.password_auth_textfield_placeholder)) },
                 isSecure = !passwordField.isVisible,
-                backgroundColor = colorScheme.surfaceVariant,
             )
 
             Row(
