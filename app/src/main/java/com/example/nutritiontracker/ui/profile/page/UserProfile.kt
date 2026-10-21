@@ -30,10 +30,12 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -161,10 +163,17 @@ private fun UserProfilePagePreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(title = {
+                Text("User Profile")
+            })
+        }
+    ) { innerPadding ->
         UserProfileContent(modifier = Modifier.padding(innerPadding), viewModel.userProfileForm)
     }
 }

@@ -1,26 +1,23 @@
 package com.example.nutritiontracker.ui
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.ui.authentication.AuthEventManager
 import com.example.nutritiontracker.ui.authentication.page.AuthPageRoute
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationViewModel
-import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogDetail
 import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogNav
 import com.example.nutritiontracker.ui.consumelog.page.consumeGraph
 import com.example.nutritiontracker.ui.food.page.FoodPath
@@ -30,24 +27,37 @@ import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 import com.example.nutritiontracker.ui.theme.snackBarHostState
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = AuthPath.AUTH,
+    startDestination: String = "ENTRY_SCREEN",
 ) {
-
+    val entryViewModel: EntryScreenViewModel = hiltViewModel()
+    val entryScreenUiState = entryViewModel.entryNavigationState.collectAsStateWithLifecycle().value
     val snackBarHostState = snackBarHostState
+
+
+    LaunchedEffect(entryScreenUiState) {
+        when (entryScreenUiState) {
+            is EntryScreenUiState.Navigate -> {
+                navController.navigate(entryScreenUiState.route)
+            }
+
+            else -> {}
+        }
+    }
+
     LaunchedEffect(Unit) {
-        AuthEventManager.authEvent.collect {
-            navController.navigate(AuthPath.AUTH)
-            snackBarHostState.showSnackbar(
-                message = "Unauthorized Access",
-            )
+        AuthEventManager.authEvent.collect { err ->
+            if(err is NetworkException.Unauthorized){
+                navController.navigate(AuthPath.AUTH)
+                snackBarHostState.showSnackbar(
+                    message = "Unauthorized Access",
+                )
+            }
         }
     }
 
@@ -57,6 +67,10 @@ fun AppNavigation(
             startDestination = startDestination,
             modifier = modifier,
         ) {
+
+            composable("ENTRY_SCREEN") {
+                EntryScreen(entryScreenUiState)
+            }
 
             composable(AuthPath.AUTH) {
                 val authenticationViewModel: AuthenticationViewModel = hiltViewModel()

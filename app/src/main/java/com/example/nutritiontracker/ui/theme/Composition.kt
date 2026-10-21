@@ -10,6 +10,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.ui.components.FormBuilder
 
 val LocalTypography = compositionLocalOf { phoneTypography }
@@ -40,4 +41,10 @@ val LocalSnackBarHost = compositionLocalOf<SnackbarHostState> { error("No SnackB
 val snackBarHostState: SnackbarHostState
     @Composable
     get() = remember { SnackbarHostState() }
+
+val LocalUserProfile = compositionLocalOf<UserProfile?> { error("No User Host Provided") }
+
+val userProfile: UserProfile?
+    @Composable
+    get() = LocalUserProfile.current
 
