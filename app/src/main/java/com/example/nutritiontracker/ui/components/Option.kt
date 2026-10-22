@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +47,7 @@ fun <T : Any> ColumnOptionForm(
     itemWeight: Float = 0f,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
-    placeholder: @Composable ((String, String) -> Unit)? = null,
+    placeholder: @Composable ((String, Boolean) -> Unit)? = null,
 ) {
     OptionForm(
         fieldName = fieldName,
@@ -67,7 +68,7 @@ fun <T : Any> ColumnOptionForm(
                     onClick = {
                         state.value = item
                     }
-                ) { placeholder?.invoke(item, state.value) }
+                ) { placeholder?.invoke(item, state.value == item) }
             }
         }
     }
@@ -76,12 +77,10 @@ fun <T : Any> ColumnOptionForm(
 @Composable
 fun <T : Any> RowOptionForm(
     fieldName: KProperty1<T, String>,
-    fieldProperties: FieldProperties<String>? = null,
     items: List<String> = emptyList(),
-    initialValue: String = "",
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     itemWeight: Float = .0f,
-    placeholder: @Composable ((String, String) -> Unit)? = null,
+    placeholder: @Composable ((String, Boolean) -> Unit)? = null,
 ) {
     OptionForm(
         fieldName = fieldName,
@@ -100,7 +99,76 @@ fun <T : Any> RowOptionForm(
                         state.value = item
                     }
                 ) {
-                    placeholder?.invoke(item, state.value)
+                    placeholder?.invoke(item, state.value == item)
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun <T : Any> MultiOptionForm(
+    fieldName: KProperty1<T, List<String>>,
+    initialValue: List<String> = emptyList(),
+    content: @Composable ((state: MutableState<List<String>>) -> Unit),
+) {
+    val formBuilder = currentForm<T>()
+    val state = remember { mutableStateOf(initialValue) }
+    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { state.value }.collect {
+            existingField.onValueStateChange(it)
+        }
+    }
+
+    FieldRegister(
+        fieldProperties = existingField,
+        name = fieldName
+    ) {
+        content.invoke(state)
+    }
+}
+
+@Composable
+internal fun <T : Any> MultiSelectionOptions(
+    fieldName: KProperty1<T, List<String>>,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    initialValue: List<String> = emptyList(),
+    itemWeight: Float = .0f,
+    items: List<String> = emptyList(),
+    placeholder: @Composable ((String, Boolean) -> Unit)? = null,
+) {
+    MultiOptionForm(
+        fieldName = fieldName,
+        initialValue = initialValue
+    ) { state ->
+        Row(horizontalArrangement = horizontalArrangement) {
+            items.forEach { item ->
+                ClickableBox(
+                    modifier = Modifier.then(
+                        if (itemWeight > 0f) {
+                            Modifier.weight(itemWeight)
+                        } else {
+                            Modifier
+                        }
+                    ),
+                    onClick = {
+                        if(state.value.contains(item)){
+                            state.value = buildList {
+                                addAll(state.value)
+                                remove(item)
+                            }
+                        }else{
+                            state.value = buildList {
+                                addAll(state.value)
+                                add(item)
+                            }
+                        }
+                    }
+                ) {
+                    placeholder?.invoke(item, state.value.contains(item))
                 }
             }
         }

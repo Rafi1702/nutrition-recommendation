@@ -213,6 +213,13 @@ class CheckRequiredValidator : FieldValidator<Boolean> {
     }
 }
 
+class CannotEmptyList : FieldValidator<List<String>> {
+    override fun validate(value: List<String>): String? {
+        return if (!value.isEmpty()) null else "Choose one or more than one options"
+    }
+}
+
+
 class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValidator<Number> {
     override fun validate(value: Number): String? {
         Log.d("[VALIDATOR]", "Number Validator: $value")
