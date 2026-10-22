@@ -40,13 +40,25 @@ data class FieldProperties<T>(
     val state = mutableStateOf(initialValue)
 
     val errorMessage: String? by derivedStateOf {
-        validator.firstNotNullOfOrNull {
-            state.value?.let { state ->
-                it.validate(state)
+        val currentValue = state.value
+        if (currentValue == null) {
+            if (isRequired) "Field is required" else null
+        } else {
+            validator.firstNotNullOfOrNull {
+                it.validate(currentValue)
             }
         }
     }
-    val isValid: Boolean by derivedStateOf { errorMessage == null && isDirty }
+
+    val isValid: Boolean by derivedStateOf {
+        val currentValue = state.value
+        if (isRequired) {
+            currentValue != null && errorMessage == null
+        } else {
+            errorMessage == null
+        }
+    }
+
     val isDirty: Boolean by derivedStateOf { state.value != initialValue }
 
     fun onValueStateChange(newValue: T) {
@@ -64,10 +76,8 @@ class FormBuilder<T>(persist: Boolean = false) {
     val persistState: Boolean by derivedStateOf { _persistState.value }
     val isValid: Boolean by derivedStateOf {
         val activeFields = fieldRegistry.values.filter { it.isRequired }
-
         if (activeFields.isEmpty()) return@derivedStateOf false
-
-        activeFields.all { it.isDirty && it.isValid }
+        activeFields.all { it.isValid }
     }
 
 
@@ -162,7 +172,7 @@ fun <T : Any, V> FieldRegister(
     content?.invoke()
 }
 
-interface FieldValidator<T> {
+interface FieldValidator<in T> {
     fun validate(value: T): String?
 }
 
@@ -215,10 +225,9 @@ class CheckRequiredValidator : FieldValidator<Boolean> {
 
 class CannotEmptyList : FieldValidator<List<String>> {
     override fun validate(value: List<String>): String? {
-        return if (!value.isEmpty()) null else "Choose one or more than one options"
+        return if (value.isNotEmpty()) null else "Choose one or more than one options"
     }
 }
-
 
 class MockNumberValidator(minimum: Number = 0, maximum: Number = 0) : FieldValidator<Number> {
     override fun validate(value: Number): String? {

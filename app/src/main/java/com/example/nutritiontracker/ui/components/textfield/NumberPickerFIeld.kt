@@ -181,6 +181,7 @@ private fun <M : Any, T> NumberPickerFieldContent(
         if (parseValue(textInput) != state.value || (textInput.isBlank() && state.value != parseValue(""))) {
             textInput = state.value.toString()
         }
+        existingField.onValueStateChange(state.value)
     }
 
 

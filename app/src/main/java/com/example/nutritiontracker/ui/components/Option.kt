@@ -20,11 +20,13 @@ import kotlin.reflect.KProperty1
 @Composable
 private fun <T : Any> OptionForm(
     fieldName: KProperty1<T, String>,
+    initialValue: String = "",
     content: @Composable ((state: MutableState<String>) -> Unit),
 ) {
     val formBuilder = currentForm<T>()
-    val state = remember { mutableStateOf("") }
     val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
+    val startValue = existingField.state.value ?: initialValue
+    val state = remember { mutableStateOf(startValue) }
 
     LaunchedEffect(Unit) {
         snapshotFlow { state.value }.collect {
@@ -114,8 +116,9 @@ private fun <T : Any> MultiOptionForm(
     content: @Composable ((state: MutableState<List<String>>) -> Unit),
 ) {
     val formBuilder = currentForm<T>()
-    val state = remember { mutableStateOf(initialValue) }
     val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
+    val startValue = existingField.state.value ?: initialValue
+    val state = remember { mutableStateOf(startValue) }
 
     LaunchedEffect(Unit) {
         snapshotFlow { state.value }.collect {
