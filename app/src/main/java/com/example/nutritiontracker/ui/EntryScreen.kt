@@ -13,22 +13,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.utils.NetworkException
+import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.theme.Spacing
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 
 sealed class EntryScreenUiState {
     data object Initial : EntryScreenUiState()
-    data class Navigate(val route: String) : EntryScreenUiState()
+    data class Navigate(val route: String, val data: UserProfile? = null) : EntryScreenUiState()
     data class Error(val error: Throwable) : EntryScreenUiState()
 }
 
@@ -51,6 +54,7 @@ class EntryScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val (accessToken, refreshToken) = localTokenDataSource.getUserToken()
 
+            delay(3000)
             if (accessToken == null || refreshToken == null) {
                 return@launch _entryNavigationState.update { EntryScreenUiState.Navigate(AuthPath.AUTH) }
             }
@@ -62,18 +66,29 @@ class EntryScreenViewModel @Inject constructor(
                     if (profile != null) {
                         return@launch _entryNavigationState.update {
                             EntryScreenUiState.Navigate(
-                                HomePath.HOME
+                                HomePath.HOME,
+                                profile
                             )
                         }
                     }
-                    return@launch _entryNavigationState.update { EntryScreenUiState.Navigate(ProfileNav.USER_PROFILE) }
+                    return@launch _entryNavigationState.update {
+                        EntryScreenUiState.Navigate(
+                            ProfileNav.USER_PROFILE,
+                        )
+                    }
                 },
                 onFailure = { error ->
-                    if(error !is NetworkException.Unauthorized){
+                    if (error !is NetworkException.Unauthorized) {
                         return@launch _entryNavigationState.update { EntryScreenUiState.Error(error) }
                     }
                 }
             )
+        }
+    }
+
+    fun getUserProfile(){
+        viewModelScope.launch{
+
         }
     }
 }
@@ -91,6 +106,7 @@ fun EntryScreen(entryScreenUiState: EntryScreenUiState = EntryScreenUiState.Init
             is EntryScreenUiState.Initial -> {
                 CircularProgressIndicator()
             }
+
             is EntryScreenUiState.Error -> {
                 Text(entryScreenUiState.error.message ?: "Unexpected Error")
             }

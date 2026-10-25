@@ -6,9 +6,15 @@ import com.example.nutritiontracker.ui.utils.network.ContentType
 import com.example.nutritiontracker.ui.utils.network.CustomHeader
 import retrofit2.Response
 import retrofit2.http.GET
+import com.example.nutritiontracker.data.utils.Response as UtilResponse
+
 
 interface UserProfileDataSource {
     @GET("/user/profile")
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
-    suspend fun getUserProfile(): Response<UserProfileResponseDto?>
+    suspend fun getUserProfile(): Response<UtilResponse<UserProfileResponseDto?>>
+
+    @GET("/user/profile/daily-total-consumption")
+    @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
+    suspend fun getUserDailyConsumption(): Response<UtilResponse<UserProfileResponseDto?>>
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
+import com.example.nutritiontracker.ui.components.CannotEmptyList
 import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
@@ -16,6 +17,8 @@ import javax.inject.Inject
 
 
 
+import com.example.nutritiontracker.domain.model.PersonalActivities
+
 sealed interface Resource<out T> {
     object Idle : Resource<Nothing>
     object Loading : Resource<Nothing>
@@ -25,9 +28,11 @@ sealed interface Resource<out T> {
 
 data class UserProfileForm(
     val gender: String,
+    val personalActivities: String,
     val birth: String,
     val weight: Double,
     val height: Double,
+    val userAllergies: List<String>
 )
 
 data class UserProfileUiState(
@@ -43,7 +48,16 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
         addField(
             UserProfileForm::gender, FieldProperties(
                 validator = CannotEmptyValidator(),
-                initialValue = "Male"
+                initialValue = "Male",
+                isRequired = true
+            )
+        )
+
+        addField(
+            UserProfileForm::personalActivities, FieldProperties(
+                validator = CannotEmptyValidator(),
+                initialValue = PersonalActivities.SEDENTARY.name,
+                isRequired = true
             )
         )
 
@@ -55,13 +69,25 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
 
         addField(
             name = UserProfileForm::weight, FieldProperties(
-                validator = MockNumberValidator()
+                validator = MockNumberValidator(),
+                initialValue = 58.0,
+                isRequired = true
             )
         )
 
         addField(
             name = UserProfileForm::height, FieldProperties(
-                validator = MockNumberValidator()
+                validator = MockNumberValidator(),
+                initialValue = 168.0,
+                isRequired = true
+            )
+        )
+
+        addField(
+            name = UserProfileForm::userAllergies, FieldProperties(
+                validator = CannotEmptyList(),
+                initialValue = listOf("Peanut"),
+                isRequired = true
             )
         )
     }

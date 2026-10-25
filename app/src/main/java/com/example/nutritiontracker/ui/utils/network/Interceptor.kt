@@ -113,8 +113,8 @@ class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource
 
             response.body()?.let { body ->
                 runBlocking {
-                    localTokenDataSource.setToken(body.accessToken)
-                    localTokenDataSource.setRefreshToken(body.refreshToken)
+                    localTokenDataSource.setToken(body.data.accessToken)
+                    localTokenDataSource.setRefreshToken(body.data.refreshToken)
                 }
             }
             val newStoreToken = runBlocking { localTokenDataSource.getUserToken() }
