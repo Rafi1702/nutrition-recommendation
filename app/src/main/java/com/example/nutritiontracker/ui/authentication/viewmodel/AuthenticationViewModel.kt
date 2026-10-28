@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.SignInAuth
 import com.example.nutritiontracker.domain.model.SignUpAuth
+import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
 import com.example.nutritiontracker.domain.usecase.SignInUseCase
 import com.example.nutritiontracker.domain.usecase.SignUpUseCase
 import com.example.nutritiontracker.ui.components.CheckRequiredValidator
@@ -49,7 +51,8 @@ data class AuthenticationUiState(
 @HiltViewModel
 class AuthenticationViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
-    private val signUpUseCase: SignUpUseCase
+    private val signUpUseCase: SignUpUseCase,
+    private val getUserProfileUseCase: GetUserProfileUseCase,
 ) : ViewModel(), AuthViewModelCallback {
 
     val signInForm = FormBuilder<SignInForm>().apply {
@@ -139,6 +142,7 @@ class AuthenticationViewModel @Inject constructor(
                         _uiState.update { it.copy(error = err.message, isLoading = false) }
                     }
                 )
+
             }
         }
     }
@@ -169,6 +173,17 @@ class AuthenticationViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    suspend fun getUserProfile(): UserProfile? {
+        return getUserProfileUseCase().fold(
+            onSuccess = { data ->
+                data
+            },
+            onFailure = { _ ->
+                null
+            }
+        )
     }
 
     override fun onContentTypeChange(authContentType: AuthContentType) {
