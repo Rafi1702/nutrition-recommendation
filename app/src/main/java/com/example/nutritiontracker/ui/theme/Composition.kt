@@ -4,14 +4,13 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.ui.components.FormBuilder
 
 val LocalTypography = compositionLocalOf { phoneTypography }
 
@@ -42,9 +41,10 @@ val snackBarHostState: SnackbarHostState
     @Composable
     get() = remember { SnackbarHostState() }
 
-val LocalUserProfile = compositionLocalOf<UserProfile?> { error("No User Host Provided") }
+val LocalUserProfile =
+    compositionLocalOf<MutableState<UserProfile?>> { mutableStateOf(null) }
 
 val userProfile: UserProfile?
     @Composable
-    get() = LocalUserProfile.current
+    get() = LocalUserProfile.current.value
 
