@@ -1,6 +1,9 @@
 package com.example.nutritiontracker.data.utils
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.retryWhen
 import retrofit2.Response
 import java.io.IOException
 
@@ -48,6 +51,16 @@ sealed class NetworkException(val httpCode: Int, override val message: String) :
     }
 }
 
+
+fun <T> withRetry(apiCall: () -> Response<T>): Flow<T> {
+    return flow {
+        val data = safeCall(apiCall).getOrThrow()
+        emit(data)
+    }.retryWhen { cause, attempt ->
+        (cause is IOException || cause is NetworkException) && attempt < 3
+    }
+}
+
 inline fun <T> safeCall(apiCall: () -> Response<T>): Result<T> {
     return try {
         val response = apiCall()
@@ -65,7 +78,6 @@ inline fun <T> safeCall(apiCall: () -> Response<T>): Result<T> {
             Result.failure(NetworkException.create(code, errorBody))
         }
     } catch (e: IOException) {
-
         Result.failure(e)
     } catch (e: Exception) {
         Result.failure(e)
