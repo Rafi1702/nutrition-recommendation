@@ -1,7 +1,7 @@
 package com.example.nutritiontracker.data.remote
 
-import com.example.nutritiontracker.data.utils.CursorPaginate
 import com.example.nutritiontracker.data.model.food.FoodResponseDto
+import com.example.nutritiontracker.data.utils.PaginatedListResponse
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MacroNutrients
 import com.example.nutritiontracker.domain.model.MacroType
@@ -16,7 +16,7 @@ import retrofit2.http.QueryMap
 interface FoodRemoteDataSource {
     @GET("/foods")
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
-    suspend fun getFoods(@QueryMap(encoded = true) query: Map<String, Int>): Response<CursorPaginate<FoodResponseDto>>
+    suspend fun getFoods(@QueryMap(encoded = true) query: Map<String, Int>): Response<PaginatedListResponse<FoodResponseDto>>
 }
 
 val MOCK_FOODS = listOf(
