@@ -69,17 +69,6 @@ fun BodyMassIndexStatus.label(): String {
 
 object PersonalActivitiesUtility {
     @Composable
-    fun String.toPersonalActivities(): PersonalActivities {
-        return when (this) {
-            "SEDENTARY" -> PersonalActivities.SEDENTARY
-            "LIGHT" -> PersonalActivities.LIGHT
-            "MODERATE" -> PersonalActivities.MODERATE
-            "ACTIVE" -> PersonalActivities.ACTIVE
-            else -> PersonalActivities.LIGHT
-        }
-    }
-
-    @Composable
     fun PersonalActivities.label(): Pair<String, String> {
         val labels =
             stringArrayResource(R.array.personal_daily_activities).mapIndexed { index, value ->

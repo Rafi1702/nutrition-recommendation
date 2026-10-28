@@ -66,7 +66,7 @@ class EntryScreenViewModel @Inject constructor(
                     if (profile != null) {
                         return@launch _entryNavigationState.update {
                             EntryScreenUiState.Navigate(
-                                HomePath.HOME,
+                                HomePath.BASE_HOME_PATH,
                                 profile
                             )
                         }

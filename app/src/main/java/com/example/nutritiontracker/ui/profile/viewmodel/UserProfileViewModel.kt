@@ -16,8 +16,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-
 import com.example.nutritiontracker.domain.model.PersonalActivities
+import com.example.nutritiontracker.domain.model.PersonalActivitiesMap
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 
 sealed interface Resource<out T> {
     object Idle : Resource<Nothing>
@@ -30,8 +33,8 @@ data class UserProfileForm(
     val gender: String,
     val personalActivities: String,
     val birth: String,
-    val weight: Double,
-    val height: Double,
+    val weight: Float,
+    val height: Float,
     val userAllergies: List<String>
 )
 
@@ -41,9 +44,18 @@ data class UserProfileUiState(
 )
 
 
-@HiltViewModel
-class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUserProfileUseCase) :
+@HiltViewModel(assistedFactory = UserProfileViewModel.Factory::class)
+class UserProfileViewModel @AssistedInject constructor(
+    private val getUserProfile: GetUserProfileUseCase,
+    @Assisted private val userProfile: UserProfile? = null
+) :
     ViewModel() {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(userProfile: UserProfile? = null): UserProfileViewModel
+    }
+
     val userProfileForm = FormBuilder<UserProfileForm>().apply {
         addField(
             UserProfileForm::gender, FieldProperties(
@@ -56,7 +68,6 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
         addField(
             UserProfileForm::personalActivities, FieldProperties(
                 validator = CannotEmptyValidator(),
-                initialValue = PersonalActivities.SEDENTARY.name,
                 isRequired = true
             )
         )
@@ -70,7 +81,6 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
         addField(
             name = UserProfileForm::weight, FieldProperties(
                 validator = MockNumberValidator(),
-                initialValue = 58.0,
                 isRequired = true
             )
         )
@@ -78,7 +88,6 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
         addField(
             name = UserProfileForm::height, FieldProperties(
                 validator = MockNumberValidator(),
-                initialValue = 168.0,
                 isRequired = true
             )
         )
@@ -92,9 +101,16 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
         )
     }
 
-    fun getUserProfile() {
-        viewModelScope.launch{
-
+    init {
+        if (userProfile != null) {
+            userProfileForm.setFieldValue(UserProfileForm::gender, "Male")
+            userProfileForm.setFieldValue(
+                UserProfileForm::personalActivities,
+                userProfile.dailyActivity
+            )
+            userProfileForm.setFieldValue(UserProfileForm::weight, userProfile.weight)
+            userProfileForm.setFieldValue(UserProfileForm::height, userProfile.height)
+            userProfileForm.setFieldValue(UserProfileForm::birth, userProfile.birthDate)
         }
     }
 }

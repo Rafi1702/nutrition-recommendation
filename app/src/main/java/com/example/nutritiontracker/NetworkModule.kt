@@ -22,8 +22,6 @@ object NetworkModule {
     fun httpClient(localTokenDataSource: LocalTokenDataSource): OkHttpClient {
         return OkHttpClient.Builder().addInterceptor(HeaderInterceptor(localTokenDataSource))
             .addInterceptor(
-                MockUnauthorizedInterceptor()
-            ).addInterceptor(
             ResponseInterceptor(localTokenDataSource)
         ).build()
     }

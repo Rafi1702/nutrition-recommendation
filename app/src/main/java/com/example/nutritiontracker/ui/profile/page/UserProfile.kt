@@ -42,6 +42,7 @@ import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.model.BodyMassIndexStatus
 import com.example.nutritiontracker.domain.model.Gender
 import com.example.nutritiontracker.domain.model.PersonalActivities
+import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
@@ -207,14 +208,12 @@ fun MeasurementContent() {
         ) {
             NumberPickerField(
                 modifier = Modifier.weight(1f),
-                initialValue = 168.0,
                 fieldName = UserProfileForm::height,
                 label = stringResource(R.string.user_profile_height_label),
                 unit = stringResource(R.string.user_profile_height_unit)
             )
             NumberPickerField(
                 modifier = Modifier.weight(1f),
-                initialValue = 58.0,
                 fieldName = UserProfileForm::weight,
                 label = stringResource(R.string.user_profile_weight_label),
                 unit = stringResource(R.string.user_profile_weight_unit)
