@@ -20,8 +20,25 @@ data class UserProfileResponseDto(
     val gender: String,
 
     @SerializedName("height")
-    val height: Double,
+    val height: Float,
 
     @SerializedName("weight")
-    val weight: Double
+    val weight: Float,
+
+    @SerializedName("bmr")
+    val bmr: Float?,
+
+    @SerializedName("needs")
+    val needs: UserDailyNeedsDto
+)
+
+data class UserDailyNeedsDto(
+    @SerializedName("breakfast")
+    val breakfast: Float = 0f,
+
+    @SerializedName("lunch")
+    val lunch: Float = 0f,
+
+    @SerializedName("dinner")
+    val dinner: Float = 0f
 )
