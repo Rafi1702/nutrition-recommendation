@@ -28,8 +28,8 @@ class FoodRepositoryImpl @Inject constructor(
             foodRemoteDataSource.getFoods(CursorPaginateQuery(cursor = 0, limit = 10).toMap())
         }
         return foodsResponse.fold(
-            onSuccess = { foods ->
-                Result.success(foods.items.toFoods())
+            onSuccess = { res ->
+                Result.success(res.data.items.toFoods())
             },
             onFailure = { error ->
                 Result.failure(error)
