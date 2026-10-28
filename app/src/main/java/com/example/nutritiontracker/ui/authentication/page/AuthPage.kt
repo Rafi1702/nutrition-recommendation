@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
+import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthContentType
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthViewModelCallback
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationUiState
@@ -77,25 +78,27 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import com.example.nutritiontracker.ui.theme.userProfile
 
 
 @Composable
 internal fun AuthPageRoute(
     viewModel: AuthenticationViewModel = hiltViewModel(),
-    onNavigateToHome: () -> Unit = {},
+    onNavigateToHome: (userProfile: UserProfile?) -> Unit = {},
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     
     LaunchedEffect(uiState.value.success){
         if(uiState.value.success == true){
-            onNavigateToHome()
+            val userProfile = viewModel.getUserProfile()
+            onNavigateToHome(userProfile)
         }
     }
+
     AuthPage(
         uiState = uiState.value,
         signInForm = viewModel.signInForm,
         signUpForm = viewModel.signUpForm,
-        onNavigateToHome = onNavigateToHome,
         authCallback = viewModel
     )
 }
@@ -103,7 +106,6 @@ internal fun AuthPageRoute(
 @Composable
 internal fun AuthPage(
     modifier: Modifier = Modifier,
-    onNavigateToHome: () -> Unit = {},
     uiState: AuthenticationUiState = AuthenticationUiState(),
     signInForm: FormBuilder<SignInForm>,
     signUpForm: FormBuilder<SignUpForm>,
