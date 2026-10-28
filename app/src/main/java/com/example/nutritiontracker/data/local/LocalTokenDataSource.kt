@@ -24,10 +24,10 @@ data class UserToken(
 )
 
 interface LocalTokenDataSource {
-    fun setToken(newToken: String)
+    suspend fun setToken(newToken: String)
 
-    fun setRefreshToken(newToken: String)
-    fun getUserToken(): UserToken
+    suspend fun setRefreshToken(newToken: String)
+    suspend fun getUserToken(): UserToken
 
     suspend fun clearToken()
 }
@@ -38,32 +38,26 @@ class LocalTokenDataSourceImpl @Inject constructor(private val dataStore: DataSt
     private val REFRESH_TOKEN_KEY = stringPreferencesKey("EXAMPLE_REFRESH_TOKEN_KEY")
 
 
-    override fun setToken(newToken: String) {
-        runBlocking {
-            dataStore.edit { preferences ->
-                preferences[TOKEN_KEY] = newToken
-            }
+    override suspend fun setToken(newToken: String) {
+        dataStore.edit { preferences ->
+            preferences[TOKEN_KEY] = newToken
         }
     }
 
 
-    override fun setRefreshToken(newToken: String) {
-        runBlocking{
-            dataStore.edit { preferences ->
-                preferences[REFRESH_TOKEN_KEY] = newToken
-            }
+    override suspend fun setRefreshToken(newToken: String) {
+        dataStore.edit { preferences ->
+            preferences[REFRESH_TOKEN_KEY] = newToken
         }
     }
 
-    override fun getUserToken(): UserToken {
-        return runBlocking {
-            val combinedToken =
-                getPreferencesFlow(TOKEN_KEY).combine(getPreferencesFlow(REFRESH_TOKEN_KEY)) { accessToken, refreshToken ->
-                    UserToken(accessToken, refreshToken)
-                }
+    override suspend fun getUserToken(): UserToken {
+        val combinedToken =
+            getPreferencesFlow(TOKEN_KEY).combine(getPreferencesFlow(REFRESH_TOKEN_KEY)) { accessToken, refreshToken ->
+                UserToken(accessToken, refreshToken)
+            }
 
-            combinedToken.first()
-        }
+        return combinedToken.first()
     }
 
     override suspend fun clearToken() {

@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.home.page
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +42,10 @@ import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
 import com.example.nutritiontracker.ui.food.page.foodGraph
 import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
+import com.example.nutritiontracker.ui.profile.page.ProfileNav
+import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
+import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
+import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
@@ -61,6 +67,9 @@ fun MainPage(
     onNavigateToRecommendedFoodList: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
+
+    val user = LocalUserProfile.current.value
+    Log.d("[USER]", "$user")
     BackHandler { onNavigateBack() }
     val bottomBarNavController: NavHostController? = when (screenSize) {
         ScreenSize.MOBILE -> rememberNavController()
@@ -162,6 +171,17 @@ private fun MainLayout(
                         FoodListPage(
                             viewModel = foodListViewModel
                         )
+                    }
+
+                    composable(ProfileNav.USER_PROFILE) {
+                        val currentUser = LocalUserProfile.current.value
+                        val userProfileViewModel =
+                            hiltViewModel<UserProfileViewModel, UserProfileViewModel.Factory>(
+                                creationCallback = { factory ->
+                                    factory.create(userProfile = currentUser)
+                                }
+                            )
+                        UserProfilePageRoute(viewModel = userProfileViewModel)
                     }
                     foodGraph()
                 }
@@ -266,6 +286,24 @@ private fun BottomNavBar(
                 },
                 icon = {
                     Icon(Icons.Default.Home, contentDescription = "navigation_home")
+                }
+            )
+
+            NavigationBarItem(
+                selected = currentRoute == ProfileNav.USER_PROFILE,
+                onClick = {
+                    if (currentRoute != ProfileNav.USER_PROFILE) {
+                        navController.navigate(ProfileNav.USER_PROFILE) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                },
+                icon = {
+                    Icon(Icons.Default.Person, contentDescription = "navigation_profile")
                 }
             )
         }

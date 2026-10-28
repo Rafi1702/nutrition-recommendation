@@ -7,7 +7,7 @@ import androidx.paging.PagingState
 class PagingSource<T : Any>(
     private val initialCursor: Int = 0,
     private val maxItems: Int? = null,
-    val networkCall: suspend (Int) -> Result<CursorPaginate<T>>,
+    val networkCall: suspend (Int) -> Result<PaginatedListResponse<T>>,
 ) : PagingSource<Int, T>() {
 
     private var loadedCount = 0
@@ -18,20 +18,20 @@ class PagingSource<T : Any>(
         val response = networkCall.invoke(currentCursor)
 
         return response.fold(
-            onSuccess = { data ->
-                loadedCount += data.items.size
+            onSuccess = { res ->
+                loadedCount +=  res.data.items.size
 
-                val isPartialBatch = data.items.size < params.loadSize
+                val isPartialBatch = res.data.items.size < params.loadSize
                 val reachedMaxLimit = maxItems != null && loadedCount >= maxItems
 
-                val nextKey = if (data.hasMore && data.items.isNotEmpty() && !isPartialBatch && !reachedMaxLimit) {
-                    data.nextCursor
+                val nextKey = if (res.data.hasMore && res.data.items.isNotEmpty() && !isPartialBatch && !reachedMaxLimit) {
+                    res.data.nextCursor
                 } else {
                     null
                 }
 
                 LoadResult.Page(
-                    data = data.items,
+                    data = res.data.items,
                     prevKey = null, // Cursor-based pagination is forward-only
                     nextKey = nextKey,
                 )

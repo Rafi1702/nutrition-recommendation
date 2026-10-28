@@ -17,154 +17,62 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
-import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Female
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.Male
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.model.BodyMassIndexStatus
 import com.example.nutritiontracker.domain.model.Gender
 import com.example.nutritiontracker.domain.model.PersonalActivities
+import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
 import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
+import com.example.nutritiontracker.ui.components.MultiSelectionOptions
 import com.example.nutritiontracker.ui.components.RowOptionForm
+import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileForm
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
-import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.withStyle
 
-@Composable
-fun String.toGender(): Gender {
-    val gendersResource = stringArrayResource(R.array.personal_gender)
 
-    val indexOfResource = gendersResource.indexOf(this)
-    return when (indexOfResource) {
-        0 -> Gender.MALE
-        1 -> Gender.FEMALE
-        else -> Gender.MALE
-    }
-}
-
-@Composable
-fun Gender.label(): String {
-    val gendersResource = stringArrayResource(R.array.personal_gender)
-
-    return when (this) {
-        Gender.MALE -> gendersResource[0]
-        Gender.FEMALE -> gendersResource[1]
-    }
-}
-
-@Composable
-fun Gender.icon(): ImageVector? {
-    return when (this) {
-        Gender.MALE -> Icons.Default.Male
-        Gender.FEMALE -> Icons.Default.Female
-    }
-}
-
-@Composable
-fun BodyMassIndexStatus.statusColor(): Pair<Color, Color> {
-    return when (this) {
-        BodyMassIndexStatus.NORMAL -> (colorScheme.primary to colorScheme.onPrimary)
-        else -> (colorScheme.errorContainer to colorScheme.onErrorContainer)
-    }
-}
-
-@Composable
-fun BodyMassIndexStatus.label(): String {
-    val bmiLevelsResource = stringArrayResource(R.array.body_mass_index_level)
-
-    return when (this) {
-        BodyMassIndexStatus.NORMAL -> bmiLevelsResource[1]
-        BodyMassIndexStatus.BELOW_AVERAGE -> bmiLevelsResource[0]
-        else -> ""
-    }
-}
-
-object PersonalActivitiesUtility {
-    @Composable
-    fun String.toPersonalActivities(): PersonalActivities {
-        return when (this) {
-            "SEDENTARY" -> PersonalActivities.SEDENTARY
-            "LIGHT" -> PersonalActivities.LIGHT
-            "MODERATE" -> PersonalActivities.MODERATE
-            "ACTIVE" -> PersonalActivities.ACTIVE
-            else -> PersonalActivities.LIGHT
-        }
-    }
-
-    @Composable
-    fun PersonalActivities.label(): Pair<String, String> {
-        val labels =
-            stringArrayResource(R.array.personal_daily_activities).mapIndexed { index, value ->
-                Pair(value, stringArrayResource(R.array.personal_daily_activities_sub)[index])
-            }
-
-        return when (this) {
-            PersonalActivities.SEDENTARY -> Pair(labels[0].first, labels[0].second)
-            PersonalActivities.LIGHT -> Pair(labels[1].first, labels[1].second)
-            PersonalActivities.MODERATE -> Pair(labels[2].first, labels[2].second)
-            PersonalActivities.ACTIVE -> Pair(labels[3].first, labels[3].second)
-        }
-    }
-
-    fun PersonalActivities.icon(): ImageVector {
-        return when (this) {
-            PersonalActivities.SEDENTARY -> Icons.Default.Weekend
-            PersonalActivities.LIGHT -> Icons.AutoMirrored.Filled.DirectionsWalk
-            PersonalActivities.MODERATE -> Icons.Default.FitnessCenter
-            PersonalActivities.ACTIVE -> Icons.AutoMirrored.Filled.DirectionsRun
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-private fun UserProfilePagePreview() {
-    NutritionTrackerTheme {
-        UserProfileContent(form = FormBuilder())
-    }
-}
-
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(title = {
+                Text("User Profile")
+            })
+        }
+    ) { innerPadding ->
         UserProfileContent(modifier = Modifier.padding(innerPadding), viewModel.userProfileForm)
     }
 }
@@ -184,8 +92,8 @@ fun UserProfileContent(modifier: Modifier = Modifier, form: FormBuilder<UserProf
         MeasurementSection()
         DailyActivitiesSection()
         DailyEstimationSection()
-
-        Button(enabled = isValid, onClick = {}){
+        UserAllergiesPreferenceSection()
+        Button(enabled = isValid, onClick = {}) {
             Text(stringResource(R.string.user_profile_submit))
         }
     }
@@ -220,8 +128,7 @@ fun DemographicContent() {
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             items = Gender.entries.map { it.label() },
             itemWeight = 1f
-        ) { gender, genderState ->
-            val isSelected = gender == genderState
+        ) { gender, isSelected ->
             Surface(
                 color = if (isSelected) colorScheme.primary else colorScheme.surfaceVariant,
                 contentColor = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface,
@@ -269,13 +176,15 @@ fun DemographicContent() {
                     color = colorScheme.primaryContainer,
                     contentColor = colorScheme.onPrimaryContainer
                 ) {
-                    Text(stringResource(R.string.user_profile_sample_age), style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                    Text(
+                        stringResource(R.string.user_profile_sample_age),
+                        style = typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                    )
                 }
             }
-            DatePickerField(
-                fieldName = UserProfileForm::birth,
-
-            )
+//            DatePickerField(
+//                fieldName = UserProfileForm::birth,
+//            )
         }
     }
 }
@@ -291,7 +200,7 @@ private fun MeasurementSection() {
 }
 
 @Composable
-private fun MeasurementContent() {
+fun MeasurementContent() {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
@@ -299,14 +208,12 @@ private fun MeasurementContent() {
         ) {
             NumberPickerField(
                 modifier = Modifier.weight(1f),
-                initialValue = 168.0,
                 fieldName = UserProfileForm::height,
                 label = stringResource(R.string.user_profile_height_label),
                 unit = stringResource(R.string.user_profile_height_unit)
             )
             NumberPickerField(
                 modifier = Modifier.weight(1f),
-                initialValue = 58.0,
                 fieldName = UserProfileForm::weight,
                 label = stringResource(R.string.user_profile_weight_label),
                 unit = stringResource(R.string.user_profile_weight_unit)
@@ -358,16 +265,6 @@ private fun MeasurementContent() {
     }
 }
 
-@Preview
-@Composable
-private fun MeasurementContentPreview() {
-    NutritionTrackerTheme {
-        Form<UserProfileForm> {
-            MeasurementContent()
-        }
-    }
-}
-
 
 @Composable
 private fun DailyActivitiesSection() {
@@ -383,11 +280,10 @@ private fun DailyActivitiesSection() {
 @Composable
 private fun DailyActivitiesContent() {
     ColumnOptionForm(
-        fieldName = UserProfileForm::gender,
+        fieldName = UserProfileForm::personalActivities,
         verticalArrangement = Arrangement.spacedBy(Spacing.s),
         items = PersonalActivities.entries.map { it.name }
-    ) { activity, activityState ->
-        val isSelected = activity == activityState
+    ) { activity, isSelected ->
         Surface(
             shape = RoundedCornerShape(Spacing.s),
             color = if (isSelected) colorScheme.primary else colorScheme.surfaceVariant,
@@ -453,7 +349,10 @@ private fun DailyActivitiesContent() {
                     Surface(
                         shape = CircleShape,
                         color = Color.Transparent,
-                        border = BorderStroke(Spacing.xxs / 2, colorScheme.outline.copy(alpha = 0.3f))
+                        border = BorderStroke(
+                            Spacing.xxs / 2,
+                            colorScheme.outline.copy(alpha = 0.3f)
+                        )
                     ) {
                         Box(modifier = Modifier.size(Spacing.m))
                     }
@@ -463,9 +362,28 @@ private fun DailyActivitiesContent() {
     }
 }
 
+@Composable
+fun UserAllergiesPreferenceSection() {
+    UserProfileContentSection(label = "User Allergies", icon = Icons.Default.Info) {
+        UserAllergiesPreferenceContent()
+    }
+}
 
 @Composable
-private fun DailyEstimationSection() {
+fun UserAllergiesPreferenceContent(){
+    MultiSelectionOptions(
+        fieldName = UserProfileForm::userAllergies,
+        initialValue = listOf("Peanut"),
+        items = listOf("Peanut", "Milk", "Sea Food"),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m)
+    ) { item, isSelected ->
+        SelectionChip(selected = isSelected) { Text(item) }
+    }
+}
+
+
+@Composable
+fun DailyEstimationSection() {
     UserProfileContentSection(
         label = stringResource(R.string.user_profile_section_diet),
         icon = Icons.Default.Info,
@@ -533,7 +451,10 @@ private fun DailyEstimationContentHeader() {
                 color = colorScheme.primaryContainer,
                 contentColor = colorScheme.onPrimaryContainer
             ) {
-                Text(stringResource(R.string.user_profile_tdee_ready), style = typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                Text(
+                    stringResource(R.string.user_profile_tdee_ready),
+                    style = typography.labelSmall.copy(fontWeight = FontWeight.Bold)
+                )
             }
             Text(
                 stringResource(R.string.user_profile_deficit_sample),
@@ -570,10 +491,3 @@ private fun DailyEstimationContentBody() {
 }
 
 
-@Preview
-@Composable
-private fun DailyActivitiesContentPreview() {
-    NutritionTrackerTheme {
-        DailyEstimationSection()
-    }
-}

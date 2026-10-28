@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
+import com.example.nutritiontracker.ui.components.CannotEmptyList
 import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
@@ -15,6 +16,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
+import com.example.nutritiontracker.domain.model.PersonalActivities
+import com.example.nutritiontracker.domain.model.PersonalActivitiesMap
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 
 sealed interface Resource<out T> {
     object Idle : Resource<Nothing>
@@ -25,9 +31,11 @@ sealed interface Resource<out T> {
 
 data class UserProfileForm(
     val gender: String,
+    val personalActivities: String,
     val birth: String,
-    val weight: Double,
-    val height: Double,
+    val weight: Float,
+    val height: Float,
+    val userAllergies: List<String>
 )
 
 data class UserProfileUiState(
@@ -36,14 +44,31 @@ data class UserProfileUiState(
 )
 
 
-@HiltViewModel
-class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUserProfileUseCase) :
+@HiltViewModel(assistedFactory = UserProfileViewModel.Factory::class)
+class UserProfileViewModel @AssistedInject constructor(
+    private val getUserProfile: GetUserProfileUseCase,
+    @Assisted private val userProfile: UserProfile? = null
+) :
     ViewModel() {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(userProfile: UserProfile? = null): UserProfileViewModel
+    }
+
     val userProfileForm = FormBuilder<UserProfileForm>().apply {
         addField(
             UserProfileForm::gender, FieldProperties(
                 validator = CannotEmptyValidator(),
-                initialValue = "Male"
+                initialValue = "Male",
+                isRequired = true
+            )
+        )
+
+        addField(
+            UserProfileForm::personalActivities, FieldProperties(
+                validator = CannotEmptyValidator(),
+                isRequired = true
             )
         )
 
@@ -55,20 +80,37 @@ class UserProfileViewModel @Inject constructor(private val getUserProfile: GetUs
 
         addField(
             name = UserProfileForm::weight, FieldProperties(
-                validator = MockNumberValidator()
+                validator = MockNumberValidator(),
+                isRequired = true
             )
         )
 
         addField(
             name = UserProfileForm::height, FieldProperties(
-                validator = MockNumberValidator()
+                validator = MockNumberValidator(),
+                isRequired = true
+            )
+        )
+
+        addField(
+            name = UserProfileForm::userAllergies, FieldProperties(
+                validator = CannotEmptyList(),
+                initialValue = listOf("Peanut"),
+                isRequired = true
             )
         )
     }
 
-    fun getUserProfile() {
-        viewModelScope.launch{
-
+    init {
+        if (userProfile != null) {
+            userProfileForm.setFieldValue(UserProfileForm::gender, "Male")
+            userProfileForm.setFieldValue(
+                UserProfileForm::personalActivities,
+                userProfile.dailyActivity
+            )
+            userProfileForm.setFieldValue(UserProfileForm::weight, userProfile.weight)
+            userProfileForm.setFieldValue(UserProfileForm::height, userProfile.height)
+            userProfileForm.setFieldValue(UserProfileForm::birth, userProfile.birthDate)
         }
     }
 }

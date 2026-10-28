@@ -9,8 +9,11 @@ import com.example.nutritiontracker.data.model.auth.RefreshTokenRequestDto
 import com.example.nutritiontracker.data.remote.AuthService
 import com.example.nutritiontracker.ui.authentication.AuthEventManager
 import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Invocation
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -35,7 +38,7 @@ class HeaderInterceptor(private val localTokenDataSource: LocalTokenDataSource) 
                     val headerValue = when (authorizationPolicy) {
                         AuthorizationPolicy.BEARER -> {
                             val accessToken =
-                                localTokenDataSource.getUserToken().accessToken
+                                runBlocking { localTokenDataSource.getUserToken().accessToken }
                             accessToken?.let {
                                 "Bearer $accessToken"
                             }
@@ -62,11 +65,37 @@ class HeaderInterceptor(private val localTokenDataSource: LocalTokenDataSource) 
     }
 }
 
+class MockUnauthorizedInterceptor : OkHttpInterceptor {
+    override fun intercept(chain: OkHttpInterceptor.Chain): Response {
+        val request = chain.request()
+
+        if (request.url.encodedPath.contains("/user/profile")) {
+            val errorBody = "{\"message\": \"Unauthorized\"}"
+            val response = Response.Builder()
+                .code(401)
+                .protocol(Protocol.HTTP_1_1)
+                .message("Unauthorized").body(errorBody.toResponseBody("application/json".toMediaType()))
+                .request(request)
+                .addHeader("Content-Type", "application/json")
+                .build()
+
+            if (response.code == 401) {
+                runBlocking { AuthEventManager.triggerLogout(NetworkException.Unauthorized()) }
+            }
+            if(response.code == 500){
+                runBlocking { AuthEventManager.triggerLogout(NetworkException.GenericHttpError(500,"UNEXPECTED")) }
+            }
+            return response
+        }
+        return Response.Builder().code(200).build()
+    }
+}
+
 class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource) :
     OkHttpInterceptor {
 
     private fun updateUserToken(authService: AuthService): Result<UserToken> {
-        val oldToken = localTokenDataSource.getUserToken()
+        val oldToken = runBlocking { localTokenDataSource.getUserToken() }
 
         val refreshTokenResponse = oldToken.refreshToken?.let {
             runBlocking {
@@ -83,10 +112,12 @@ class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource
             )
 
             response.body()?.let { body ->
-                localTokenDataSource.setToken(body.accessToken)
-                localTokenDataSource.setRefreshToken(body.refreshToken)
+                runBlocking {
+                    localTokenDataSource.setToken(body.data.accessToken)
+                    localTokenDataSource.setRefreshToken(body.data.refreshToken)
+                }
             }
-            val newStoreToken = localTokenDataSource.getUserToken()
+            val newStoreToken = runBlocking { localTokenDataSource.getUserToken() }
 
             Log.d(
                 "[TOKEN_COMPARISON]",
@@ -132,7 +163,7 @@ class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource
                         if (err is NetworkException.GenericHttpError) {
                             runBlocking {
                                 localTokenDataSource.clearToken()
-                                AuthEventManager.triggerLogout()
+                                AuthEventManager.triggerLogout(err)
                             }
                         }
                         finalResponse = response

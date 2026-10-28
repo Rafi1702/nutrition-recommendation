@@ -2,6 +2,7 @@ package com.example.nutritiontracker
 
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.ui.utils.network.HeaderInterceptor
+import com.example.nutritiontracker.ui.utils.network.MockUnauthorizedInterceptor
 import com.example.nutritiontracker.ui.utils.network.ResponseInterceptor
 import dagger.Module
 import dagger.Provides
@@ -19,7 +20,8 @@ object NetworkModule {
     @Singleton
     @Provides
     fun httpClient(localTokenDataSource: LocalTokenDataSource): OkHttpClient {
-        return OkHttpClient.Builder().addInterceptor(HeaderInterceptor(localTokenDataSource)).addInterceptor(
+        return OkHttpClient.Builder().addInterceptor(HeaderInterceptor(localTokenDataSource))
+            .addInterceptor(
             ResponseInterceptor(localTokenDataSource)
         ).build()
     }

@@ -227,6 +227,12 @@ fun <T : Any> DatePickerField(
         derivedStateOf { datePickerState.getSelectedDate()?.toString() ?: "" }
     }
 
+    LaunchedEffect(selectedDateText.value) {
+        if (selectedDateText.value.isNotBlank()) {
+            existingField.onValueStateChange(selectedDateText.value)
+        }
+    }
+
 
 
     Box(

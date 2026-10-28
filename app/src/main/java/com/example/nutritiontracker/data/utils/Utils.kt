@@ -7,6 +7,17 @@ import java.io.IOException
 
 const val ITEMS_LIMIT = 10
 
+
+data class Response<out T>(
+    val message: String,
+    val data: T,
+)
+
+data class PaginatedListResponse<out T>(
+    val message: String,
+    val data: CursorPaginate<T>
+)
+
 data class CursorPaginate<out T>(
     @SerializedName("next_cursor")
     val nextCursor: Int,

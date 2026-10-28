@@ -16,7 +16,7 @@ class UserProfileRepositoryImpl @Inject constructor(private val userProfileDataS
         return userProfileResponse.fold(
             onSuccess = { userProfile ->
 
-                Result.success(userProfile?.toUserProfile())
+                Result.success(userProfile.data?.toUserProfile())
             },
             onFailure = { error ->
                 Result.failure(error)
