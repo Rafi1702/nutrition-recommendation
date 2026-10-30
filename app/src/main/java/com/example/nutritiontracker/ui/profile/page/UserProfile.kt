@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.ui.profile.page
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -31,13 +34,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.model.BodyMassIndexStatus
 import com.example.nutritiontracker.domain.model.Gender
@@ -46,7 +54,6 @@ import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersona
 import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
-import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MultiSelectionOptions
@@ -55,17 +62,26 @@ import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileForm
+import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileUiState
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
+import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.withStyle
 
 
+private val LocalUserProfileUiState =
+    compositionLocalOf<State<UserProfileUiState>> { error("No ui state provided") }
+
+private val LocalUserProfileForm =
+    compositionLocalOf<FormBuilder<UserProfileForm>> { error("No user profile form provided") }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
         topBar = {
             TopAppBar(title = {
@@ -73,7 +89,12 @@ fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
             })
         }
     ) { innerPadding ->
-        UserProfileContent(modifier = Modifier.padding(innerPadding), viewModel.userProfileForm)
+        CompositionLocalProvider(
+            LocalUserProfileUiState provides uiState,
+            LocalUserProfileForm provides viewModel.userProfileForm
+        ) {
+            UserProfileContent(modifier = Modifier.padding(innerPadding), viewModel.userProfileForm)
+        }
     }
 }
 
@@ -182,9 +203,6 @@ fun DemographicContent() {
                     )
                 }
             }
-//            DatePickerField(
-//                fieldName = UserProfileForm::birth,
-//            )
         }
     }
 }
@@ -370,14 +388,36 @@ fun UserAllergiesPreferenceSection() {
 }
 
 @Composable
-fun UserAllergiesPreferenceContent(){
-    MultiSelectionOptions(
-        fieldName = UserProfileForm::userAllergies,
-        initialValue = listOf("Peanut"),
-        items = listOf("Peanut", "Milk", "Sea Food"),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.m)
-    ) { item, isSelected ->
-        SelectionChip(selected = isSelected) { Text(item) }
+fun UserAllergiesPreferenceContent() {
+    val allergensState = LocalUserProfileUiState.current.value.allergensState
+    when {
+        allergensState.isLoading -> {
+            Box(
+                modifier = Modifier
+                    .height(64.dp)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        allergensState.error != null -> {
+
+        }
+
+        else -> {
+            MultiSelectionOptions(
+                fieldName = UserProfileForm::userAllergies,
+                initialValue = LocalUserProfileForm.current.getField(UserProfileForm::userAllergies)?.state?.value
+                    ?: emptyList(),
+                items = allergensState.allergens.map { it.name },
+                horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                verticalArrangement = Arrangement.spacedBy(Spacing.s)
+            ) { item, isSelected ->
+                SelectionChip(selected = isSelected) { Text(item) }
+            }
+        }
     }
 }
 

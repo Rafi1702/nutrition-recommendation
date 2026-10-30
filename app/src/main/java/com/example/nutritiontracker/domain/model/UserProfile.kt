@@ -8,6 +8,7 @@ data class UserProfile(
     val weight: Float,
     val height: Float,
     val needs: UserDailyNeeds,
+    val allergies: List<Allergens> = emptyList(),
 ) {
     val nutritionNeeds: Int
         get() = 0

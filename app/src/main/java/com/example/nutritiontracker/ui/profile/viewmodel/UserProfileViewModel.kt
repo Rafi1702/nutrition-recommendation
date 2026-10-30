@@ -1,33 +1,27 @@
 package com.example.nutritiontracker.ui.profile.viewmodel
 
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nutritiontracker.domain.model.Allergens
 import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.domain.usecase.GetAllergensUseCase
 import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
 import com.example.nutritiontracker.ui.components.CannotEmptyList
 import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MockNumberValidator
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-
-
-import javax.inject.Inject
-
-
-import com.example.nutritiontracker.domain.model.PersonalActivities
-import com.example.nutritiontracker.domain.model.PersonalActivitiesMap
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-sealed interface Resource<out T> {
-    object Idle : Resource<Nothing>
-    object Loading : Resource<Nothing>
-    data class Success<T>(val data: T) : Resource<T>
-    data class Error(val exception: Throwable) : Resource<Nothing>
-}
 
 data class UserProfileForm(
     val gender: String,
@@ -38,18 +32,29 @@ data class UserProfileForm(
     val userAllergies: List<String>
 )
 
+
+data class AllergensState(
+    val isLoading: Boolean = false,
+    val allergens: List<Allergens> = emptyList(),
+    val error: String? = null,
+)
+
 data class UserProfileUiState(
-    val queryState: Resource<UserProfile>,
-    val mutationState: Resource<UserProfile>
+    val isLoadingMutation: Boolean = false,
+    val allergensState: AllergensState = AllergensState()
 )
 
 
 @HiltViewModel(assistedFactory = UserProfileViewModel.Factory::class)
 class UserProfileViewModel @AssistedInject constructor(
+    private val getAllergensUseCase: GetAllergensUseCase,
     private val getUserProfile: GetUserProfileUseCase,
     @Assisted private val userProfile: UserProfile? = null
 ) :
     ViewModel() {
+
+    private val _uiState = MutableStateFlow(UserProfileUiState())
+    val uiState = _uiState.asStateFlow()
 
     @AssistedFactory
     interface Factory {
@@ -95,22 +100,46 @@ class UserProfileViewModel @AssistedInject constructor(
         addField(
             name = UserProfileForm::userAllergies, FieldProperties(
                 validator = CannotEmptyList(),
-                initialValue = listOf("Peanut"),
-                isRequired = true
             )
         )
-    }
-
-    init {
+    }.apply{
         if (userProfile != null) {
-            userProfileForm.setFieldValue(UserProfileForm::gender, "Male")
-            userProfileForm.setFieldValue(
+            this.setFieldValue(UserProfileForm::gender, "Male")
+            this.setFieldValue(
                 UserProfileForm::personalActivities,
                 userProfile.dailyActivity
             )
-            userProfileForm.setFieldValue(UserProfileForm::weight, userProfile.weight)
-            userProfileForm.setFieldValue(UserProfileForm::height, userProfile.height)
-            userProfileForm.setFieldValue(UserProfileForm::birth, userProfile.birthDate)
+            this.setFieldValue(UserProfileForm::weight, userProfile.weight)
+            this.setFieldValue(UserProfileForm::height, userProfile.height)
+            this.setFieldValue(UserProfileForm::birth, userProfile.birthDate)
+            this.setFieldValue(UserProfileForm::userAllergies, listOf("Peanut"))
+        }
+    }
+
+    init {
+        getAllergens()
+    }
+
+    private fun getAllergens() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(allergensState = it.allergensState.copy(isLoading = true)) }
+            delay(3000)
+            
+            getAllergensUseCase().fold(
+                onSuccess = { data ->
+                    _uiState.update { it.copy(allergensState = it.allergensState.copy(allergens = data)) }
+                }, onFailure = { err ->
+                    _uiState.update { it.copy(allergensState = it.allergensState.copy(error = err.message)) }
+                }
+            )
+
+
+            _uiState.update {
+                it.copy(
+                    allergensState = it.allergensState.copy(isLoading = false)
+                )
+            }
+
         }
     }
 }
