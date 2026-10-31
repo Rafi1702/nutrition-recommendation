@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.data.repository
 
+import com.example.nutritiontracker.data.model.user.toCreateUserProfile
 import com.example.nutritiontracker.data.model.user.toUserProfile
 import com.example.nutritiontracker.data.remote.UserProfileDataSource
 import com.example.nutritiontracker.data.utils.safeCall
@@ -12,7 +13,6 @@ class UserProfileRepositoryImpl @Inject constructor(private val userProfileDataS
     override suspend fun getUserProfile(): Result<UserProfile?> {
         val userProfileResponse = safeCall { userProfileDataSource.getUserProfile() }
 
-
         return userProfileResponse.fold(
             onSuccess = { userProfile ->
 
@@ -23,5 +23,16 @@ class UserProfileRepositoryImpl @Inject constructor(private val userProfileDataS
             }
         )
 
+    }
+
+    override suspend fun createUserProfile(userProfile: UserProfile): Result<Unit> {
+        return safeCall { userProfileDataSource.createUserProfile(userProfile.toCreateUserProfile()) }.fold(
+            onSuccess = {
+                Result.success(Unit)
+            },
+            onFailure = { err ->
+                Result.failure(err)
+            }
+        )
     }
 }
