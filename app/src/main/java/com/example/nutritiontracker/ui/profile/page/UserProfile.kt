@@ -13,7 +13,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,6 +57,8 @@ import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersona
 import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
+import com.example.nutritiontracker.ui.components.DatePicker
+import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MultiSelectionOptions
@@ -93,7 +98,12 @@ fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
             LocalUserProfileUiState provides uiState,
             LocalUserProfileForm provides viewModel.userProfileForm
         ) {
-            UserProfileContent(modifier = Modifier.padding(innerPadding), viewModel.userProfileForm)
+            UserProfileContent(
+                modifier = Modifier
+                    .systemBarsPadding()
+                    .padding(innerPadding),
+                viewModel.userProfileForm
+            )
         }
     }
 }
@@ -203,6 +213,10 @@ fun DemographicContent() {
                     )
                 }
             }
+
+            DatePickerField(
+                UserProfileForm::birth,
+            )
         }
     }
 }
