@@ -145,7 +145,7 @@ fun <T : Any> Form(
         Column(
             modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(verticalSpacing)
+            verticalArrangement = Arrangement.spacedBy(verticalSpacing),
         ) {
             child?.invoke(builder.isValid)
         }

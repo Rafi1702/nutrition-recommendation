@@ -17,9 +17,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.ui.authentication.AuthEventManager
 import com.example.nutritiontracker.ui.authentication.page.AuthPageRoute
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationViewModel
@@ -32,7 +30,6 @@ import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
-import com.example.nutritiontracker.ui.theme.snackBarHostState
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

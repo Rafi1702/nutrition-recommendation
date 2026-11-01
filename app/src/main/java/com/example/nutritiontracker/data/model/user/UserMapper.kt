@@ -3,7 +3,7 @@ package com.example.nutritiontracker.data.model.user
 import com.example.nutritiontracker.domain.model.PersonalActivities
 import com.example.nutritiontracker.domain.model.UserDailyNeeds
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.model.toGender
+import com.example.nutritiontracker.domain.model.GenderMap.toGender
 
 
 internal fun UserProfileResponseDto.toUserProfile(): UserProfile {
@@ -17,6 +17,19 @@ internal fun UserProfileResponseDto.toUserProfile(): UserProfile {
             breakfast = this.needs.breakfast,
             lunch = this.needs.lunch,
             dinner = this.needs.dinner
-        )
+        ),
+        birthDate = this.birth,
+        allergenIds = this.allergenIds
+    )
+}
+
+internal fun UserProfile.toCreateUserProfile(): UserProfileUpdateCreateRequestDto {
+    return UserProfileUpdateCreateRequestDto(
+        gender = this.gender.label,
+        personalActivities = this.dailyActivity.label,
+        birth = this.birthDate,
+        weight = this.weight,
+        height = this.height,
+        userAllergies = this.allergenIds,
     )
 }

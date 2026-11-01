@@ -1,14 +1,16 @@
 package com.example.nutritiontracker.domain.model
 
-enum class Gender {
-    MALE,
-    FEMALE,
+enum class Gender(val label: String) {
+    MALE("male"),
+    FEMALE("female"),
 }
 
-fun String.toGender(): Gender{
-    return when(this){
-        "Male" -> Gender.MALE
-        "Female" -> Gender.FEMALE
-        else -> Gender.MALE
+object GenderMap {
+    fun String.toGender(): Gender {
+        return when (this) {
+            "male" -> Gender.MALE
+            "female" -> Gender.FEMALE
+            else -> Gender.MALE
+        }
     }
 }

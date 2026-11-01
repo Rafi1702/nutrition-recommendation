@@ -22,12 +22,16 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.getSelectedDate
 import androidx.compose.material3.rememberDatePickerState
@@ -56,6 +60,7 @@ import com.example.nutritiontracker.ui.theme.typography
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.reflect.KProperty1
@@ -101,6 +106,18 @@ private fun LocalDate.createDatePicker(): DatePickerHolder {
     val day = currentDate[2]
     val dayName = currentDate[3]
     return DatePickerHolder(year = year, month = month, day = day, dayName = dayName)
+}
+
+
+private fun String.toMillisEpoch(): Long? {
+    return try {
+        LocalDate.parse(this) // Parses "YYYY-MM-DD"
+            .atStartOfDay(ZoneOffset.UTC)
+            .toInstant()
+            .toEpochMilli()
+    } catch (e: Exception) {
+        null
+    }
 }
 
 @Composable
@@ -213,27 +230,33 @@ fun DatePicker(
 fun <T : Any> DatePickerField(
     fieldName: KProperty1<T, String>,
     modifier: Modifier = Modifier,
-    label: String = "Date",
+    label: String? = null,
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     val formBuilder = currentForm<T>()
-    val existingField = formBuilder.getField(fieldName) ?: FieldProperties(validator = listOf())
 
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
-    )
+    val datePickerState = rememberDatePickerState()
 
-    val selectedDateText = remember {
-        derivedStateOf { datePickerState.getSelectedDate()?.toString() ?: "" }
+    val existingField = remember {
+        formBuilder.getField(fieldName)?.copy(
+            initialValue = datePickerState.getSelectedDate()?.toString() ?: Instant.now()
+                .atZone(ZoneId.systemDefault()).toLocalDate().toString()
+        ) ?: FieldProperties(validator = listOf())
     }
 
-    LaunchedEffect(selectedDateText.value) {
-        if (selectedDateText.value.isNotBlank()) {
-            existingField.onValueStateChange(selectedDateText.value)
+    var selectedDateText by remember {
+        mutableStateOf(
+            existingField.initialValue
+        )
+    }
+
+    val isDirty =
+        remember {
+            derivedStateOf {
+                (existingField.state.value != datePickerState.getSelectedDate()
+                    .toString()) && datePickerState.getSelectedDate() != null
+            }
         }
-    }
-
-
 
     Box(
         modifier = modifier.fillMaxWidth()
@@ -243,7 +266,7 @@ fun <T : Any> DatePickerField(
             fieldProperties = existingField,
         ) {
             TextFormField(
-                value = selectedDateText.value,
+                value = existingField.state.value ?: "",
                 readOnly = true,
                 label = label,
                 enabled = false,
@@ -262,23 +285,39 @@ fun <T : Any> DatePickerField(
         }
 
         if (showDatePicker) {
-            Popup(
-                onDismissRequest = { showDatePicker = false },
-                alignment = Alignment.TopStart,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset(y = 64.dp)
-                        .shadow(elevation = Spacing.xs)
-                        .background(colorScheme.surface)
-                        .padding(Spacing.m)
-                ) {
-                    M3DatePicker(
-                        state = datePickerState,
-                        showModeToggle = false
-                    )
+            DatePickerDialog(
+                onDismissRequest = {
+                    showDatePicker = false
+                    datePickerState.selectedDateMillis = existingField.state.value?.toMillisEpoch()
+                },
+                confirmButton = {
+                    Button(
+                        enabled = isDirty.value,
+                        onClick = {
+                            datePickerState.getSelectedDate()?.let { selectedDateState ->
+                                selectedDateText = selectedDateState.toString()
+                                existingField.onValueStateChange(selectedDateState.toString())
+                                showDatePicker = false
+                            }
+                        }) { Text("Submit") }
+                },
+                dismissButton = {
+                    OutlinedButton(
+                        colors = ButtonDefaults.outlinedButtonColors().copy(
+                            containerColor = colorScheme.errorContainer
+                        ),
+                        onClick = {
+                            showDatePicker = false
+                            datePickerState.selectedDateMillis = existingField.state.value?.toMillisEpoch()
+                        }) {
+                        Text("Dismiss")
+                    }
                 }
+            ) {
+                M3DatePicker(
+                    state = datePickerState,
+                    showModeToggle = false
+                )
             }
         }
     }

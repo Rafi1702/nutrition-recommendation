@@ -29,7 +29,13 @@ data class UserProfileResponseDto(
     val bmr: Float?,
 
     @SerializedName("needs")
-    val needs: UserDailyNeedsDto
+    val needs: UserDailyNeedsDto,
+
+    @SerializedName("birth")
+    val birth: String,
+
+    @SerializedName("allergen_ids")
+    val allergenIds: List<Int> = emptyList()
 )
 
 data class UserDailyNeedsDto(

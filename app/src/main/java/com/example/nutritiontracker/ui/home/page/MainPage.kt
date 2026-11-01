@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -45,6 +46,7 @@ import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
+import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
@@ -158,32 +160,37 @@ private fun MainLayout(
     when (screenSize) {
         ScreenSize.MOBILE -> {
             bottomNavController?.let { navController ->
-                NavHost(
-                    navController = navController,
-                    startDestination = HomePath.HOME,
-                    modifier = Modifier.padding(padding),
-                ) {
-                    composable(route = HomePath.HOME) {
-                        HomePage(onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList, onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail)
-                    }
-                    composable(route = HomePath.FOOD_LIST) {
-                        val foodListViewModel: FoodListViewModel = hiltViewModel()
-                        FoodListPage(
-                            viewModel = foodListViewModel
-                        )
-                    }
-
-                    composable(ProfileNav.USER_PROFILE) {
-                        val currentUser = LocalUserProfile.current.value
-                        val userProfileViewModel =
-                            hiltViewModel<UserProfileViewModel, UserProfileViewModel.Factory>(
-                                creationCallback = { factory ->
-                                    factory.create(userProfile = currentUser)
-                                }
+                CompositionLocalProvider(LocalNavController provides navController) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = HomePath.HOME,
+                        modifier = Modifier.padding(padding),
+                    ) {
+                        composable(route = HomePath.HOME) {
+                            HomePage(
+                                onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
+                                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail
                             )
-                        UserProfilePageRoute(viewModel = userProfileViewModel)
+                        }
+                        composable(route = HomePath.FOOD_LIST) {
+                            val foodListViewModel: FoodListViewModel = hiltViewModel()
+                            FoodListPage(
+                                viewModel = foodListViewModel
+                            )
+                        }
+
+                        composable(ProfileNav.USER_PROFILE) {
+                            val currentUser = LocalUserProfile.current.value
+                            val userProfileViewModel =
+                                hiltViewModel<UserProfileViewModel, UserProfileViewModel.Factory>(
+                                    creationCallback = { factory ->
+                                        factory.create(userProfile = currentUser)
+                                    }
+                                )
+                            UserProfilePageRoute(viewModel = userProfileViewModel)
+                        }
+                        foodGraph()
                     }
-                    foodGraph()
                 }
             }
         }
