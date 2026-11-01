@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
             NutritionTrackerTheme {
                 val navController = rememberNavController()
                 val snackBarHostState = snackBarHostState
+
                 //Observe global AuthEvent. it trigger specific error to navigate back to Sign In
                 LaunchedEffect(Unit) {
                     AuthEventManager.authEvent.collect { err ->

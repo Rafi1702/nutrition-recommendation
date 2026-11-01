@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.Allergens
 import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.model.toGender
+import com.example.nutritiontracker.domain.model.GenderMap.toGender
 import com.example.nutritiontracker.domain.usecase.CreateUserProfileUseCase
 import com.example.nutritiontracker.domain.usecase.GetAllergensUseCase
 import com.example.nutritiontracker.ui.components.CannotEmptyList
@@ -14,6 +14,7 @@ import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MockNumberValidator
+import com.example.nutritiontracker.ui.utils.MutationState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -48,14 +49,18 @@ data class UserProfileMutationState(
 
 data class UserProfileUiState(
     val allergensState: AllergensState = AllergensState(),
-    val userProfileMutationState: UserProfileMutationState = UserProfileMutationState()
+    val userProfileMutationState: MutationState<Unit> = MutationState.Idle
 )
 
+
+/**Assisted UserProfile act as params from previous navigation.
+ * the value is never updated
+ **/
 @HiltViewModel(assistedFactory = UserProfileViewModel.Factory::class)
 class UserProfileViewModel @AssistedInject constructor(
     private val getAllergensUseCase: GetAllergensUseCase,
     private val createUserProfileUseCase: CreateUserProfileUseCase,
-    @Assisted private val userProfile: UserProfile? = null
+    @Assisted val userProfile: UserProfile? = null
 ) :
     ViewModel() {
 
@@ -117,10 +122,10 @@ class UserProfileViewModel @AssistedInject constructor(
         )
     }.apply {
         if (userProfile != null) {
-            this.setFieldValue(UserProfileForm::gender, "Male")
+            this.setFieldValue(UserProfileForm::gender, userProfile.gender.label)
             this.setFieldValue(
                 UserProfileForm::personalActivities,
-                userProfile.dailyActivity
+                userProfile.dailyActivity.label
             )
             this.setFieldValue(UserProfileForm::weight, userProfile.weight)
             this.setFieldValue(UserProfileForm::height, userProfile.height)
@@ -155,13 +160,24 @@ class UserProfileViewModel @AssistedInject constructor(
                 allergens.first { it.id == userAllergies }
             }
 
-            userProfileForm.setFieldValue(UserProfileForm::userAllergies, initialAllergensValue)
-
-            _uiState.update { it.copy(allergensState = it.allergensState.copy(allergens = if (userProfile != null) initialAllergensValue else allergens)) }
+            userProfileForm.setFieldValue(
+                UserProfileForm::userAllergies,
+                initialAllergensValue.map { it.name })
 
             _uiState.update {
                 it.copy(
-                    allergensState = it.allergensState.copy(isLoading = false)
+                    allergensState = it.allergensState.copy(
+                        allergens = allergens,
+                    )
+                )
+            }
+            delay(300)
+
+            _uiState.update {
+                it.copy(
+                    allergensState = it.allergensState.copy(
+                        isLoading = false,
+                    )
                 )
             }
         }
@@ -192,16 +208,14 @@ class UserProfileViewModel @AssistedInject constructor(
         return null
     }
 
-    private fun createUserProfile() {
+    fun createUserProfile() {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
-                    userProfileMutationState = it.userProfileMutationState.copy(
-                        isLoading = true
-                    )
+                    userProfileMutationState = MutationState.Pending
                 )
             }
-            delay(300)
+            delay(1000)
 
 
             userProfileValue()?.let { profile ->
@@ -211,26 +225,19 @@ class UserProfileViewModel @AssistedInject constructor(
                     onSuccess = {
                         _uiState.update {
                             it.copy(
-                                userProfileMutationState = it.userProfileMutationState.copy(
-                                    isLoading = false
-                                )
+                                userProfileMutationState = MutationState.Success(Unit)
                             )
                         }
                     },
                     onFailure = { err ->
                         _uiState.update {
                             it.copy(
-                                userProfileMutationState = it.userProfileMutationState.copy(
-                                    isLoading = false,
-                                    error = err.message
-                                )
+                                userProfileMutationState = MutationState.Error(err)
                             )
                         }
                     }
                 )
             }
-
-
         }
     }
 }

@@ -1,9 +1,9 @@
 package com.example.nutritiontracker.ui.profile.page
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +25,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
@@ -52,12 +52,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.model.BodyMassIndexStatus
 import com.example.nutritiontracker.domain.model.Gender
+import com.example.nutritiontracker.domain.model.GenderMap.toGender
 import com.example.nutritiontracker.domain.model.PersonalActivities
 import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
-import com.example.nutritiontracker.ui.components.DatePicker
 import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
@@ -65,14 +65,16 @@ import com.example.nutritiontracker.ui.components.MultiSelectionOptions
 import com.example.nutritiontracker.ui.components.RowOptionForm
 import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
+import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileForm
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileUiState
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
-import com.example.nutritiontracker.ui.theme.LocalUserProfile
+import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import com.example.nutritiontracker.ui.utils.MutationState
 import com.example.nutritiontracker.ui.utils.withStyle
 
 
@@ -82,38 +84,115 @@ private val LocalUserProfileUiState =
 private val LocalUserProfileForm =
     compositionLocalOf<FormBuilder<UserProfileForm>> { error("No user profile form provided") }
 
+
+@Composable
+private fun <T> MutationEffect(
+    mutationState: MutationState<T>,
+    activeWhen: Boolean = true,
+    onSuccess: (T) -> Unit,
+    onFailure: (Throwable) -> Unit
+) {
+    if (!activeWhen) return
+
+    LaunchedEffect(mutationState) {
+        when (mutationState) {
+            is MutationState.Success -> {
+                onSuccess(mutationState.data)
+            }
+
+            is MutationState.Error -> {
+                onFailure(mutationState.error)
+            }
+
+            else -> {}
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    Scaffold(
-        topBar = {
-            TopAppBar(title = {
-                Text("User Profile")
-            })
-        }
-    ) { innerPadding ->
-        CompositionLocalProvider(
-            LocalUserProfileUiState provides uiState,
-            LocalUserProfileForm provides viewModel.userProfileForm
-        ) {
+    val userMutationState = uiState.value.userProfileMutationState
+    val mutationLoading = userMutationState is MutationState.Pending
+
+    //if navigated from authentication or if user still doesn't have profile
+    val navController = viewModel.userProfile?.let { LocalNavController.current }
+
+    MutationEffect(
+        mutationState = userMutationState,
+        activeWhen = viewModel.userProfile == null,
+        onSuccess = {
+            navController?.let { nav ->
+                nav.navigate(HomePath.BASE_HOME_PATH)
+            }
+        },
+        onFailure = {}
+    )
+
+    CompositionLocalProvider(
+        LocalUserProfileUiState provides uiState,
+        LocalUserProfileForm provides viewModel.userProfileForm
+    ) {
+        if (viewModel.userProfile != null) {
             UserProfileContent(
                 modifier = Modifier
-                    .systemBarsPadding()
-                    .padding(innerPadding),
-                viewModel.userProfileForm
+                    .systemBarsPadding(),
+                onCreateUserProfile = {
+                    viewModel.createUserProfile()
+                }
             )
+        } else {
+            Scaffold(
+                topBar = {
+                    TopAppBar(title = {
+                        Text("User Profile")
+                    })
+                },
+                bottomBar = {
+                    BottomAppBar {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = viewModel.userProfileForm.isValid && !mutationLoading,
+                            shape = RoundedCornerShape(8.dp),
+                            onClick = {
+                                viewModel.createUserProfile()
+                            }
+                        ) {
+                            if (mutationLoading) {
+                                CircularProgressIndicator()
+                            } else {
+                                Text(stringResource(R.string.user_profile_submit))
+                            }
+                        }
+                    }
+                }
+            ) { innerPadding ->
+                UserProfileContent(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .systemBarsPadding(),
+                    onCreateUserProfile = {
+                        viewModel.createUserProfile()
+                    }
+                )
+            }
         }
     }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UserProfileContent(modifier: Modifier = Modifier, form: FormBuilder<UserProfileForm>) {
+fun UserProfileContent(
+    modifier: Modifier = Modifier,
+    onCreateUserProfile: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
+
     Form(
-        formBuilder = form,
+        formBuilder = LocalUserProfileForm.current,
         modifier = modifier
             .verticalScroll(scrollState)
             .padding(horizontal = Spacing.m),
@@ -124,9 +203,6 @@ fun UserProfileContent(modifier: Modifier = Modifier, form: FormBuilder<UserProf
         DailyActivitiesSection()
         DailyEstimationSection()
         UserAllergiesPreferenceSection()
-        Button(enabled = isValid, onClick = {}) {
-            Text(stringResource(R.string.user_profile_submit))
-        }
     }
 }
 
@@ -157,7 +233,7 @@ fun DemographicContent() {
         RowOptionForm(
             fieldName = UserProfileForm::gender,
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-            items = Gender.entries.map { it.label() },
+            items = Gender.entries.map { it.label },
             itemWeight = 1f
         ) { gender, isSelected ->
             Surface(
@@ -172,15 +248,14 @@ fun DemographicContent() {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
-                    gender.toGender().icon()?.let { icon ->
-                        Icon(
-                            icon,
-                            contentDescription = "option_${gender.toGender().label()}",
-                            tint = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
-                        )
-                    }
+                    val genderEnum = gender.toGender()
+                    Icon(
+                        imageVector = with(GenderUtility) { genderEnum.icon() },
+                        contentDescription = "option_${with(GenderUtility) { genderEnum.label() }}",
+                        tint = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
+                    )
                     Text(
-                        gender.toGender().label(),
+                        text = with(GenderUtility) { genderEnum.label() },
                         style = typography.labelLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
@@ -314,7 +389,7 @@ private fun DailyActivitiesContent() {
     ColumnOptionForm(
         fieldName = UserProfileForm::personalActivities,
         verticalArrangement = Arrangement.spacedBy(Spacing.s),
-        items = PersonalActivities.entries.map { it.name }
+        items = PersonalActivities.entries.map { it.label }
     ) { activity, isSelected ->
         Surface(
             shape = RoundedCornerShape(Spacing.s),
@@ -396,7 +471,10 @@ private fun DailyActivitiesContent() {
 
 @Composable
 fun UserAllergiesPreferenceSection() {
-    UserProfileContentSection(label = "User Allergies", icon = Icons.Default.Info) {
+    UserProfileContentSection(
+        label = stringResource(R.string.user_profile_section_allergies),
+        icon = Icons.Default.Info
+    ) {
         UserAllergiesPreferenceContent()
     }
 }

@@ -3,7 +3,7 @@ package com.example.nutritiontracker.data.model.user
 import com.example.nutritiontracker.domain.model.PersonalActivities
 import com.example.nutritiontracker.domain.model.UserDailyNeeds
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.model.toGender
+import com.example.nutritiontracker.domain.model.GenderMap.toGender
 
 
 internal fun UserProfileResponseDto.toUserProfile(): UserProfile {

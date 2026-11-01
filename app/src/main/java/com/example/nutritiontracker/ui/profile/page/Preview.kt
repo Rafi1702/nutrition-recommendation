@@ -15,7 +15,7 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 @Composable
 private fun UserProfilePagePreview() {
     NutritionTrackerTheme {
-        UserProfileContent(form = FormBuilder())
+        UserProfileContent()
     }
 }
 

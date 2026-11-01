@@ -61,3 +61,10 @@ operator fun PaddingValues.plus(other: PaddingValues): PaddingValues = object : 
         return this@plus.calculateBottomPadding() + other.calculateBottomPadding()
     }
 }
+
+sealed class MutationState<out T> {
+    data object Idle : MutationState<Nothing>()
+    data object Pending : MutationState<Nothing>()
+    data class Success<out T>(val data: T) : MutationState<T>()
+    data class Error(val error: Throwable) : MutationState<Nothing>()
+}

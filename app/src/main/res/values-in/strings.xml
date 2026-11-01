@@ -34,6 +34,7 @@
     <string name="user_profile_section_biometric">2. BIOMETRIK &amp; PENGUKURAN</string>
     <string name="user_profile_section_activities">3. AKTIVITAS HARIAN</string>
     <string name="user_profile_section_diet">4. TARGET POLA MAKAN &amp; DIET</string>
+    <string name="user_profile_section_allergies">5. ALLERGI</string>
     <string name="user_profile_biological_gender">Jenis Kelamin Biologis</string>
     <string name="user_profile_birth_date">Tanggal Lahir</string>
     <string name="user_profile_sample_age">26 Tahun</string>

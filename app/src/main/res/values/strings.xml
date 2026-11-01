@@ -48,6 +48,7 @@
     <string name="user_profile_section_biometric">2. BIOMETRICS &amp; MEASUREMENT</string>
     <string name="user_profile_section_activities">3. DAILY ACTIVITIES</string>
     <string name="user_profile_section_diet">4. DIET &amp; NUTRITION GOALS</string>
+    <string name="user_profile_section_allergies">5. ALLERGIES</string>
     <string name="user_profile_biological_gender">Biological Gender</string>
     <string name="user_profile_birth_date">Birth Date</string>
     <string name="user_profile_sample_age">26 Years</string>
