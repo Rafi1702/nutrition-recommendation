@@ -1,32 +1,25 @@
 package com.example.nutritiontracker.data.model.recommendation_foods
 
-import com.example.nutritiontracker.domain.model.Food
-import com.example.nutritiontracker.domain.model.MacroNutrients
-import com.example.nutritiontracker.domain.model.MacroType
+import com.example.nutritiontracker.data.model.food.toFood
+import com.example.nutritiontracker.domain.model.QuantifiedFoodNutrients
+import com.example.nutritiontracker.domain.model.RecommendationFood
 
-fun List<RecommendationFoodResponseDto>.toFoods(): List<Food> = this.map {
-    it.toFood()
+fun List<RecommendationFoodResponseDto>.toRecommendationFoods(): List<RecommendationFood> = this.map {
+    it.toRecommendationFood()
 }
 
-fun RecommendationFoodResponseDto.toFood(): Food = Food(
-    id = this.id,
-    name = this.name,
-    macros = this.createMacros(),
+fun RecommendationFoodResponseDto.toRecommendationFood(): RecommendationFood = RecommendationFood(
+    food = this.food.toFood(),
+    portion = this.portion,
+    estimatedCalories = this.estimatedCalories,
+    similarityScore = this.similarityScore,
+    nutrients = this.quantifiedFoodNutrientsDto.toQuantifiedFoodNutrients(),
 )
 
-private fun RecommendationFoodResponseDto.createMacros(): List<MacroNutrients> {
-    return listOf(
-        MacroNutrients(
-            type = MacroType.CARBS,
-            serveValue = this.carbs.toDouble()
-        ),
-        MacroNutrients(
-            type = MacroType.FAT,
-            serveValue = this.fat.toDouble()
-        ),
-        MacroNutrients(
-            type = MacroType.PROTEIN,
-            serveValue = this.protein.toDouble()
-        )
-    )
-}
+fun QuantifiedFoodNutrientsDto.toQuantifiedFoodNutrients(): QuantifiedFoodNutrients = QuantifiedFoodNutrients(
+    carbs = this.quantisedCarbs,
+    protein = this.quantisedProtein,
+    fat = this.quantisedFat,
+    fibre = this.quantisedFibre,
+    water = this.quantisedWater,
+)

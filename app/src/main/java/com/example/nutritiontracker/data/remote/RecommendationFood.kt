@@ -9,7 +9,7 @@ import retrofit2.Response as RetrofitResponse
 import retrofit2.http.GET
 
 interface RecommendationFoodRemoteDataSource {
-    @GET("/recommendations/foods")
+    @GET("/foods/recommendations")
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
     suspend fun getRecommendedFoods(): RetrofitResponse<Response<List<RecommendationFoodResponseDto>>>
 }
