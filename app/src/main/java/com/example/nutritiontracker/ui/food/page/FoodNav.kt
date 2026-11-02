@@ -11,7 +11,7 @@ object FoodPath {
     const val BASE_PATH = "/food"
 }
 
-fun NavGraphBuilder.foodGraph(modifier: Modifier = Modifier) {
+fun NavGraphBuilder.    foodGraph(modifier: Modifier = Modifier) {
     composable(route = FoodPath.FOOD_RECOMMENDATIONS) {
         FoodRecommendationsPage(modifier = modifier)
     }
