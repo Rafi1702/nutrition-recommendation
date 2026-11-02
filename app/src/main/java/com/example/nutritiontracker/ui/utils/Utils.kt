@@ -12,6 +12,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import kotlinx.coroutines.delay
 
 fun AnnotatedString.Builder.withStyle(
@@ -68,3 +72,19 @@ sealed class MutationState<out T> {
     data class Success<out T>(val data: T) : MutationState<T>()
     data class Error(val error: Throwable) : MutationState<Nothing>()
 }
+
+sealed class QueryState<out T>{
+    data class Initial<out T>(val initial: T? = null): QueryState<T>()
+    data object Loading : QueryState<Nothing>()
+    data class Success<out T>(val data: T): QueryState<T>()
+    data class Error(val error: Throwable): QueryState<Nothing>()
+}
+
+@Composable
+internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(noinline creationCallback: (VMF, UserProfile?) -> VM): VM {
+    val currentUser = LocalUserProfile.current.value
+    return hiltViewModel<VM, VMF>(
+        creationCallback = { factory -> creationCallback(factory, currentUser) }
+    )
+}
+

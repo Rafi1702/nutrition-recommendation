@@ -34,11 +34,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
 import com.example.nutritiontracker.ui.food.page.foodGraph
@@ -52,6 +54,8 @@ import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
+import com.example.nutritiontracker.ui.theme.userProfile
+import com.example.nutritiontracker.ui.utils.AssistedUserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -180,17 +184,15 @@ private fun MainLayout(
                         }
 
                         composable(ProfileNav.USER_PROFILE) {
-                            val currentUser = LocalUserProfile.current.value
                             val userProfileViewModel =
-                                hiltViewModel<UserProfileViewModel, UserProfileViewModel.Factory>(
-                                    creationCallback = { factory ->
-                                        factory.create(userProfile = currentUser)
-                                    }
-                                )
+                                AssistedUserViewModel<UserProfileViewModel, UserProfileViewModel.Factory> { factory, userProfile ->
+                                    factory.create(userProfile = userProfile)
+                                }
                             UserProfilePageRoute(viewModel = userProfileViewModel)
                         }
                         foodGraph()
                     }
+
                 }
             }
         }
@@ -316,3 +318,5 @@ private fun BottomNavBar(
         }
     }
 }
+
+
