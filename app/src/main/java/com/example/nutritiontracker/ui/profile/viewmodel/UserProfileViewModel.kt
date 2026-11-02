@@ -7,8 +7,10 @@ import com.example.nutritiontracker.domain.model.Allergens
 import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.GenderMap.toGender
-import com.example.nutritiontracker.domain.usecase.CreateUserProfileUseCase
+import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
+import com.example.nutritiontracker.domain.usecase.user_profile.CreateUserProfileUseCase
 import com.example.nutritiontracker.domain.usecase.GetAllergensUseCase
+import com.example.nutritiontracker.domain.usecase.user_profile.CreateAndSaveUserProfileUseCase
 import com.example.nutritiontracker.ui.components.CannotEmptyList
 import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
@@ -42,11 +44,6 @@ data class AllergensState(
     val error: String? = null,
 )
 
-data class UserProfileMutationState(
-    val isLoading: Boolean = false,
-    val error: String? = null,
-)
-
 data class UserProfileUiState(
     val allergensState: AllergensState = AllergensState(),
     val userProfileMutationState: MutationState<Unit> = MutationState.Idle
@@ -59,7 +56,7 @@ data class UserProfileUiState(
 @HiltViewModel(assistedFactory = UserProfileViewModel.Factory::class)
 class UserProfileViewModel @AssistedInject constructor(
     private val getAllergensUseCase: GetAllergensUseCase,
-    private val createUserProfileUseCase: CreateUserProfileUseCase,
+    private val createAndSaveUserProfileUseCase: CreateAndSaveUserProfileUseCase,
     @Assisted val userProfile: UserProfile? = null
 ) :
     ViewModel() {
@@ -219,8 +216,11 @@ class UserProfileViewModel @AssistedInject constructor(
 
 
             userProfileValue()?.let { profile ->
-                createUserProfileUseCase(
-                    profile
+                createAndSaveUserProfileUseCase(
+                    UserProfileWithAllergens(
+                        allergens = _uiState.value.allergensState.allergens,
+                        userProfile = profile
+                    )
                 ).fold(
                     onSuccess = {
                         _uiState.update {

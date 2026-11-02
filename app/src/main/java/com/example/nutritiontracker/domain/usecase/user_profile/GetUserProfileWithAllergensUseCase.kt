@@ -1,7 +1,8 @@
-package com.example.nutritiontracker.domain.usecase
+package com.example.nutritiontracker.domain.usecase.user_profile
 
 import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
 import com.example.nutritiontracker.domain.repository.UserProfileRepository
+import com.example.nutritiontracker.domain.usecase.GetAllergensUseCase
 import javax.inject.Inject
 
 class GetUserProfileWithAllergensUseCase @Inject constructor(

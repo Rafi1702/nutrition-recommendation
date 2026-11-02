@@ -14,7 +14,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
+import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 

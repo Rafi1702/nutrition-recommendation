@@ -21,6 +21,12 @@
     <string name="body_mass_index">Body Mass Index (BMI)</string>
     <string name="username_auth_textfield_placeholder">Input username</string>
     <string name="password_auth_textfield_placeholder">Input password</string>
+
+    <!-- BUTTON LABEL  -->
+    <string name="continue_label">Continue</string>
+    <string name="submit_label">Submit</string>
+
+    <!-- Selection or Multiple Selections Label -->
     <string-array name="body_mass_index_level">
         <item>Below Average</item>
         <item>Normal</item>

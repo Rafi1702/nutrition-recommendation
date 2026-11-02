@@ -3,7 +3,6 @@ package com.example.nutritiontracker.ui.profile.page
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +30,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,8 +38,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,7 +58,6 @@ import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.components.ColumnOptionForm
 import com.example.nutritiontracker.ui.components.DatePickerField
 import com.example.nutritiontracker.ui.components.Form
-import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MultiSelectionOptions
 import com.example.nutritiontracker.ui.components.RowOptionForm
 import com.example.nutritiontracker.ui.components.SelectionChip
@@ -68,7 +65,6 @@ import com.example.nutritiontracker.ui.components.textfield.NumberPickerField
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileForm
-import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileUiState
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.Spacing
@@ -76,13 +72,6 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.MutationState
 import com.example.nutritiontracker.ui.utils.withStyle
-
-
-private val LocalUserProfileUiState =
-    compositionLocalOf<State<UserProfileUiState>> { error("No ui state provided") }
-
-private val LocalUserProfileForm =
-    compositionLocalOf<FormBuilder<UserProfileForm>> { error("No user profile form provided") }
 
 
 @Composable
@@ -114,22 +103,21 @@ private fun <T> MutationEffect(
 @Composable
 fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val userMutationState = uiState.value.userProfileMutationState
-    val mutationLoading = userMutationState is MutationState.Pending
+
 
     //if navigated from authentication or if user still doesn't have profile
     val navController = viewModel.userProfile?.let { LocalNavController.current }
 
-    MutationEffect(
-        mutationState = userMutationState,
-        activeWhen = viewModel.userProfile == null,
-        onSuccess = {
-            navController?.let { nav ->
-                nav.navigate(HomePath.BASE_HOME_PATH)
-            }
-        },
-        onFailure = {}
-    )
+//    MutationEffect(
+//        mutationState = userMutationState,
+//        activeWhen = viewModel.userProfile == null,
+//        onSuccess = {
+//            navController?.let { nav ->
+//                nav.navigate(HomePath.BASE_HOME_PATH)
+//            }
+//        },
+//        onFailure = {}
+//    )
 
     CompositionLocalProvider(
         LocalUserProfileUiState provides uiState,
@@ -152,20 +140,9 @@ fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
                 },
                 bottomBar = {
                     BottomAppBar {
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = viewModel.userProfileForm.isValid && !mutationLoading,
-                            shape = RoundedCornerShape(8.dp),
-                            onClick = {
-                                viewModel.createUserProfile()
-                            }
-                        ) {
-                            if (mutationLoading) {
-                                CircularProgressIndicator()
-                            } else {
-                                Text(stringResource(R.string.user_profile_submit))
-                            }
-                        }
+                        OutlinedButton(
+
+                        ) { }
                     }
                 }
             ) { innerPadding ->
@@ -515,23 +492,23 @@ fun UserAllergiesPreferenceContent() {
 
 
 @Composable
-fun DailyEstimationSection() {
+fun DailyEstimationSection(onCreateUserProfile: () -> Unit = {}) {
     UserProfileContentSection(
         label = stringResource(R.string.user_profile_section_diet),
         icon = Icons.Default.Info,
     ) {
-        DailyEstimationContent()
+        DailyEstimationContent(onCreateUserProfile)
     }
 }
 
 @Composable
-private fun DailyEstimationContent() {
+private fun DailyEstimationContent(onCreateUserProfile: () -> Unit = {}) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         DailyEstimationContentHeader()
-        DailyEstimationContentBody()
+        DailyEstimationContentBody(onCreateUserProfile)
     }
 }
 
@@ -600,7 +577,10 @@ private fun DailyEstimationContentHeader() {
 }
 
 @Composable
-private fun DailyEstimationContentBody() {
+private fun DailyEstimationContentBody(onCreateUserProfile: () -> Unit = {}) {
+    val userMutationState = LocalUserProfileUiState.current.value.userProfileMutationState
+    val mutationLoading = userMutationState is MutationState.Pending
+
     Button(
         shape = RoundedCornerShape(Spacing.s),
         onClick = {},
@@ -610,15 +590,19 @@ private fun DailyEstimationContentBody() {
             contentColor = colorScheme.onPrimary
         )
     ) {
-        Icon(
-            Icons.Default.Calculate,
-            contentDescription = "calculate_nutrients_need",
-            modifier = Modifier.padding(end = Spacing.xs)
-        )
-        Text(
-            stringResource(R.string.user_profile_calculate_nutrition_button),
-            style = typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-        )
+        if (mutationLoading) {
+            CircularProgressIndicator()
+        } else {
+            Icon(
+                Icons.Default.Calculate,
+                contentDescription = "calculate_nutrients_need",
+                modifier = Modifier.padding(end = Spacing.xs)
+            )
+            Text(
+                stringResource(R.string.user_profile_calculate_nutrition_button),
+                style = typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+            )
+        }
     }
 }
 

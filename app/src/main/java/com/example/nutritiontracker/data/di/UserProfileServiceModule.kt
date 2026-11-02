@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.data.di
 
+import com.example.nutritiontracker.data.local.UserProfileLocalDataSource
 import com.example.nutritiontracker.data.remote.UserProfileDataSource
 import com.example.nutritiontracker.data.repository.UserProfileRepositoryImpl
 import com.example.nutritiontracker.domain.repository.UserProfileRepository
@@ -12,18 +13,21 @@ import retrofit2.Retrofit
 
 @Module
 @InstallIn(SingletonComponent::class)
-object UserProfileServiceModule{
+object UserProfileServiceModule {
     @Provides
-    fun provideUserProfileService(retrofit: Retrofit): UserProfileDataSource{
+    fun provideUserProfileService(retrofit: Retrofit): UserProfileDataSource {
         return retrofit.create(UserProfileDataSource::class.java)
     }
 }
 
 @Module
 @InstallIn(SingletonComponent::class)
-object UserProfileRepositoryModule{
+object UserProfileRepositoryModule {
     @Provides
-    fun provideUserProfileRepository(userProfileDataSource: UserProfileDataSource): UserProfileRepository{
-        return UserProfileRepositoryImpl(userProfileDataSource)
+    fun provideUserProfileRepository(
+        userProfileDataSource: UserProfileDataSource,
+        userProfileLocalDataSource: UserProfileLocalDataSource,
+    ): UserProfileRepository {
+        return UserProfileRepositoryImpl(userProfileDataSource, userProfileLocalDataSource)
     }
 }

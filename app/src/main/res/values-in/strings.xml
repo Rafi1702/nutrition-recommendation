@@ -20,6 +20,11 @@
     <string name="body_mass_index">Index Massa Tubuh (IMT)</string>
     <string name="username_auth_textfield_placeholder">Masukkan username</string>
     <string name="password_auth_textfield_placeholder">Masukkan password</string>
+
+    <!-- BUTTON LABEL  -->
+    <string name="continue_label">Lanjut</string>
+    <string name="submit_label">Simpan</string>
+
     <string-array name="body_mass_index_level">
         <item>Dibawah rerata</item>
         <item>Normal</item>

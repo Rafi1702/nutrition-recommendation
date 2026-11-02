@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.SignInAuth
 import com.example.nutritiontracker.domain.model.SignUpAuth
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
+import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.nutritiontracker.domain.usecase.SignInUseCase
 import com.example.nutritiontracker.domain.usecase.SignUpUseCase
 import com.example.nutritiontracker.ui.components.CheckRequiredValidator

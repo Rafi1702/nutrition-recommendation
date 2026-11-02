@@ -1,9 +1,7 @@
-package com.example.nutritiontracker.domain.usecase
+package com.example.nutritiontracker.domain.usecase.user_profile
 
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
 import com.example.nutritiontracker.domain.repository.UserProfileRepository
-import dagger.assisted.Assisted
 import javax.inject.Inject
 
 class GetUserProfileUseCase @Inject constructor(
