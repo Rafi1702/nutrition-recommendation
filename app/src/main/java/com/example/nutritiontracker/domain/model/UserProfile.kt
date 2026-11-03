@@ -1,6 +1,11 @@
 package com.example.nutritiontracker.domain.model
 
 
+data class UserProfileData<out T>(
+    val fromLocal: Boolean = false,
+    val data: T?,
+)
+
 data class UserProfileWithAllergens(
     val userProfile: UserProfile,
     val allergens: List<Allergens> = emptyList(),
@@ -25,7 +30,7 @@ data class UserDailyNeeds(
     val dinner: Float = 0f
 )
 
-fun createDefaultUserProfile(): UserProfile {
+fun createDefaultUserProfile(): UserProfile? {
     return UserProfile(
         gender = Gender.MALE,
         dailyActivity = PersonalActivities.ACTIVE,
