@@ -177,8 +177,8 @@ class AuthenticationViewModel @Inject constructor(
 
     suspend fun getUserProfile(): UserProfile? {
         return getUserProfileUseCase().fold(
-            onSuccess = { data ->
-                data
+            onSuccess = { userData ->
+                userData?.data
             },
             onFailure = { _ ->
                 null

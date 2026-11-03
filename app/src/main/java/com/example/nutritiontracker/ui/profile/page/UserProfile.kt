@@ -24,6 +24,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.ui.components.Form
+import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.sections.DailyActivitiesSection
 import com.example.nutritiontracker.ui.profile.sections.DailyEstimationSection
 import com.example.nutritiontracker.ui.profile.sections.DemographicSection
@@ -33,6 +34,7 @@ import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileContract
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.Spacing
+import com.example.nutritiontracker.ui.utils.MutationEffect
 import com.example.nutritiontracker.ui.utils.MutationState
 
 
@@ -41,15 +43,16 @@ import com.example.nutritiontracker.ui.utils.MutationState
 @Composable
 fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val userMutationState = uiState.value.userProfileMutationState
-    val mutationLoading = userMutationState is MutationState.Pending
     //if navigated from authentication or if user still doesn't have profile
     val navController = viewModel.userProfile?.let { LocalNavController.current }
-
+    val currentUser = viewModel.userProfile
 
     val userProfileContract = object : UserProfileContract {
         override fun createUserProfile() {
             viewModel.createUserProfile()
+            navController?.let { nav ->
+                nav.navigate(HomePath.BASE_HOME_PATH)
+            }
         }
 
         override fun saveUserProfile() {
@@ -60,7 +63,8 @@ fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
 
     CompositionLocalProvider(
         LocalUserProfileUiState provides uiState,
-        LocalUserProfileForm provides viewModel.userProfileForm
+        LocalUserProfileForm provides viewModel.userProfileForm,
+        LocalCurrentUserData provides currentUser,
     ) {
         if (viewModel.userProfile != null) {
             UserProfileContent(
@@ -75,24 +79,6 @@ fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
                         Text("User Profile")
                     })
                 },
-                bottomBar = {
-                    BottomAppBar {
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = viewModel.userProfileForm.isValid && !mutationLoading,
-                            shape = RoundedCornerShape(8.dp),
-                            onClick = {
-                                viewModel.createUserProfile()
-                            }
-                        ) {
-                            if (mutationLoading) {
-                                CircularProgressIndicator()
-                            } else {
-                                Text(stringResource(R.string.user_profile_submit))
-                            }
-                        }
-                    }
-                }
             ) { innerPadding ->
                 UserProfileContent(
                     modifier = Modifier

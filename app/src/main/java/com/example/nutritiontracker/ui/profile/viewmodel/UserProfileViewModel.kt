@@ -7,6 +7,7 @@ import com.example.nutritiontracker.domain.model.Allergens
 import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.GenderMap.toGender
+import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
 import com.example.nutritiontracker.domain.usecase.GetAllergensUseCase
 import com.example.nutritiontracker.domain.usecase.user_profile.CreateAndSaveUserProfileUseCase
@@ -63,7 +64,7 @@ class UserProfileViewModel @AssistedInject constructor(
     private val getAllergensUseCase: GetAllergensUseCase,
     private val createAndSaveUserProfileUseCase: CreateAndSaveUserProfileUseCase,
     private val saveUserProfileUseCase: SaveUserProfileUseCase,
-    @Assisted val userProfile: UserProfile? = null
+    @Assisted val userProfile: UserProfileData<UserProfile>? = null
 ) :
     ViewModel() {
 
@@ -72,7 +73,7 @@ class UserProfileViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(userProfile: UserProfile? = null): UserProfileViewModel
+        fun create(userProfile: UserProfileData<UserProfile>? = null): UserProfileViewModel
     }
 
     val userProfileForm = FormBuilder<UserProfileForm>().apply {
@@ -124,15 +125,15 @@ class UserProfileViewModel @AssistedInject constructor(
             ),
         )
     }.apply {
-        if (userProfile != null) {
-            this.setFieldValue(UserProfileForm::gender, userProfile.gender.label)
+        if (userProfile?.data != null) {
+            this.setFieldValue(UserProfileForm::gender, userProfile.data.gender.label)
             this.setFieldValue(
                 UserProfileForm::personalActivities,
-                userProfile.dailyActivity.label
+                userProfile.data.dailyActivity.label
             )
-            this.setFieldValue(UserProfileForm::weight, userProfile.weight)
-            this.setFieldValue(UserProfileForm::height, userProfile.height)
-            this.setFieldValue(UserProfileForm::birth, userProfile.birthDate)
+            this.setFieldValue(UserProfileForm::weight, userProfile.data.weight)
+            this.setFieldValue(UserProfileForm::height, userProfile.data.height)
+            this.setFieldValue(UserProfileForm::birth, userProfile.data.birthDate)
         }
     }
 
@@ -157,7 +158,7 @@ class UserProfileViewModel @AssistedInject constructor(
                 return@getOrElse emptyList()
             }
 
-            val userAllergenIds = userProfile?.allergenIds ?: emptyList()
+            val userAllergenIds = userProfile?.data?.allergenIds ?: emptyList()
 
             val initialAllergensValue = userAllergenIds.map { userAllergies ->
                 allergens.first { it.id == userAllergies }
@@ -195,20 +196,20 @@ class UserProfileViewModel @AssistedInject constructor(
             UserProfileForm::birth
         ).all { key -> userProfileForm.getField(key)!!.state.value != null }
 
-        if (isFormComplete) {
-            return UserProfile(
-                gender = userProfileForm.getField(UserProfileForm::gender)!!.state.value!!.toGender(),
-                dailyActivity = userProfileForm.getField(UserProfileForm::personalActivities)!!.state.value!!.toPersonalActivities(),
-                birthDate = userProfileForm.getField(UserProfileForm::birth)!!.state.value!!,
-                weight = userProfileForm.getField(UserProfileForm::weight)!!.state.value!!,
-                height = userProfileForm.getField(UserProfileForm::height)!!.state.value!!,
-                allergenIds = userProfileForm.getField(UserProfileForm::userAllergies)!!.state.value!!.map { allergenName ->
-                    _uiState.value.allergensState.allergens.filter { it.name == allergenName }
-                        .first().id
-                },
-            )
+        if (!isFormComplete) {
+            return null
         }
-        return null
+        return UserProfile(
+            gender = userProfileForm.getField(UserProfileForm::gender)!!.state.value!!.toGender(),
+            dailyActivity = userProfileForm.getField(UserProfileForm::personalActivities)!!.state.value!!.toPersonalActivities(),
+            birthDate = userProfileForm.getField(UserProfileForm::birth)!!.state.value!!,
+            weight = userProfileForm.getField(UserProfileForm::weight)!!.state.value!!,
+            height = userProfileForm.getField(UserProfileForm::height)!!.state.value!!,
+            allergenIds = userProfileForm.getField(UserProfileForm::userAllergies)!!.state.value!!.map { allergenName ->
+                _uiState.value.allergensState.allergens.filter { it.name == allergenName }
+                    .first().id
+            },
+        )
     }
 
     fun createUserProfile() {

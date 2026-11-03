@@ -7,8 +7,6 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.core.Serializer
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStoreFile
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import com.example.nutritiontracker.data.model.user.UserProfileLocal
 import com.google.errorprone.annotations.CanIgnoreReturnValue
 import dagger.Module
@@ -22,7 +20,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.InputStream
@@ -39,7 +36,7 @@ private const val DATASTORE_FILE_NAME = "user_profile.json"
 object LocalUserProfileStoreModule {
     @Provides
     @Singleton
-    fun provideDataStore(@ApplicationContext appContext: Context): DataStore<UserProfileLocal> {
+    fun provideDataStore(@ApplicationContext appContext: Context): DataStore<UserProfileLocal?> {
         return DataStoreFactory.create(
             serializer = UserProfilePreferenceSerializer,
             corruptionHandler = ReplaceFileCorruptionHandler(produceNewData = { err ->
@@ -53,7 +50,7 @@ object LocalUserProfileStoreModule {
     @CanIgnoreReturnValue
     @Singleton
     @Provides
-    fun provideLocalUserDataSource(dataStore: DataStore<UserProfileLocal>): UserProfileLocalDataSource {
+    fun provideLocalUserDataSource(dataStore: DataStore<UserProfileLocal?>): UserProfileLocalDataSource {
         return UserProfileLocalDataSourceImpl(dataStore = dataStore)
     }
 
@@ -61,16 +58,15 @@ object LocalUserProfileStoreModule {
 
 interface UserProfileLocalDataSource {
     suspend fun setTemporaryUserProfile(userProfileLocal: UserProfileLocal): Result<Unit>
-    suspend fun getTemporaryUserProfile(): Flow<Result<UserProfileLocal>>
+    suspend fun getTemporaryUserProfile(): Flow<Result<UserProfileLocal?>>
     suspend fun deleteUserProfile(): Result<Unit>
 }
 
-object UserProfilePreferenceSerializer : Serializer<UserProfileLocal> {
-    override val defaultValue: UserProfileLocal
-        get() = throw Exception("User Must not Null")
+object UserProfilePreferenceSerializer : Serializer<UserProfileLocal?> {
+    override val defaultValue: UserProfileLocal?
+        get() = null
 
-
-    override suspend fun readFrom(input: InputStream): UserProfileLocal {
+    override suspend fun readFrom(input: InputStream): UserProfileLocal? {
         try {
             return Json.decodeFromString(
                 deserializer = UserProfileLocal.serializer(),
@@ -78,21 +74,22 @@ object UserProfilePreferenceSerializer : Serializer<UserProfileLocal> {
             )
         } catch (e: SerializationException) {
             throw CorruptionException("Unable to read UserProfileLocal", e)
+        } catch (_: Exception){
+            return null
         }
     }
 
-    override suspend fun writeTo(t: UserProfileLocal, output: OutputStream) =
-        withContext(Dispatchers.IO) {
-            output.write(
-                Json.encodeToString(
-                    serializer = UserProfileLocal.serializer(),
-                    value = t
-                ).encodeToByteArray()
-            )
+    override suspend fun writeTo(t: UserProfileLocal?, output: OutputStream): Unit {
+        val bytes = if (t == null) {
+            byteArrayOf()
+        } else {
+            Json.encodeToString(UserProfileLocal.serializer(), t).encodeToByteArray()
         }
+        output.write(bytes)
+    }
 }
 
-class UserProfileLocalDataSourceImpl @Inject constructor(private val dataStore: DataStore<UserProfileLocal>) :
+class UserProfileLocalDataSourceImpl @Inject constructor(private val dataStore: DataStore<UserProfileLocal?>) :
     UserProfileLocalDataSource {
     override suspend fun setTemporaryUserProfile(userProfileLocal: UserProfileLocal): Result<Unit> {
         return try {
@@ -103,7 +100,7 @@ class UserProfileLocalDataSourceImpl @Inject constructor(private val dataStore: 
         }
     }
 
-    override suspend fun getTemporaryUserProfile(): Flow<Result<UserProfileLocal>> {
+    override suspend fun getTemporaryUserProfile(): Flow<Result<UserProfileLocal?>> {
         return dataStore.data.map { userProfile ->
             Result.success(userProfile)
         }.catch { err ->
@@ -113,7 +110,7 @@ class UserProfileLocalDataSourceImpl @Inject constructor(private val dataStore: 
 
     override suspend fun deleteUserProfile(): Result<Unit> {
         return try {
-            dataStore.updateData { UserProfilePreferenceSerializer.defaultValue }
+            dataStore.updateData { null }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

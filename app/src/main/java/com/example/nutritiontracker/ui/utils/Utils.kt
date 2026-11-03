@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import kotlinx.coroutines.delay
 
@@ -81,7 +82,7 @@ sealed class QueryState<out T>{
 }
 
 @Composable
-internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(noinline creationCallback: (VMF, UserProfile?) -> VM): VM {
+internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(noinline creationCallback: (VMF, UserProfileData<UserProfile>?) -> VM): VM {
     val currentUser = LocalUserProfile.current.value
     return hiltViewModel<VM, VMF>(
         creationCallback = { factory -> creationCallback(factory, currentUser) }
@@ -89,7 +90,7 @@ internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(
 }
 
 @Composable
-private fun <T> MutationEffect(
+fun <T> MutationEffect(
     mutationState: MutationState<T>,
     activeWhen: Boolean = true,
     onSuccess: (T) -> Unit,

@@ -10,5 +10,16 @@ data class UserProfileLocal(
     val birth: String,
     val weight: Float,
     val height: Float,
-    val userAllergies: List<String>,
+    val userAllergiesIds: List<Int>,
 )
+
+fun createDefaultUserProfileLocal(): UserProfileLocal{
+    return UserProfileLocal(
+        gender = "Male",
+        personalActivities = "Sedentary",
+        birth = "",
+        weight = 0f,
+        height = 0f,
+        userAllergiesIds = emptyList()
+    )
+}

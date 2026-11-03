@@ -54,7 +54,10 @@ private fun DailyActivitiesContentNoUserPreview() {
     val uiState = remember {
         mutableStateOf(UserProfileUiState())
     }
-    CompositionLocalProvider(LocalUserProfileUiState provides uiState) {
+    CompositionLocalProvider(
+        LocalUserProfileUiState provides uiState,
+        LocalUserProfileForm provides FormBuilder()
+    ) {
         NutritionTrackerTheme {
             DailyEstimationSection()
         }
@@ -71,13 +74,12 @@ private fun DailyActivitiesContentWithUserPreview() {
     }
     CompositionLocalProvider(
         LocalUserProfileUiState provides uiState,
-        LocalUserProfile provides profile
+        LocalUserProfileForm provides FormBuilder(),
     ) {
         NutritionTrackerTheme {
             DailyEstimationSection()
         }
     }
-
 
 }
 

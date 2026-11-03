@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +28,16 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
+import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
+import com.example.nutritiontracker.ui.profile.page.LocalCurrentUserData
+import com.example.nutritiontracker.ui.profile.page.LocalUserProfileForm
 import com.example.nutritiontracker.ui.profile.page.LocalUserProfileUiState
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileContract
+import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -45,7 +51,7 @@ fun DailyEstimationSection(
     userProfileContract: UserProfileContract = object : UserProfileContract {
         override fun createUserProfile() {}
         override fun saveUserProfile() {}
-    }
+    },
 ) {
     UserProfileContentSection(
         label = stringResource(R.string.user_profile_section_diet),
@@ -146,58 +152,16 @@ private fun DailyEstimationContentBody(
 ) {
     val userMutationState = LocalUserProfileUiState.current.value.userProfileMutationState
     val mutationLoading = userMutationState is MutationState.Pending
+    val currentUser = LocalCurrentUserData.current
+    val isFormValid = LocalUserProfileForm.current.isValid
 
-    if (userProfile != null) {
-        Button(
-            shape = RoundedCornerShape(Spacing.s),
-            onClick = onCreateUserProfile,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !mutationLoading,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colorScheme.primary,
-                contentColor = colorScheme.onPrimary
-            )
-        ) {
-            if (mutationLoading) {
-                CircularProgressIndicator()
-            } else {
-                Icon(
-                    Icons.Default.Calculate,
-                    contentDescription = "calculate_nutrients_need",
-                    modifier = Modifier.padding(end = Spacing.xs)
-                )
-                Text(
-                    stringResource(R.string.user_profile_calculate_nutrition_button),
-                    style = typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                )
-            }
-        }
-    } else {
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+    currentUser?.let{
+        if (!currentUser.fromLocal) {
             Button(
-                shape = RoundedCornerShape(8.dp),
-                onClick = onSaveUserProfile,
-                enabled = !mutationLoading,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = colorScheme.primary,
-                    contentColor = colorScheme.onPrimary
-                )
-            ) {
-                if (mutationLoading) {
-                    CircularProgressIndicator()
-                } else {
-                    Icon(Icons.Default.Save, contentDescription = "icon_save_profile")
-                    Spacer(modifier = Modifier.width(Spacing.s))
-                    Text(stringResource(R.string.save_label))
-                }
-            }
-
-            Button(
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(Spacing.s),
                 onClick = onCreateUserProfile,
-                enabled = !mutationLoading,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !mutationLoading && isFormValid,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.primary,
                     contentColor = colorScheme.onPrimary
@@ -206,10 +170,56 @@ private fun DailyEstimationContentBody(
                 if (mutationLoading) {
                     CircularProgressIndicator()
                 } else {
+                    Icon(
+                        Icons.Default.Calculate,
+                        contentDescription = "calculate_nutrients_need",
+                        modifier = Modifier.padding(end = Spacing.xs)
+                    )
                     Text(
-                        "${stringResource(R.string.save_label)} & ${stringResource(R.string.continue_label)}",
+                        stringResource(R.string.user_profile_calculate_nutrition_button),
                         style = typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
+                }
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                Button(
+                    shape = RoundedCornerShape(8.dp),
+                    onClick = onSaveUserProfile,
+                    enabled = !mutationLoading && isFormValid,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorScheme.primary,
+                        contentColor = colorScheme.onPrimary
+                    )
+                ) {
+                    if (mutationLoading) {
+                        CircularProgressIndicator()
+                    } else {
+                        Icon(Icons.Default.Save, contentDescription = "icon_save_profile")
+                        Spacer(modifier = Modifier.width(Spacing.s))
+                        Text(stringResource(R.string.save_label))
+                    }
+                }
+
+                OutlinedButton(
+                    shape = RoundedCornerShape(8.dp),
+                    onClick = onCreateUserProfile,
+                    enabled = !mutationLoading  && isFormValid,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorScheme.primary,
+                        contentColor = colorScheme.onPrimary
+                    )
+                ) {
+                    if (mutationLoading) {
+                        CircularProgressIndicator()
+                    } else {
+                        Text(
+                            "${stringResource(R.string.save_label)} & ${stringResource(R.string.continue_label)}",
+                            style = typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
                 }
             }
         }

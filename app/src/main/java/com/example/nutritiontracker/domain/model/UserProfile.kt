@@ -1,6 +1,11 @@
 package com.example.nutritiontracker.domain.model
 
 
+data class UserProfileData<out T>(
+    val fromLocal: Boolean = false,
+    val data: T?,
+)
+
 data class UserProfileWithAllergens(
     val userProfile: UserProfile,
     val allergens: List<Allergens> = emptyList(),

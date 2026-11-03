@@ -4,6 +4,7 @@ import com.example.nutritiontracker.domain.model.PersonalActivities
 import com.example.nutritiontracker.domain.model.UserDailyNeeds
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.GenderMap.toGender
+import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
 
 
@@ -35,6 +36,17 @@ internal fun UserProfile.toCreateUserProfile(): UserProfileUpdateCreateRequestDt
     )
 }
 
+internal fun UserProfileLocal.toUserProfile(): UserProfile {
+    return UserProfile(
+        gender = this.gender.toGender(),
+        dailyActivity = this.personalActivities.toPersonalActivities(),
+        birthDate = this.birth,
+        weight = this.weight,
+        height = this.height,
+        allergenIds = this.userAllergiesIds
+    )
+}
+
 internal fun UserProfileWithAllergens.toSaveUserProfileLocal(): UserProfileLocal {
     return UserProfileLocal(
         gender = this.userProfile.gender.label,
@@ -42,6 +54,6 @@ internal fun UserProfileWithAllergens.toSaveUserProfileLocal(): UserProfileLocal
         birth = this.userProfile.birthDate,
         weight = this.userProfile.weight,
         height = this.userProfile.height,
-        userAllergies = this.allergens.map { it.name },
+        userAllergiesIds = this.allergens.map { it.id },
     )
 }

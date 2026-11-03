@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.ui.authentication.page.AuthPageRoute
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationViewModel
@@ -29,7 +30,9 @@ import com.example.nutritiontracker.ui.home.page.MainPage
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
+import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
+import com.example.nutritiontracker.ui.theme.userProfile
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -41,7 +44,7 @@ fun AppNavigation(
 ) {
     val entryViewModel: EntryScreenViewModel = hiltViewModel()
     val entryScreenUiState = entryViewModel.entryNavigationState.collectAsStateWithLifecycle().value
-    val userProfileState = remember { mutableStateOf<UserProfile?>(null) }
+    val userProfileState = remember { mutableStateOf<UserProfileData<UserProfile>?>(null) }
 
     //Observe the effect of the state changes on EntryScreenViewmodel
     LaunchedEffect(entryScreenUiState) {
@@ -50,7 +53,10 @@ fun AppNavigation(
                 val (route, data) = entryScreenUiState
                 navController.navigate(route)
                 data?.let {
-                    userProfileState.value = data
+                    userProfileState.value = UserProfileData(
+                        fromLocal = data.fromLocal,
+                        data = data.data?.userProfile
+                    )
                 }
             }
 
@@ -59,7 +65,10 @@ fun AppNavigation(
     }
 
 
-    CompositionLocalProvider(LocalUserProfile provides userProfileState) {
+    CompositionLocalProvider(
+        LocalUserProfile provides userProfileState,
+        LocalNavController provides navController
+    ) {
         Scaffold(snackbarHost = { SnackbarHost(snackBarHostState) }) { _ ->
             NavHost(
                 navController = navController,
@@ -77,7 +86,7 @@ fun AppNavigation(
                         viewModel = authenticationViewModel,
                         onNavigateToHome = { profile ->
                             if (profile != null) {
-                                userProfileState.value = profile
+                                userProfileState.value = UserProfileData(data = profile)
                                 navController.navigate(HomePath.BASE_HOME_PATH)
                             } else {
                                 navController.navigate(ProfileNav.USER_PROFILE)
