@@ -8,9 +8,9 @@ import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersona
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.GenderMap.toGender
 import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
-import com.example.nutritiontracker.domain.usecase.user_profile.CreateUserProfileUseCase
 import com.example.nutritiontracker.domain.usecase.GetAllergensUseCase
 import com.example.nutritiontracker.domain.usecase.user_profile.CreateAndSaveUserProfileUseCase
+import com.example.nutritiontracker.domain.usecase.user_profile.SaveUserProfileUseCase
 import com.example.nutritiontracker.ui.components.CannotEmptyList
 import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
@@ -49,6 +49,11 @@ data class UserProfileUiState(
     val userProfileMutationState: MutationState<Unit> = MutationState.Idle
 )
 
+interface UserProfileContract {
+    fun createUserProfile()
+    fun saveUserProfile()
+}
+
 
 /**Assisted UserProfile act as params from previous navigation.
  * the value is never updated
@@ -57,6 +62,7 @@ data class UserProfileUiState(
 class UserProfileViewModel @AssistedInject constructor(
     private val getAllergensUseCase: GetAllergensUseCase,
     private val createAndSaveUserProfileUseCase: CreateAndSaveUserProfileUseCase,
+    private val saveUserProfileUseCase: SaveUserProfileUseCase,
     @Assisted val userProfile: UserProfile? = null
 ) :
     ViewModel() {
@@ -217,6 +223,42 @@ class UserProfileViewModel @AssistedInject constructor(
 
             userProfileValue()?.let { profile ->
                 createAndSaveUserProfileUseCase(
+                    UserProfileWithAllergens(
+                        allergens = _uiState.value.allergensState.allergens,
+                        userProfile = profile
+                    )
+                ).fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                userProfileMutationState = MutationState.Success(Unit)
+                            )
+                        }
+                    },
+                    onFailure = { err ->
+                        _uiState.update {
+                            it.copy(
+                                userProfileMutationState = MutationState.Error(err)
+                            )
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun saveUserProfile() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    userProfileMutationState = MutationState.Pending
+                )
+            }
+            delay(1000)
+
+
+            userProfileValue()?.let { profile ->
+                saveUserProfileUseCase(
                     UserProfileWithAllergens(
                         allergens = _uiState.value.allergensState.allergens,
                         userProfile = profile

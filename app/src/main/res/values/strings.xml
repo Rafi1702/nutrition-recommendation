@@ -25,6 +25,7 @@
     <!-- BUTTON LABEL  -->
     <string name="continue_label">Continue</string>
     <string name="submit_label">Submit</string>
+    <string name="save_label">Save</string>
 
     <!-- Selection or Multiple Selections Label -->
     <string-array name="body_mass_index_level">
@@ -48,7 +49,12 @@
         <item>Example of Active</item>
     </string-array>
 
+
     <string name="user_profile_daily_estimation_section_title">Daily Estimation</string>
+    <string name="user_profile_tdee_ready">TDEE Ready</string>
+    <string name="user_profile_tdee_not_ready">New Profile</string>
+    <string name="user_profile_calculate_nutrition_button">Save &amp; Calculate Nutrition Needs</string>
+
     <string name="user_profile_submit">Submit</string>
     <string name="user_profile_section_demographic">1. DEMOGRAPHIC INFORMATION</string>
     <string name="user_profile_section_biometric">2. BIOMETRICS &amp; MEASUREMENT</string>
@@ -63,7 +69,4 @@
     <string name="user_profile_weight_label">WEIGHT</string>
     <string name="user_profile_weight_unit">kg</string>
     <string name="user_profile_kcal_per_day">kcal / day</string>
-    <string name="user_profile_tdee_ready">TDEE Ready</string>
-    <string name="user_profile_deficit_sample">Deficit: -350 kcal</string>
-    <string name="user_profile_calculate_nutrition_button">Save &amp; Calculate Nutrition Needs</string>
 </resources>

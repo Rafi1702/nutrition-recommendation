@@ -25,7 +25,7 @@ data class UserDailyNeeds(
     val dinner: Float = 0f
 )
 
-fun createDefaultUserProfile(): UserProfile {
+fun createDefaultUserProfile(): UserProfile? {
     return UserProfile(
         gender = Gender.MALE,
         dailyActivity = PersonalActivities.ACTIVE,

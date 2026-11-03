@@ -88,3 +88,27 @@ internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(
     )
 }
 
+@Composable
+private fun <T> MutationEffect(
+    mutationState: MutationState<T>,
+    activeWhen: Boolean = true,
+    onSuccess: (T) -> Unit,
+    onFailure: (Throwable) -> Unit
+) {
+    if (!activeWhen) return
+
+    LaunchedEffect(mutationState) {
+        when (mutationState) {
+            is MutationState.Success -> {
+                onSuccess(mutationState.data)
+            }
+
+            is MutationState.Error -> {
+                onFailure(mutationState.error)
+            }
+
+            else -> {}
+        }
+    }
+}
+

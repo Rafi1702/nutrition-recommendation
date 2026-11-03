@@ -53,7 +53,7 @@ object LocalUserProfileStoreModule {
     @CanIgnoreReturnValue
     @Singleton
     @Provides
-    fun provideLocalUserDataSource(dataStore: DataStore<UserProfileLocal>): UserProfileLocalDataSourceImpl {
+    fun provideLocalUserDataSource(dataStore: DataStore<UserProfileLocal>): UserProfileLocalDataSource {
         return UserProfileLocalDataSourceImpl(dataStore = dataStore)
     }
 
