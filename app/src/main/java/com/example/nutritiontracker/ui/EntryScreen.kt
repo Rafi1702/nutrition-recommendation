@@ -1,9 +1,13 @@
 package com.example.nutritiontracker.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,27 +17,32 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.utils.NetworkException
-import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
-import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileWithAllergensUseCase
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.theme.Spacing
+import com.example.nutritiontracker.ui.theme.typography
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.net.ConnectException
 import javax.inject.Inject
 
 
+//specific class just for entry screen state
 sealed class EntryScreenUiState {
     data object Initial : EntryScreenUiState()
-    data class Navigate(val route: String, val data: UserProfileData<UserProfileWithAllergens>? = null) : EntryScreenUiState()
+    data class Navigate(
+        val route: String,
+        val data: UserProfileData<UserProfileWithAllergens>? = null
+    ) : EntryScreenUiState()
+
     data class Error(val error: Throwable) : EntryScreenUiState()
 }
 
@@ -112,15 +121,26 @@ fun EntryScreen(entryScreenUiState: EntryScreenUiState = EntryScreenUiState.Init
         verticalArrangement = Arrangement.spacedBy(Spacing.m, Alignment.CenterVertically)
     ) {
         when (entryScreenUiState) {
-            is EntryScreenUiState.Initial -> {
+            is EntryScreenUiState.Error -> {
+                Log.d("[DEBUG]", "${entryScreenUiState.error}")
+                if (entryScreenUiState.error is NetworkException.ServerError || entryScreenUiState.error is ConnectException) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(
+                            Spacing.m,
+                            Alignment.CenterVertically
+                        ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(Icons.Default.ErrorOutline, contentDescription = "server_error_icon")
+                        Text("Ada masalah dengan sistem kami :(", style = typography.labelLarge)
+                    }
+                }
+            }
+
+            else -> {
                 CircularProgressIndicator()
             }
-
-            is EntryScreenUiState.Error -> {
-                Text(entryScreenUiState.error.message ?: "Unexpected Error")
-            }
-
-            else -> {}
         }
 
 

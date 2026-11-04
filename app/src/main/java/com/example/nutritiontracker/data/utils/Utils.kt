@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.retryWhen
 import retrofit2.Response
 import java.io.IOException
+import java.net.ConnectException
+import java.net.UnknownHostException
 
 
 const val ITEMS_LIMIT = 10
@@ -75,7 +77,6 @@ fun <T> withRetry(apiCall: () -> Response<T>): Flow<T> {
 inline fun <T> safeCall(apiCall: () -> Response<T>): Result<T> {
     return try {
         val response = apiCall()
-
         if (response.isSuccessful) {
             val body = response.body()
             if (body != null) {
@@ -90,6 +91,8 @@ inline fun <T> safeCall(apiCall: () -> Response<T>): Result<T> {
         }
     } catch (e: IOException) {
         Result.failure(e)
+    } catch (e: ConnectException) {
+        Result.failure(ConnectException("Failed to connect"))
     } catch (e: Exception) {
         Result.failure(e)
     }
