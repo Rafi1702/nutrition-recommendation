@@ -1,13 +1,16 @@
 package com.example.nutritiontracker.data.local
 
+import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import com.google.errorprone.annotations.CanIgnoreReturnValue
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -18,6 +21,22 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "user_preferences"
+)
+
+@Module
+@InstallIn(SingletonComponent::class)
+
+object LocalStoreModule {
+    @Provides
+    @Singleton
+    fun provideDataStore(@ApplicationContext appContext: Context): DataStore<Preferences> {
+        return appContext.dataStore
+    }
+
+}
 data class UserToken(
     val accessToken: String?,
     val refreshToken: String?,

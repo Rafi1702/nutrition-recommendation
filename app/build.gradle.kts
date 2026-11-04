@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinAndroidKsp)
     alias(libs.plugins.hiltAndroid)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
     id("com.google.protobuf") version "0.10.0"
 }
 
@@ -83,9 +84,13 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    //STORAGE
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.error.prone.annotations)
     implementation(libs.protobuf.kotlin.lite)
+    implementation(libs.kotlinx.serialization.json)
+
     ksp(libs.hilt.android.compiler)
     implementation(libs.security.crypto)
     implementation(libs.converter.gson)

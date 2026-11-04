@@ -24,6 +24,8 @@ protobufKotlinLite = "4.36.2"
 retrofit = "3.0.0"
 kspVersion = "2.3.12"
 securityCryptoVersion = "1.1.0"
+kotlinxSerialization = "1.9.23"
+kotlinxSerializationJson = "1.6.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +52,7 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "compose-material-icons" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -64,5 +67,6 @@ security-crypto = { module = "androidx.security:security-crypto", version.ref = 
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroidKsp = { id = "com.google.devtools.ksp", version.ref ="kspVersion" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinxSerialization" }
 hiltAndroid = { id = "com.google.dagger.hilt.android", version.ref ="hiltAndroid" }
 
