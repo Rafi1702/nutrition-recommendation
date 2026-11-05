@@ -208,7 +208,7 @@ private fun MainLayout(
                 HomePage(
                     modifier = Modifier.weight(2f),
                 )
-                FoodRecommendationsContent(modifier = Modifier.weight(2f))
+                FoodListPage()
                 Spacer(modifier = Modifier.weight(.5f))
             }
         }

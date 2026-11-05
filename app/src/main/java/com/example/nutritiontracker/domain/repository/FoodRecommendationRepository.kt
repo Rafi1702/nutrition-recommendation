@@ -1,7 +1,9 @@
 package com.example.nutritiontracker.domain.repository
 
+import androidx.paging.PagingData
 import com.example.nutritiontracker.domain.model.RecommendationFood
+import kotlinx.coroutines.flow.Flow
 
 interface FoodRecommendationRepository {
-    suspend fun getRecommendedFoods(): Result<List<RecommendationFood>>
+    fun getRecommendedFoods(): Flow<PagingData<RecommendationFood>>
 }

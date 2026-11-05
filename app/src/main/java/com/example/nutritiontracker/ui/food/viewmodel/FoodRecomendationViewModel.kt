@@ -2,6 +2,7 @@ package com.example.nutritiontracker.ui.food.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.example.nutritiontracker.domain.model.RecommendationFood
 import com.example.nutritiontracker.domain.usecase.GetFoodRecommendationUseCase
 import com.example.nutritiontracker.ui.utils.QueryState
@@ -14,11 +15,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class FoodRecomendationViewModel @Inject constructor(private val getFoodRecommendationUseCase: GetFoodRecommendationUseCase) :
+class FoodRecommendationViewModel @Inject constructor(private val getFoodRecommendationUseCase: GetFoodRecommendationUseCase) :
     ViewModel() {
 
     private val _uiState =
         MutableStateFlow<QueryState<List<RecommendationFood>>>(QueryState.Initial())
+
+    val foodsRecommendation = getFoodRecommendationUseCase().cachedIn(viewModelScope)
 
     val uiState = _uiState.asStateFlow()
 
@@ -31,15 +34,6 @@ class FoodRecomendationViewModel @Inject constructor(private val getFoodRecommen
             _uiState.update { QueryState.Loading }
 
             delay(500)
-
-            getFoodRecommendationUseCase().fold(
-                onSuccess = { data ->
-                    _uiState.update { QueryState.Success(data) }
-                },
-                onFailure = { error ->
-                    _uiState.update { QueryState.Error(error) }
-                }
-            )
         }
     }
 }

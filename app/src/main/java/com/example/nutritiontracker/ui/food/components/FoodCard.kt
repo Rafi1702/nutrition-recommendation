@@ -31,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.data.remote.MOCK_FOODS
+import com.example.nutritiontracker.data.mocks.MOCK_FOODS
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme

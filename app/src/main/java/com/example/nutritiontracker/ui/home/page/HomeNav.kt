@@ -4,9 +4,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import com.example.nutritiontracker.ui.food.page.FoodListPage
-import com.example.nutritiontracker.ui.food.page.FoodPath
-import com.example.nutritiontracker.ui.food.page.foodGraph
 
 object HomePath {
     const val BASE_HOME_PATH = "/main"
