@@ -17,21 +17,30 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.nutritiontracker.ui.theme.Spacing
 
+//The first value of header Props is isSticky
+typealias HeaderProps = Pair<Boolean, @Composable () -> Unit>
+
 @Composable
 fun <T : Any> ListPagingSection(
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(horizontal = Spacing.m),
     pagingItems: LazyPagingItems<T>,
+    headerProps: HeaderProps? = null,
     key: ((@JvmSuppressWildcards T) -> Any),
     initialDataError: (@Composable () -> Unit)? = null,
     itemContent: @Composable (T) -> Unit,
+) {
 
-    ) {
     LazyColumn(
         modifier = modifier,
         contentPadding = paddingValues,
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
+        headerProps?.let {
+            val (isSticky, component) = headerProps
+
+            if (isSticky) stickyHeader { component() } else item { component() }
+        }
         items(
             count = pagingItems.itemCount,
             key = pagingItems.itemKey(key),

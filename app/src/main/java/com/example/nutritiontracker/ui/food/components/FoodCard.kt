@@ -31,8 +31,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.data.remote.MOCK_FOODS
+import com.example.nutritiontracker.data.mocks.MOCK_FOODS
 import com.example.nutritiontracker.domain.model.Food
+import com.example.nutritiontracker.domain.model.MacroNutrients
+import com.example.nutritiontracker.domain.model.MacroType
+import com.example.nutritiontracker.domain.model.QuantifiedFoodNutrients
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
@@ -51,12 +54,41 @@ private fun FoodCardPreview() {
 }
 
 @Composable
+internal fun MacroChips(
+    macros: List<MacroNutrients>,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        macros.forEach { macro ->
+            val (type, serve) = macro
+            val macroColors = type.colors()
+            Chip(
+                radius = 12.dp,
+                color = macroColors.container,
+                contentColor = macroColors.onContainer
+            ) {
+                Text(
+                    text = "${serve.roundToInt()}g ${stringResource(type.label)}",
+                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 6.dp),
+                    style = typography.labelSmall
+                )
+            }
+        }
+    }
+}
+
+@Composable
 internal fun FoodCard(
-    food: Food,
+    name: String,
+    totalCalories: Int,
+    macros: List<MacroNutrients>,
     modifier: Modifier = Modifier,
     onAddClick: (() -> Unit)? = null
 ) {
-    val (_, name, macros) = food
     val totalCaloriesLabel = stringResource(R.string.total_calories_unit)
 
     Card(
@@ -124,36 +156,17 @@ internal fun FoodCard(
                     )
 
                     Text(
-                        text = "${food.totalCalories} $totalCaloriesLabel",
+                        text = "$totalCalories $totalCaloriesLabel",
                         style = typography.labelLarge.copy(
                             color = colorScheme.secondary,
                             fontWeight = FontWeight.Bold
                         )
                     )
 
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        macros.forEach { macro ->
-                            val (type, serve) = macro
-                            val macroColors = type.colors()
-                            Chip(
-                                radius = 12.dp,
-                                color = macroColors.container,
-                                contentColor = macroColors.onContainer
-                            ) {
-                                Text(
-                                    text = "${serve.roundToInt()}g ${stringResource(type.label)}",
-                                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 6.dp),
-                                    style = typography.labelSmall
-                                )
-                            }
-                        }
-                    }
+                    MacroChips(macros = macros)
                 }
             }
-            onAddClick?.let{
+            onAddClick?.let {
                 FilledTonalButton(
                     onClick = onAddClick,
                     modifier = Modifier.fillMaxWidth(),
@@ -177,4 +190,42 @@ internal fun FoodCard(
             }
         }
     }
+}
+
+@Composable
+internal fun FoodCard(
+    name: String,
+    totalCalories: Int,
+    carbs: Double,
+    protein: Double,
+    fat: Double,
+    modifier: Modifier = Modifier,
+    onAddClick: (() -> Unit)? = null
+) {
+    FoodCard(
+        name = name,
+        totalCalories = totalCalories,
+        macros = listOf(
+            MacroNutrients(MacroType.CARBS, carbs),
+            MacroNutrients(MacroType.PROTEIN, protein),
+            MacroNutrients(MacroType.FAT, fat)
+        ),
+        modifier = modifier,
+        onAddClick = onAddClick
+    )
+}
+
+@Composable
+internal fun FoodCard(
+    food: Food,
+    modifier: Modifier = Modifier,
+    onAddClick: (() -> Unit)? = null
+) {
+    FoodCard(
+        name = food.name,
+        totalCalories = food.totalCalories,
+        macros = food.macros,
+        modifier = modifier,
+        onAddClick = onAddClick
+    )
 }

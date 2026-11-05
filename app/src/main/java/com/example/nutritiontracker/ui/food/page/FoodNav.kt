@@ -1,9 +1,12 @@
 package com.example.nutritiontracker.ui.food.page
 
+
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import com.example.nutritiontracker.ui.food.viewmodel.FoodRecommendationViewModel
 
 object FoodPath {
     const val FOOD_RECOMMENDATIONS = "/recommendation"
@@ -13,7 +16,8 @@ object FoodPath {
 
 fun NavGraphBuilder.foodGraph(modifier: Modifier = Modifier) {
     composable(route = FoodPath.FOOD_RECOMMENDATIONS) {
-        FoodRecommendationsPage(modifier = modifier)
+        val foodRecommendationViewModel: FoodRecommendationViewModel = hiltViewModel()
+        FoodRecommendationsPage(modifier = modifier, foodRecommendationViewModel)
     }
 
     composable(route = FoodPath.FOOD_LIST){
