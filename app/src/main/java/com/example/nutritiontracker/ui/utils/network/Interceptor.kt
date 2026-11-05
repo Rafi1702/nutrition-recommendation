@@ -82,9 +82,7 @@ class MockUnauthorizedInterceptor : OkHttpInterceptor {
             if (response.code == 401) {
                 runBlocking { AuthEventManager.triggerLogout(NetworkException.Unauthorized()) }
             }
-            if(response.code == 500){
-                runBlocking { AuthEventManager.triggerLogout(NetworkException.GenericHttpError(500,"UNEXPECTED")) }
-            }
+
             return response
         }
         return Response.Builder().code(200).build()
@@ -119,10 +117,6 @@ class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource
             }
             val newStoreToken = runBlocking { localTokenDataSource.getUserToken() }
 
-            Log.d(
-                "[TOKEN_COMPARISON]",
-                "refresh_token: ${oldToken.refreshToken == newStoreToken.refreshToken}, access_token: ${oldToken.accessToken == newStoreToken.accessToken}"
-            )
 
             return Result.success(newStoreToken)
         }

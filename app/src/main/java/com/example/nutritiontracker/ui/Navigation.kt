@@ -85,14 +85,12 @@ fun AppNavigation(
                     AuthPageRoute(
                         viewModel = authenticationViewModel,
                         onNavigateToHome = { profile ->
-                            if (profile != null) {
-                                userProfileState.value = UserProfileData(data = profile)
-                                navController.navigate(HomePath.BASE_HOME_PATH)
-                            } else {
-                                navController.navigate(ProfileNav.USER_PROFILE)
-                            }
-
-                        })
+                            navController.navigate(HomePath.BASE_HOME_PATH)
+                        },
+                        onNavigateToUserProfile = {
+                            navController.navigate(ProfileNav.USER_PROFILE)
+                        }
+                    )
                 }
 
                 composable(route = HomePath.BASE_HOME_PATH) {

@@ -12,12 +12,12 @@ class GetUserProfileWithAllergensUseCase @Inject constructor(
 ) {
     //TODO: INJECT GetAllergensUseCase later to merge it with UserProfile
     suspend operator fun invoke(): Result<UserProfileData<UserProfileWithAllergens>?> {
-        val allergens = getAllergensUseCase().getOrElse {
-            return Result.failure(Exception("Failed To Get Allergies"))
+        val userProfileData = userProfileRepository.getUserProfile().getOrElse { err ->
+            return Result.failure(err)
         }
 
-        val userProfileData = userProfileRepository.getUserProfile().getOrElse {
-            return Result.failure(Exception("Failed to Get UserProfile"))
+        val allergens = getAllergensUseCase().getOrElse {
+            return Result.failure(Exception("Failed To Get Allergies"))
         }
 
         val userWithAllergens = userProfileData?.data?.let { userProfile ->
