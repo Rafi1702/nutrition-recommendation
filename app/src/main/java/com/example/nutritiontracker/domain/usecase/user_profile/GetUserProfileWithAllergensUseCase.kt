@@ -16,11 +16,15 @@ class GetUserProfileWithAllergensUseCase @Inject constructor(
             return Result.failure(err)
         }
 
+        if (userProfileData == null) {
+            return Result.success(null)
+        }
+
         val allergens = getAllergensUseCase().getOrElse {
             return Result.failure(Exception("Failed To Get Allergies"))
         }
 
-        val userWithAllergens = userProfileData?.data?.let { userProfile ->
+        val userWithAllergens = userProfileData.data?.let { userProfile ->
             UserProfileWithAllergens(
                 userProfile = userProfile,
                 allergens = userProfile.allergenIds.map { userAllergies ->
@@ -28,6 +32,11 @@ class GetUserProfileWithAllergensUseCase @Inject constructor(
                 }
             )
         }
-        return Result.success(UserProfileData(fromLocal = true, data = userWithAllergens))
+        return Result.success(
+            UserProfileData(
+                fromLocal = userProfileData.fromLocal ?: false,
+                data = userWithAllergens
+            )
+        )
     }
 }
