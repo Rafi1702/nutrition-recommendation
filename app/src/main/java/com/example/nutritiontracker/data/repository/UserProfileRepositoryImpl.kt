@@ -31,7 +31,12 @@ class UserProfileRepositoryImpl @Inject constructor(
             }?.data
 
         if (userProfileResponse != null) {
-            return Result.success(UserProfileData(data = userProfileResponse.toUserProfile()))
+            return Result.success(
+                UserProfileData(
+                    fromLocal = false,
+                    data = userProfileResponse.toUserProfile()
+                )
+            )
         }
 
         val localUserProfile = userProfileLocalDataSource.getTemporaryUserProfile().first()
