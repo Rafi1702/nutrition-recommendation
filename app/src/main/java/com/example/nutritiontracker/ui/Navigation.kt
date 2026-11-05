@@ -84,12 +84,14 @@ fun AppNavigation(
                     val authenticationViewModel: AuthenticationViewModel = hiltViewModel()
                     AuthPageRoute(
                         viewModel = authenticationViewModel,
-                        onNavigateToHome = { profile ->
-                            navController.navigate(HomePath.BASE_HOME_PATH)
+                        onNavigateToNext = { fromLocal, userProfile ->
+                            userProfileState.value = UserProfileData(fromLocal, userProfile)
+                            if (fromLocal) {
+                                navController.navigate(ProfileNav.USER_PROFILE)
+                            } else {
+                                navController.navigate(HomePath.BASE_HOME_PATH)
+                            }
                         },
-                        onNavigateToUserProfile = {
-                            navController.navigate(ProfileNav.USER_PROFILE)
-                        }
                     )
                 }
 
