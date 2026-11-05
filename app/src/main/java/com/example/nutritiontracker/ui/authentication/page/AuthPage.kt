@@ -86,20 +86,17 @@ import com.example.nutritiontracker.ui.theme.userProfile
 @Composable
 internal fun AuthPageRoute(
     viewModel: AuthenticationViewModel = hiltViewModel(),
-    onNavigateToHome: (userProfile: UserProfile?) -> Unit = {},
-    onNavigateToUserProfile: () -> Unit = {}
+    onNavigateToNext: (fromUserLocal: Boolean, userProfile: UserProfile?) -> Unit ={_, profile -> },
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.value.success) {
         if (uiState.value.success == true) {
             val userProfile = viewModel.getUserProfile()
+
             userProfile?.let {
-                if (userProfile.fromLocal) {
-                    onNavigateToUserProfile()
-                } else {
-                    onNavigateToHome(userProfile.data?.userProfile)
-                }
+                onNavigateToNext(userProfile.fromLocal, userProfile.data?.userProfile)
+
             }
         }
     }
