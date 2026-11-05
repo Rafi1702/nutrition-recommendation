@@ -20,10 +20,10 @@ object NetworkModule {
     @Singleton
     @Provides
     fun httpClient(localTokenDataSource: LocalTokenDataSource): OkHttpClient {
-        return OkHttpClient.Builder().addInterceptor(HeaderInterceptor(localTokenDataSource))
-            .addInterceptor(
-            ResponseInterceptor(localTokenDataSource)
-        ).build()
+        return OkHttpClient.Builder()
+            .addInterceptor(HeaderInterceptor(localTokenDataSource))
+            .addInterceptor(ResponseInterceptor(localTokenDataSource))
+            .build()
     }
 
     @Singleton
