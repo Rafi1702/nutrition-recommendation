@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.paging.compose.LazyPagingItems
+import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.nutritiontracker.domain.model.RecommendationFood
 import com.example.nutritiontracker.ui.HeaderProps
@@ -24,6 +24,7 @@ import com.example.nutritiontracker.ui.ListPagingSection
 import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.food.viewmodel.FoodRecommendationViewModel
 import com.example.nutritiontracker.ui.theme.colorScheme
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +32,6 @@ internal fun FoodRecommendationsPage(
     modifier: Modifier = Modifier,
     viewModel: FoodRecommendationViewModel = hiltViewModel()
 ) {
-    val foodRecommendationFlow = viewModel.foodsRecommendation.collectAsLazyPagingItems()
     Scaffold(topBar = {
         TopAppBar(title = {
             Text(
@@ -42,7 +42,7 @@ internal fun FoodRecommendationsPage(
     }) { innerPadding ->
         FoodRecommendationsContent(
             modifier = Modifier.padding(innerPadding),
-            foodRecommendation = foodRecommendationFlow
+            foodRecommendation = viewModel.foodsRecommendation
         )
     }
 }
@@ -51,10 +51,12 @@ internal fun FoodRecommendationsPage(
 @Composable
 internal fun FoodRecommendationsContent(
     modifier: Modifier = Modifier,
-    foodRecommendation: LazyPagingItems<RecommendationFood>
+    foodRecommendation: Flow<PagingData<RecommendationFood>>
 ) {
+    val foodRecommendationLazyPagingItems = foodRecommendation.collectAsLazyPagingItems()
+
     ListPagingSection(
-        pagingItems = foodRecommendation,
+        pagingItems = foodRecommendationLazyPagingItems,
         headerProps = HeaderProps(
             true,
             @Composable {
