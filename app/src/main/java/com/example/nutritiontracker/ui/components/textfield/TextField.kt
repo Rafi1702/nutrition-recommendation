@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -49,6 +50,7 @@ fun TextField(
     onValueChange: (String) -> Unit = {},
     label: String? = null,
     cornerRadius: Dp = Spacing.s,
+    shape: Shape = RoundedCornerShape(cornerRadius),
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     isSecure: Boolean = false,
@@ -99,7 +101,7 @@ fun TextField(
                 suffix = suffix,
                 minLines = minLines,
                 maxLines = maxLines,
-                shape = RoundedCornerShape(cornerRadius),
+                shape = shape,
                 visualTransformation = if (isSecure) {
                     remember { PasswordVisualTransformation() }
                 } else {
@@ -135,6 +137,7 @@ fun TextField(
     modifier: Modifier = Modifier,
     label: String = "Label",
     cornerRadius: Dp = Spacing.s,
+    shape: Shape = RoundedCornerShape(cornerRadius),
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     isSecure: Boolean = false,
@@ -229,7 +232,7 @@ fun TextField(
                     supportingText = supportingTextContent,
                     suffix = suffix,
                     prefix = prefixContent,
-                    shape = RoundedCornerShape(cornerRadius),
+                    shape = shape,
                     visualTransformation = if (isSecure) {
                         remember { PasswordVisualTransformation() }
                     } else {
@@ -255,6 +258,7 @@ fun <T> TextFormField(
     properties: FieldProperties<T>,
     label: String = "Label",
     cornerRadius: Dp = Spacing.s,
+    shape: Shape = RoundedCornerShape(cornerRadius),
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -278,6 +282,7 @@ fun <T> TextFormField(
         isSecure = resolvedIsSecure,
         placeholder = placeholder,
         cornerRadius = cornerRadius,
+        shape = shape,
         prefix = prefix,
         borderColor = borderColor,
         backgroundColor = backgroundColor,
@@ -295,6 +300,7 @@ fun TextFormField(
     onValueChange: (String) -> Unit = { },
     label: String? = null,
     cornerRadius: Dp = Spacing.s,
+    shape: Shape = RoundedCornerShape(cornerRadius),
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -316,6 +322,7 @@ fun TextFormField(
         label = label,
         isSecure = false,
         cornerRadius = cornerRadius,
+        shape = shape,
         borderColor = borderColor,
         backgroundColor = backgroundColor,
         suffix = suffix,
@@ -336,6 +343,7 @@ fun <T : Any> TextFormField(
     fieldName: KProperty1<T, String>,
     label: String = "Label",
     cornerRadius: Dp = Spacing.s,
+    shape: Shape = RoundedCornerShape(cornerRadius),
     borderColor: Color = Color.Unspecified,
     backgroundColor: Color = Color.Unspecified,
     trailingIcon: @Composable (() -> Unit)? = null,
@@ -370,6 +378,7 @@ fun <T : Any> TextFormField(
             properties = existingField,
             modifier = modifier,
             cornerRadius = cornerRadius,
+            shape = shape,
             label = label,
             prefix = prefix,
             borderColor = borderColor,

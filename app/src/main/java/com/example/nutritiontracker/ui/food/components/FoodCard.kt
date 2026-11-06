@@ -96,7 +96,7 @@ internal fun FoodCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = colorScheme.surfaceVariant
+            containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f)
         )
     ) {
         Column(
@@ -118,13 +118,13 @@ internal fun FoodCard(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(colorScheme.surface),
+                                .background(colorScheme.primaryContainer.copy(alpha = 0.4f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Fastfood,
                                 contentDescription = null,
-                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                tint = colorScheme.primary
                             )
                         }
                     },
@@ -132,13 +132,13 @@ internal fun FoodCard(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(colorScheme.surface),
+                                .background(colorScheme.primaryContainer.copy(alpha = 0.4f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Fastfood,
                                 contentDescription = null,
-                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                tint = colorScheme.primary
                             )
                         }
                     }

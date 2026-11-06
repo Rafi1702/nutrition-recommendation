@@ -36,7 +36,7 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
-import com.example.nutritiontracker.ui.utils.withStyle
+import com.example.nutritiontracker.ui.utils.composable.withStyle
 
 @Preview(showBackground = true)
 @Composable
@@ -53,7 +53,7 @@ internal fun UserNeedsCard(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(Spacing.s + Spacing.xs)),
         colors = CardDefaults.cardColors(
-            containerColor = colorScheme.surfaceVariant
+            containerColor = colorScheme.primaryContainer.copy(alpha = 0.3f)
         ),
         shape = RoundedCornerShape(Spacing.s + Spacing.xs)
     ) {
