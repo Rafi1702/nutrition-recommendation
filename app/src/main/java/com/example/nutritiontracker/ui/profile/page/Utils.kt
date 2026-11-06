@@ -16,35 +16,23 @@ import com.example.nutritiontracker.domain.model.BodyMassIndexStatus
 import com.example.nutritiontracker.domain.model.Gender
 import com.example.nutritiontracker.domain.model.PersonalActivities
 import com.example.nutritiontracker.ui.theme.colorScheme
-import kotlin.collections.indexOf
 
-@Composable
-fun String.toGender(): Gender {
-    val gendersResource = stringArrayResource(R.array.personal_gender)
+object GenderUtility {
+    @Composable
+    fun Gender.label(): String {
+        val gendersResource = stringArrayResource(R.array.personal_gender)
 
-    val indexOfResource = gendersResource.indexOf(this)
-    return when (indexOfResource) {
-        0 -> Gender.MALE
-        1 -> Gender.FEMALE
-        else -> Gender.MALE
+        return when (this) {
+            Gender.MALE -> gendersResource[0]
+            Gender.FEMALE -> gendersResource[1]
+        }
     }
-}
 
-@Composable
-fun Gender.label(): String {
-    val gendersResource = stringArrayResource(R.array.personal_gender)
-
-    return when (this) {
-        Gender.MALE -> gendersResource[0]
-        Gender.FEMALE -> gendersResource[1]
-    }
-}
-
-@Composable
-fun Gender.icon(): ImageVector? {
-    return when (this) {
-        Gender.MALE -> Icons.Default.Male
-        Gender.FEMALE -> Icons.Default.Female
+    fun Gender.icon(): ImageVector {
+        return when (this) {
+            Gender.MALE -> Icons.Default.Male
+            Gender.FEMALE -> Icons.Default.Female
+        }
     }
 }
 

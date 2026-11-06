@@ -1,33 +1,33 @@
 package com.example.nutritiontracker.ui.profile.viewmodel
 
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nutritiontracker.domain.model.Allergens
+import com.example.nutritiontracker.domain.model.PersonalActivitiesMap.toPersonalActivities
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
+import com.example.nutritiontracker.domain.model.GenderMap.toGender
+import com.example.nutritiontracker.domain.model.UserProfileData
+import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
+import com.example.nutritiontracker.domain.usecase.GetAllergensUseCase
+import com.example.nutritiontracker.domain.usecase.user_profile.CreateAndSaveUserProfileUseCase
+import com.example.nutritiontracker.domain.usecase.user_profile.SaveUserProfileUseCase
 import com.example.nutritiontracker.ui.components.CannotEmptyList
 import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MockNumberValidator
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
-
-
-import javax.inject.Inject
-
-
-import com.example.nutritiontracker.domain.model.PersonalActivities
-import com.example.nutritiontracker.domain.model.PersonalActivitiesMap
+import com.example.nutritiontracker.ui.utils.MutationState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-sealed interface Resource<out T> {
-    object Idle : Resource<Nothing>
-    object Loading : Resource<Nothing>
-    data class Success<T>(val data: T) : Resource<T>
-    data class Error(val exception: Throwable) : Resource<Nothing>
-}
 
 data class UserProfileForm(
     val gender: String,
@@ -38,29 +38,48 @@ data class UserProfileForm(
     val userAllergies: List<String>
 )
 
-data class UserProfileUiState(
-    val queryState: Resource<UserProfile>,
-    val mutationState: Resource<UserProfile>
+
+data class AllergensState(
+    val isLoading: Boolean = false,
+    val allergens: List<Allergens> = emptyList(),
+    val error: String? = null,
 )
 
+data class UserProfileUiState(
+    val allergensState: AllergensState = AllergensState(),
+    val userProfileMutationState: MutationState<Unit> = MutationState.Idle
+)
 
+interface UserProfileContract {
+    fun createUserProfile()
+    fun saveUserProfile()
+}
+
+
+/**Assisted UserProfile act as params from previous navigation.
+ * the value is never updated
+ **/
 @HiltViewModel(assistedFactory = UserProfileViewModel.Factory::class)
 class UserProfileViewModel @AssistedInject constructor(
-    private val getUserProfile: GetUserProfileUseCase,
-    @Assisted private val userProfile: UserProfile? = null
+    private val getAllergensUseCase: GetAllergensUseCase,
+    private val createAndSaveUserProfileUseCase: CreateAndSaveUserProfileUseCase,
+    private val saveUserProfileUseCase: SaveUserProfileUseCase,
+    @Assisted val userProfile: UserProfileData<UserProfile>? = null
 ) :
     ViewModel() {
 
+    private val _uiState = MutableStateFlow(UserProfileUiState())
+    val uiState = _uiState.asStateFlow()
+
     @AssistedFactory
     interface Factory {
-        fun create(userProfile: UserProfile? = null): UserProfileViewModel
+        fun create(userProfile: UserProfileData<UserProfile>? = null): UserProfileViewModel
     }
 
     val userProfileForm = FormBuilder<UserProfileForm>().apply {
         addField(
             UserProfileForm::gender, FieldProperties(
                 validator = CannotEmptyValidator(),
-                initialValue = "Male",
                 isRequired = true
             )
         )
@@ -74,7 +93,8 @@ class UserProfileViewModel @AssistedInject constructor(
 
         addField(
             name = UserProfileForm::birth, FieldProperties(
-                validator = CannotEmptyValidator()
+                validator = CannotEmptyValidator(),
+                isRequired = true
             )
         )
 
@@ -95,22 +115,172 @@ class UserProfileViewModel @AssistedInject constructor(
         addField(
             name = UserProfileForm::userAllergies, FieldProperties(
                 validator = CannotEmptyList(),
-                initialValue = listOf("Peanut"),
-                isRequired = true
             )
         )
+        addField(
+            name = UserProfileForm::birth,
+            FieldProperties(
+                validator = CannotEmptyValidator(),
+                isRequired = true
+            ),
+        )
+    }.apply {
+        if (userProfile?.data != null) {
+            this.setFieldValue(UserProfileForm::gender, userProfile.data.gender.label)
+            this.setFieldValue(
+                UserProfileForm::personalActivities,
+                userProfile.data.dailyActivity.label
+            )
+            this.setFieldValue(UserProfileForm::weight, userProfile.data.weight)
+            this.setFieldValue(UserProfileForm::height, userProfile.data.height)
+            this.setFieldValue(UserProfileForm::birth, userProfile.data.birthDate)
+        }
     }
 
     init {
-        if (userProfile != null) {
-            userProfileForm.setFieldValue(UserProfileForm::gender, "Male")
+        getAllergens()
+    }
+
+    private fun getAllergens() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(allergensState = it.allergensState.copy(isLoading = true)) }
+            delay(3000)
+
+            val allergens = getAllergensUseCase().getOrElse { err ->
+                _uiState.update {
+                    it.copy(
+                        allergensState = it.allergensState.copy(
+                            error = err.message,
+                            isLoading = false
+                        )
+                    )
+                }
+                return@getOrElse emptyList()
+            }
+
+            val userAllergenIds = userProfile?.data?.allergenIds ?: emptyList()
+
+            val initialAllergensValue = userAllergenIds.map { userAllergies ->
+                allergens.first { it.id == userAllergies }
+            }
+
             userProfileForm.setFieldValue(
-                UserProfileForm::personalActivities,
-                userProfile.dailyActivity
-            )
-            userProfileForm.setFieldValue(UserProfileForm::weight, userProfile.weight)
-            userProfileForm.setFieldValue(UserProfileForm::height, userProfile.height)
-            userProfileForm.setFieldValue(UserProfileForm::birth, userProfile.birthDate)
+                UserProfileForm::userAllergies,
+                initialAllergensValue.map { it.name })
+
+            _uiState.update {
+                it.copy(
+                    allergensState = it.allergensState.copy(
+                        allergens = allergens,
+                    )
+                )
+            }
+            delay(300)
+
+            _uiState.update {
+                it.copy(
+                    allergensState = it.allergensState.copy(
+                        isLoading = false,
+                    )
+                )
+            }
+        }
+    }
+
+    private fun userProfileValue(): UserProfile? {
+        val isFormComplete = listOf(
+            UserProfileForm::gender,
+            UserProfileForm::personalActivities,
+            UserProfileForm::weight,
+            UserProfileForm::height,
+            UserProfileForm::birth
+        ).all { key -> userProfileForm.getField(key)!!.state.value != null }
+
+        if (!isFormComplete) {
+            return null
+        }
+        return UserProfile(
+            gender = userProfileForm.getField(UserProfileForm::gender)!!.state.value!!.toGender(),
+            dailyActivity = userProfileForm.getField(UserProfileForm::personalActivities)!!.state.value!!.toPersonalActivities(),
+            birthDate = userProfileForm.getField(UserProfileForm::birth)!!.state.value!!,
+            weight = userProfileForm.getField(UserProfileForm::weight)!!.state.value!!,
+            height = userProfileForm.getField(UserProfileForm::height)!!.state.value!!,
+            allergenIds = userProfileForm.getField(UserProfileForm::userAllergies)!!.state.value!!.map { allergenName ->
+                _uiState.value.allergensState.allergens.filter { it.name == allergenName }
+                    .first().id
+            },
+        )
+    }
+
+    fun createUserProfile() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    userProfileMutationState = MutationState.Pending
+                )
+            }
+            delay(1000)
+
+
+            userProfileValue()?.let { profile ->
+                createAndSaveUserProfileUseCase(
+                    UserProfileWithAllergens(
+                        allergens = _uiState.value.allergensState.allergens,
+                        userProfile = profile
+                    )
+                ).fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                userProfileMutationState = MutationState.Success(Unit)
+                            )
+                        }
+                    },
+                    onFailure = { err ->
+                        _uiState.update {
+                            it.copy(
+                                userProfileMutationState = MutationState.Error(err)
+                            )
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun saveUserProfile() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    userProfileMutationState = MutationState.Pending
+                )
+            }
+            delay(1000)
+
+
+            userProfileValue()?.let { profile ->
+                saveUserProfileUseCase(
+                    UserProfileWithAllergens(
+                        allergens = _uiState.value.allergensState.allergens,
+                        userProfile = profile
+                    )
+                ).fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(
+                                userProfileMutationState = MutationState.Success(Unit)
+                            )
+                        }
+                    },
+                    onFailure = { err ->
+                        _uiState.update {
+                            it.copy(
+                                userProfileMutationState = MutationState.Error(err)
+                            )
+                        }
+                    }
+                )
+            }
         }
     }
 }

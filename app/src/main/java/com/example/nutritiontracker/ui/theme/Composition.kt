@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.domain.model.UserProfileData
 
 val LocalTypography = compositionLocalOf { phoneTypography }
 
@@ -42,9 +43,9 @@ val snackBarHostState: SnackbarHostState
     get() = remember { SnackbarHostState() }
 
 val LocalUserProfile =
-    compositionLocalOf<MutableState<UserProfile?>> { mutableStateOf(null) }
+    compositionLocalOf<MutableState<UserProfileData<UserProfile>?>> { mutableStateOf(null) }
 
-val userProfile: UserProfile?
+val userProfile: UserProfileData<UserProfile>?
     @Composable
     get() = LocalUserProfile.current.value
 

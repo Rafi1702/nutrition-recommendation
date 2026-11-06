@@ -14,8 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.toLowerCase
 import kotlin.reflect.KProperty1
-
 
 @Composable
 private fun <T : Any> OptionForm(
@@ -138,6 +138,7 @@ private fun <T : Any> MultiOptionForm(
 internal fun <T : Any> MultiSelectionOptions(
     fieldName: KProperty1<T, List<String>>,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     initialValue: List<String> = emptyList(),
     itemWeight: Float = .0f,
     items: List<String> = emptyList(),
@@ -147,7 +148,7 @@ internal fun <T : Any> MultiSelectionOptions(
         fieldName = fieldName,
         initialValue = initialValue
     ) { state ->
-        Row(horizontalArrangement = horizontalArrangement) {
+        FlowRow(horizontalArrangement = horizontalArrangement, verticalArrangement = verticalArrangement) {
             items.forEach { item ->
                 ClickableBox(
                     modifier = Modifier.then(
@@ -158,12 +159,12 @@ internal fun <T : Any> MultiSelectionOptions(
                         }
                     ),
                     onClick = {
-                        if(state.value.contains(item)){
+                        if (state.value.contains(item)) {
                             state.value = buildList {
                                 addAll(state.value)
                                 remove(item)
                             }
-                        }else{
+                        } else {
                             state.value = buildList {
                                 addAll(state.value)
                                 add(item)

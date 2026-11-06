@@ -12,6 +12,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import com.example.nutritiontracker.domain.model.UserProfile
+import com.example.nutritiontracker.domain.model.UserProfileData
+import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import kotlinx.coroutines.delay
 
 fun AnnotatedString.Builder.withStyle(
@@ -61,3 +66,50 @@ operator fun PaddingValues.plus(other: PaddingValues): PaddingValues = object : 
         return this@plus.calculateBottomPadding() + other.calculateBottomPadding()
     }
 }
+
+sealed class MutationState<out T> {
+    data object Idle : MutationState<Nothing>()
+    data object Pending : MutationState<Nothing>()
+    data class Success<out T>(val data: T) : MutationState<T>()
+    data class Error(val error: Throwable) : MutationState<Nothing>()
+}
+
+sealed class QueryState<out T>{
+    data class Initial<out T>(val initial: T? = null): QueryState<T>()
+    data object Loading : QueryState<Nothing>()
+    data class Success<out T>(val data: T): QueryState<T>()
+    data class Error(val error: Throwable): QueryState<Nothing>()
+}
+
+@Composable
+internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(noinline creationCallback: (VMF, UserProfileData<UserProfile>?) -> VM): VM {
+    val currentUser = LocalUserProfile.current.value
+    return hiltViewModel<VM, VMF>(
+        creationCallback = { factory -> creationCallback(factory, currentUser) }
+    )
+}
+
+@Composable
+fun <T> MutationEffect(
+    mutationState: MutationState<T>,
+    activeWhen: Boolean = true,
+    onSuccess: (T) -> Unit,
+    onFailure: (Throwable) -> Unit
+) {
+    if (!activeWhen) return
+
+    LaunchedEffect(mutationState) {
+        when (mutationState) {
+            is MutationState.Success -> {
+                onSuccess(mutationState.data)
+            }
+
+            is MutationState.Error -> {
+                onFailure(mutationState.error)
+            }
+
+            else -> {}
+        }
+    }
+}
+

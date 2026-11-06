@@ -74,6 +74,8 @@ import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.textfield.TextFormField
+import com.example.nutritiontracker.ui.profile.page.ProfileNav
+import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
@@ -84,14 +86,18 @@ import com.example.nutritiontracker.ui.theme.userProfile
 @Composable
 internal fun AuthPageRoute(
     viewModel: AuthenticationViewModel = hiltViewModel(),
-    onNavigateToHome: (userProfile: UserProfile?) -> Unit = {},
+    onNavigateToNext: (fromUserLocal: Boolean, userProfile: UserProfile?) -> Unit ={_, profile -> },
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState.value.success) {
         if (uiState.value.success == true) {
             val userProfile = viewModel.getUserProfile()
-            onNavigateToHome(userProfile)
+
+            userProfile?.let {
+                onNavigateToNext(userProfile.fromLocal, userProfile.data?.userProfile)
+
+            }
         }
     }
 
@@ -111,6 +117,7 @@ internal fun AuthPage(
     signUpForm: FormBuilder<SignUpForm>,
     authCallback: AuthViewModelCallback,
 ) {
+    val currentProfile = LocalUserProfile.current.value
     NutritionTrackerTheme {
         Scaffold(
             containerColor = colorScheme.background

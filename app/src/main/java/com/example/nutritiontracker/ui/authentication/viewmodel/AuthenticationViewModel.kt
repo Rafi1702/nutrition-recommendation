@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.SignInAuth
 import com.example.nutritiontracker.domain.model.SignUpAuth
 import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.usecase.GetUserProfileUseCase
+import com.example.nutritiontracker.domain.model.UserProfileData
+import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
+import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileUseCase
 import com.example.nutritiontracker.domain.usecase.SignInUseCase
 import com.example.nutritiontracker.domain.usecase.SignUpUseCase
+import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileWithAllergensUseCase
 import com.example.nutritiontracker.ui.components.CheckRequiredValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
@@ -52,7 +55,7 @@ data class AuthenticationUiState(
 class AuthenticationViewModel @Inject constructor(
     private val signInUseCase: SignInUseCase,
     private val signUpUseCase: SignUpUseCase,
-    private val getUserProfileUseCase: GetUserProfileUseCase,
+    private val getUserProfileWithAllergensUseCase: GetUserProfileWithAllergensUseCase
 ) : ViewModel(), AuthViewModelCallback {
 
     val signInForm = FormBuilder<SignInForm>().apply {
@@ -175,10 +178,10 @@ class AuthenticationViewModel @Inject constructor(
         }
     }
 
-    suspend fun getUserProfile(): UserProfile? {
-        return getUserProfileUseCase().fold(
-            onSuccess = { data ->
-                data
+    suspend fun getUserProfile(): UserProfileData<UserProfileWithAllergens>? {
+        return getUserProfileWithAllergensUseCase().fold(
+            onSuccess = { userData ->
+                userData
             },
             onFailure = { _ ->
                 null

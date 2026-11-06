@@ -28,16 +28,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
 import com.example.nutritiontracker.ui.food.page.foodGraph
@@ -45,11 +48,14 @@ import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
+import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
+import com.example.nutritiontracker.ui.theme.userProfile
+import com.example.nutritiontracker.ui.utils.AssistedUserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -158,32 +164,35 @@ private fun MainLayout(
     when (screenSize) {
         ScreenSize.MOBILE -> {
             bottomNavController?.let { navController ->
-                NavHost(
-                    navController = navController,
-                    startDestination = HomePath.HOME,
-                    modifier = Modifier.padding(padding),
-                ) {
-                    composable(route = HomePath.HOME) {
-                        HomePage(onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList, onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail)
-                    }
-                    composable(route = HomePath.FOOD_LIST) {
-                        val foodListViewModel: FoodListViewModel = hiltViewModel()
-                        FoodListPage(
-                            viewModel = foodListViewModel
-                        )
+                CompositionLocalProvider(LocalNavController provides navController) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = HomePath.HOME,
+                        modifier = Modifier.padding(padding),
+                    ) {
+                        composable(route = HomePath.HOME) {
+                            HomePage(
+                                onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
+                                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail
+                            )
+                        }
+                        composable(route = HomePath.FOOD_LIST) {
+                            val foodListViewModel: FoodListViewModel = hiltViewModel()
+                            FoodListPage(
+                                viewModel = foodListViewModel
+                            )
+                        }
+
+                        composable(ProfileNav.USER_PROFILE) {
+                            val userProfileViewModel =
+                                AssistedUserViewModel<UserProfileViewModel, UserProfileViewModel.Factory> { factory, userProfile ->
+                                    factory.create(userProfile = userProfile)
+                                }
+                            UserProfilePageRoute(viewModel = userProfileViewModel)
+                        }
+                        foodGraph()
                     }
 
-                    composable(ProfileNav.USER_PROFILE) {
-                        val currentUser = LocalUserProfile.current.value
-                        val userProfileViewModel =
-                            hiltViewModel<UserProfileViewModel, UserProfileViewModel.Factory>(
-                                creationCallback = { factory ->
-                                    factory.create(userProfile = currentUser)
-                                }
-                            )
-                        UserProfilePageRoute(viewModel = userProfileViewModel)
-                    }
-                    foodGraph()
                 }
             }
         }
@@ -309,3 +318,5 @@ private fun BottomNavBar(
         }
     }
 }
+
+
