@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
@@ -56,6 +57,7 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
 import com.example.nutritiontracker.ui.theme.userProfile
 import com.example.nutritiontracker.ui.utils.AssistedUserViewModel
+import com.example.nutritiontracker.ui.utils.plus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -200,7 +202,7 @@ private fun MainLayout(
         ScreenSize.FOLDABLE, ScreenSize.TABLET -> {
             Row(
                 modifier = Modifier
-                    .padding(padding)
+                    .padding(padding + PaddingValues(vertical = Spacing.m))
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             ) {
@@ -208,7 +210,8 @@ private fun MainLayout(
                 HomePage(
                     modifier = Modifier.weight(2f),
                 )
-                FoodListPage()
+                Spacer(modifier = Modifier.width(Spacing.l))
+                FoodListPage(modifier = Modifier.weight(2f))
                 Spacer(modifier = Modifier.weight(.5f))
             }
         }
