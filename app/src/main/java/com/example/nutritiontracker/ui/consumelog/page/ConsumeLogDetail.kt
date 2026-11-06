@@ -20,7 +20,7 @@ import com.example.nutritiontracker.ui.consumelog.viewmodel.ConsumeLogDetailView
 import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
-import com.example.nutritiontracker.ui.utils.plus
+import com.example.nutritiontracker.ui.utils.composable.plus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -49,9 +49,15 @@ private fun MealType.properties(): MealTypeProperties = when (this) {
         icon = Icons.Default.Adb
     )
 
-    else -> MealTypeProperties(
+    MealType.LUNCH -> MealTypeProperties(
         containerColor = colorScheme.primaryContainer,
         contentColor = colorScheme.onPrimaryContainer,
+        icon = Icons.Default.Adb
+    )
+
+    MealType.DINNER -> MealTypeProperties(
+        containerColor = colorScheme.tertiaryContainer,
+        contentColor = colorScheme.onTertiaryContainer,
         icon = Icons.Default.Adb
     )
 }

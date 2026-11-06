@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.authentication.page
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -18,8 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AutoFixHigh
@@ -34,6 +37,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,6 +54,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -77,8 +85,10 @@ import com.example.nutritiontracker.ui.components.textfield.TextFormField
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
+import com.example.nutritiontracker.ui.theme.screenSize
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.theme.userProfile
 
@@ -86,7 +96,7 @@ import com.example.nutritiontracker.ui.theme.userProfile
 @Composable
 internal fun AuthPageRoute(
     viewModel: AuthenticationViewModel = hiltViewModel(),
-    onNavigateToNext: (fromUserLocal: Boolean, userProfile: UserProfile?) -> Unit ={_, profile -> },
+    onNavigateToNext: (fromUserLocal: Boolean, userProfile: UserProfile?) -> Unit = { _, profile -> },
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -117,7 +127,6 @@ internal fun AuthPage(
     signUpForm: FormBuilder<SignUpForm>,
     authCallback: AuthViewModelCallback,
 ) {
-    val currentProfile = LocalUserProfile.current.value
     NutritionTrackerTheme {
         Scaffold(
             containerColor = colorScheme.background
@@ -126,10 +135,7 @@ internal fun AuthPage(
                 modifier = modifier
                     .padding(innerPadding)
                     .fillMaxSize()
-                    .padding(Spacing.m)
-                    .sizeIn(
-                        maxWidth = 480.dp
-                    ),
+                    .padding(Spacing.m),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(
                     Spacing.l,
@@ -137,17 +143,39 @@ internal fun AuthPage(
                 )
             ) {
 
-                Surface(
-                    shadowElevation = 8.dp,
-                    shape = CircleShape,
-                    color = colorScheme.surfaceVariant
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
-                    Image(
-                        modifier = Modifier
-                            .size(200.dp)
-                            .padding(Spacing.l),
-                        painter = painterResource(R.drawable.ic_nutritracker_logo_altenative),
-                        contentDescription = null
+                    Surface(
+                        shadowElevation = 6.dp,
+                        shape = CircleShape,
+                        color = colorScheme.primaryContainer.copy(alpha = 0.35f)
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(130.dp)
+                                .padding(Spacing.m),
+                            painter = painterResource(R.drawable.ic_nutritracker_logo_altenative),
+                            contentDescription = null
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(Spacing.xxs))
+
+                    Text(
+                        text = if (uiState.contentType == AuthContentType.SIGN_IN) "Selamat Datang!" else "Buat Akun Baru",
+                        style = typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = colorScheme.onSurface
+                        )
+                    )
+                    Text(
+                        text = if (uiState.contentType == AuthContentType.SIGN_IN) "Masuk untuk memantau nutrisi harianmu" else "Daftar untuk memulai gaya hidup sehat",
+                        style = typography.bodyMedium.copy(
+                            color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
                     )
                 }
 
@@ -197,7 +225,9 @@ private fun SignUpContent(
     errorMessage: String? = null,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.sizeIn(
+            maxWidth = 480.dp
+        ),
         shadowElevation = 6.dp,
         tonalElevation = 2.dp,
         shape = RoundedCornerShape(Spacing.m),
@@ -274,9 +304,11 @@ private fun SignUpContent(
             }
 
             Button(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
                 onClick = onSignUpButtonPressed,
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(12.dp),
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                 enabled = isValid && !isLoading,
                 colors = ButtonDefaults.buttonColors(
@@ -289,9 +321,32 @@ private fun SignUpContent(
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(Spacing.m))
                 } else {
-                    Text("Sign Up", style = typography.labelLarge)
+                    Text(
+                        "Sign Up",
+                        style = typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.xs))
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                 }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                    Text(
+                        "atau daftar dengan",
+                        modifier = Modifier.padding(horizontal = Spacing.s),
+                        style = typography.labelSmall.copy(
+                            textAlign = TextAlign.Center,
+                            color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f))
+                }
+                ThirdPartyAuthButtons(modifier = Modifier.fillMaxWidth())
             }
 
             Box(modifier = Modifier.height(16.dp)) {
@@ -326,8 +381,17 @@ private fun SignInContent(
     errorMessage: String? = null,
     formBuilder: FormBuilder<SignInForm>? = null
 ) {
+    val currentDeviceWindowSize = LocalWindowInfo.current.containerSize
+    Log.d("[WINDOWS_HEIGHT]", "${currentDeviceWindowSize.height.dp}")
+    val screenHeightDp = with(LocalDensity.current) {
+        currentDeviceWindowSize.height.toDp()
+    }
+    val modifierScreenMode = when {
+        screenHeightDp < 890.dp -> Modifier.verticalScroll(state = rememberScrollState())
+        else -> Modifier
+    }
     Surface(
-        modifier = Modifier.sizeIn(maxWidth = 480.dp),
+        modifier = modifierScreenMode.sizeIn(maxWidth = 480.dp),
         shadowElevation = 6.dp,
         tonalElevation = 2.dp,
         shape = RoundedCornerShape(Spacing.m),
@@ -410,8 +474,10 @@ private fun SignInContent(
 
             Button(
                 onClick = onSignInButtonPressed,
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                 enabled = isValid && !isLoading,
                 colors = ButtonDefaults.buttonColors(
@@ -426,13 +492,14 @@ private fun SignInContent(
                 } else {
                     Text(
                         "Sign In",
-                        style = typography.labelLarge
+                        style = typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                     )
+                    Spacer(modifier = Modifier.width(Spacing.xs))
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                 }
             }
 
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -440,11 +507,15 @@ private fun SignInContent(
                     HorizontalDivider(modifier = Modifier.weight(1f))
                     Text(
                         "atau masuk dengan",
-                        modifier = Modifier.weight(1f),
-                        style = typography.labelSmall.copy(textAlign = TextAlign.Center)
+                        modifier = Modifier.padding(horizontal = Spacing.s),
+                        style = typography.labelSmall.copy(
+                            textAlign = TextAlign.Center,
+                            color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
                     )
                     HorizontalDivider(modifier = Modifier.weight(1f))
                 }
+                ThirdPartyAuthButtons(modifier = Modifier.fillMaxWidth())
             }
 
             Box(modifier = Modifier.height(16.dp)) {
@@ -471,44 +542,55 @@ private fun SignInContent(
 }
 
 @Composable
-private fun ThirdPartyAuthButton(modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(8.dp)
-    Box(modifier = modifier.height(IntrinsicSize.Min)) {
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = {},
-            shape = shape,
-            colors = ButtonDefaults.buttonColors()
-                .copy(
-                    containerColor = colorScheme.surfaceVariant,
-                    contentColor = colorScheme.onSurfaceVariant
-                ),
-            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        ) {
-            Icon(Icons.Default.AutoFixHigh, contentDescription = "google_auth")
-            Spacer(modifier = Modifier.width(Spacing.s))
-            Text("Google")
-        }
-        Box(
+private fun ThirdPartyAuthButtons(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s)
+    ) {
+        OutlinedButton(
+            onClick = { },
             modifier = Modifier
-                .matchParentSize()
-                .clip(shape = shape)
+                .weight(1f)
+                .height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = colorScheme.surfaceVariant,
+                contentColor = colorScheme.onSurface
+            ),
+            border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.5f)),
+            contentPadding = PaddingValues(horizontal = Spacing.s)
         ) {
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .rotate(-45f)
-                    .offset(y = (-4).dp)
-                    .clip(shape),
-                color = colorScheme.tertiaryContainer
-            ) {
-                Text(
-                    "Coming Soon",
-                    modifier = Modifier.padding(vertical = 2.dp, horizontal = 2.dp),
-                    style = typography.labelSmall.copy(fontSize = 8.sp)
-                )
-            }
+            Icon(
+                painter = painterResource(R.drawable.ic_google),
+                contentDescription = "Google Sign In",
+                modifier = Modifier.size(20.dp),
+                tint = Color.Unspecified
+            )
+            Spacer(modifier = Modifier.width(Spacing.xs))
+            Text("Google", style = typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
+        }
 
+        OutlinedButton(
+            onClick = { },
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = colorScheme.surfaceVariant,
+                contentColor = colorScheme.onSurface
+            ),
+            border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.5f)),
+            contentPadding = PaddingValues(horizontal = Spacing.s)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_apple),
+                contentDescription = "Apple Sign In",
+                modifier = Modifier.size(20.dp),
+                tint = colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.width(Spacing.xs))
+            Text("Apple", style = typography.labelLarge.copy(fontWeight = FontWeight.SemiBold))
         }
     }
 }
