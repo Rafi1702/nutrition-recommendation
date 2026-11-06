@@ -87,9 +87,9 @@ internal fun AuthPageRoute(
     onNavigateToHome: (userProfile: UserProfile?) -> Unit = {},
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    
-    LaunchedEffect(uiState.value.success){
-        if(uiState.value.success == true){
+
+    LaunchedEffect(uiState.value.success) {
+        if (uiState.value.success == true) {
             val userProfile = viewModel.getUserProfile()
             onNavigateToHome(userProfile)
         }
@@ -320,7 +320,7 @@ private fun SignInContent(
     formBuilder: FormBuilder<SignInForm>? = null
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.sizeIn(maxWidth = 480.dp),
         shadowElevation = 6.dp,
         tonalElevation = 2.dp,
         shape = RoundedCornerShape(Spacing.m),
@@ -329,7 +329,8 @@ private fun SignInContent(
         border = BorderStroke(1.dp, colorScheme.onSurface.copy(alpha = 0.08f))
     ) {
         Form(
-            modifier = Modifier.padding(Spacing.m),
+            modifier = Modifier
+                .padding(Spacing.m),
             formBuilder = formBuilder,
             verticalSpacing = Spacing.m
         ) { isValid ->
