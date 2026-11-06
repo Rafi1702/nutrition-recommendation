@@ -36,7 +36,7 @@ import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.colors
 import com.example.nutritiontracker.ui.theme.typography
-import com.example.nutritiontracker.ui.utils.withStyle
+import com.example.nutritiontracker.ui.utils.composable.withStyle
 
 
 @Preview(showBackground = true)
@@ -85,7 +85,7 @@ internal fun MacroNutrientsNeed(
             .width(130.dp)
             .clip(RoundedCornerShape(12.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = colorScheme.surfaceVariant
+            containerColor = macroColors.container.copy(alpha = 0.4f)
         ),
         shape = RoundedCornerShape(12.dp)
     ) {

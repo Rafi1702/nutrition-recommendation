@@ -28,8 +28,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.domain.model.UserProfile
-import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.domain.model.createDefaultUserProfile
 import com.example.nutritiontracker.ui.components.Chip
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
@@ -37,13 +35,12 @@ import com.example.nutritiontracker.ui.profile.page.LocalCurrentUserData
 import com.example.nutritiontracker.ui.profile.page.LocalUserProfileForm
 import com.example.nutritiontracker.ui.profile.page.LocalUserProfileUiState
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileContract
-import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.theme.userProfile
-import com.example.nutritiontracker.ui.utils.MutationState
-import com.example.nutritiontracker.ui.utils.withStyle
+import com.example.nutritiontracker.ui.utils.composable.MutationState
+import com.example.nutritiontracker.ui.utils.composable.withStyle
 
 
 @Composable

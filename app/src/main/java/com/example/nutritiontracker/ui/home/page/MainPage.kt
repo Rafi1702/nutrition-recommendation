@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
@@ -35,13 +34,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
 import com.example.nutritiontracker.ui.food.page.foodGraph
@@ -55,9 +52,7 @@ import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
-import com.example.nutritiontracker.ui.theme.userProfile
-import com.example.nutritiontracker.ui.utils.AssistedUserViewModel
-import com.example.nutritiontracker.ui.utils.plus
+import com.example.nutritiontracker.ui.utils.composable.AssistedUserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -202,7 +197,7 @@ private fun MainLayout(
         ScreenSize.FOLDABLE, ScreenSize.TABLET -> {
             Row(
                 modifier = Modifier
-                    .padding(padding + PaddingValues(vertical = Spacing.m))
+                    .padding(padding)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
             ) {
@@ -210,8 +205,7 @@ private fun MainLayout(
                 HomePage(
                     modifier = Modifier.weight(2f),
                 )
-                Spacer(modifier = Modifier.width(Spacing.l))
-                FoodListPage(modifier = Modifier.weight(2f))
+                FoodListPage()
                 Spacer(modifier = Modifier.weight(.5f))
             }
         }

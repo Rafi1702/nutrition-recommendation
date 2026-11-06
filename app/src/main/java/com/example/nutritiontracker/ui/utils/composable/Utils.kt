@@ -1,5 +1,6 @@
-package com.example.nutritiontracker.ui.utils
+package com.example.nutritiontracker.ui.utils.composable
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -10,6 +11,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -112,4 +114,25 @@ fun <T> MutationEffect(
         }
     }
 }
+
+
+@Preview(
+    name = "Phone - Portrait",
+    device = "spec:width=411dp,height=891dp",
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    showBackground = true
+)
+@Preview(
+    name = "Tablet - Portrait",
+    device = "spec:width=1280dp,height=800dp,dpi=240",
+    uiMode = Configuration.UI_MODE_NIGHT_NO,
+    showBackground = true
+)
+@Preview(
+    name = "Dark Mode",
+    device = "spec:width=411dp,height=891dp",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true
+)
+annotation class DevicePreviews
 

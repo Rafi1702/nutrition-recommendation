@@ -17,7 +17,7 @@ import com.example.nutritiontracker.ui.components.CannotEmptyValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.MockNumberValidator
-import com.example.nutritiontracker.ui.utils.MutationState
+import com.example.nutritiontracker.ui.utils.composable.MutationState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
