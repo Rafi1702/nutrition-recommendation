@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.rememberNavController
 import com.example.nutritiontracker.data.utils.NetworkException
+import com.example.nutritiontracker.domain.AppException
 import com.example.nutritiontracker.ui.AppNavigation
 import com.example.nutritiontracker.ui.authentication.AuthEventManager
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
@@ -37,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 //Observe global AuthEvent. it trigger specific error to navigate back to Sign In
                 LaunchedEffect(Unit) {
                     AuthEventManager.authEvent.collect { err ->
-                        if (err is NetworkException.Unauthorized || err is NetworkException.GenericHttpError) {
+                        if (err is AppException.NoSession) {
                             navController.navigate(AuthPath.AUTH)
                             snackBarHostState.showSnackbar(
                                 message = "Unauthorized Access",

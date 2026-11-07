@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.utils.NetworkException
+import com.example.nutritiontracker.domain.AppException
 import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
 import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileWithAllergensUseCase
@@ -133,7 +134,7 @@ fun EntryScreen(
         when (entryScreenUiState) {
             is EntryScreenUiState.Error -> {
                 Log.d("[DEBUG]", "${entryScreenUiState.error}")
-                if (entryScreenUiState.error is NetworkException.ServerError || entryScreenUiState.error is ConnectException) {
+                if (entryScreenUiState.error is AppException.ConnectionFailed) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(
