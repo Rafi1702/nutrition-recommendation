@@ -71,13 +71,14 @@ fun defaultPageConfig(): PagingConfig {
 fun <JSON : Any, DATA : Any> defaultPagerCreation(
     mapToData: (JSON) -> DATA,
     ioCall: suspend (cursor: Int) -> Response<PaginatedListResponse<JSON>>,
-    pagingConfig: PagingConfig = defaultPageConfig()
+    pagingConfig: PagingConfig = defaultPageConfig(),
+    initialCursor: Int = 1
 ): Flow<PagingData<DATA>> {
     return Pager(
         config = pagingConfig,
         pagingSourceFactory = {
             PagingSource(
-                initialCursor = 1,
+                initialCursor = initialCursor,
                 networkCall = { cursor ->
                     safeCall {
                         ioCall(cursor)

@@ -22,6 +22,9 @@
     <string name="username_auth_textfield_placeholder">Input username</string>
     <string name="password_auth_textfield_placeholder">Input password</string>
 
+    <!-- ERROR HANDLING   -->
+    <string name="system_error_label">Problem occurred</string>
+
     <!-- BUTTON LABEL  -->
     <string name="continue_label">Continue</string>
     <string name="submit_label">Submit</string>

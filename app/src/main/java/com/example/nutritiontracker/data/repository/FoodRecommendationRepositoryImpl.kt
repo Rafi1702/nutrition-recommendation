@@ -1,24 +1,12 @@
 package com.example.nutritiontracker.data.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
-import com.example.nutritiontracker.data.model.consumelog.toConsumeLog
-import com.example.nutritiontracker.data.model.food.toFood
 import com.example.nutritiontracker.data.model.recommendation_foods.toRecommendationFood
-import com.example.nutritiontracker.data.model.recommendation_foods.toRecommendationFoods
 import com.example.nutritiontracker.data.remote.RecommendationFoodRemoteDataSource
 import com.example.nutritiontracker.data.utils.CursorPaginateQuery
 import com.example.nutritiontracker.data.utils.ITEMS_LIMIT
-import com.example.nutritiontracker.data.utils.PagingSource
-import com.example.nutritiontracker.data.utils.defaultPageConfig
 import com.example.nutritiontracker.data.utils.defaultPagerCreation
-import com.example.nutritiontracker.data.utils.safeCall
-import com.example.nutritiontracker.domain.model.RecommendationFood
 import com.example.nutritiontracker.domain.repository.FoodRecommendationRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.filter
 import javax.inject.Inject
 
 class FoodRecommendationRepositoryImpl @Inject constructor(
@@ -26,6 +14,11 @@ class FoodRecommendationRepositoryImpl @Inject constructor(
 ) : FoodRecommendationRepository {
 
     override fun getRecommendedFoods() = defaultPagerCreation(ioCall = { cursor ->
-        recommendationFoodRemoteDataSource.getRecommendedFoods()
+        recommendationFoodRemoteDataSource.getRecommendedFoods(
+            CursorPaginateQuery(
+                cursor = cursor,
+                limit = ITEMS_LIMIT
+            ).toMap()
+        )
     }, mapToData = { json -> json.toRecommendationFood() })
 }

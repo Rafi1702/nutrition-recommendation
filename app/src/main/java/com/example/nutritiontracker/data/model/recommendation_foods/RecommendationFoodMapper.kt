@@ -9,11 +9,11 @@ fun List<RecommendationFoodResponseDto>.toRecommendationFoods(): List<Recommenda
 }
 
 fun RecommendationFoodResponseDto.toRecommendationFood(): RecommendationFood = RecommendationFood(
-    food = this.food.toFood(),
+    food = this.food?.toFood(),
     portion = this.portion,
     estimatedCalories = this.estimatedCalories,
     similarityScore = this.similarityScore,
-    nutrients = this.quantifiedFoodNutrientsDto.toQuantifiedFoodNutrients(),
+    nutrients = this.quantifiedFoodNutrientsDto?.toQuantifiedFoodNutrients(),
 )
 
 fun QuantifiedFoodNutrientsDto.toQuantifiedFoodNutrients(): QuantifiedFoodNutrients = QuantifiedFoodNutrients(

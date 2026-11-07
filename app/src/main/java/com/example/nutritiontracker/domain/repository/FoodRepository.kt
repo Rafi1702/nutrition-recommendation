@@ -7,6 +7,6 @@ import com.example.nutritiontracker.domain.model.Food
 import kotlinx.coroutines.flow.Flow
 
 interface FoodRepository {
-    suspend fun getFoods() : Result<List<Food>>
-     fun getFoods(pagingConfig: PagingConfig = defaultPageConfig()): Flow<PagingData<Food>>
+    suspend fun getFoods(): Result<List<Food>>
+    fun getFoods(pagingConfig: PagingConfig = defaultPageConfig()): Flow<PagingData<Food>>
 }

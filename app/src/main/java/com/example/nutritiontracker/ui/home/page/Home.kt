@@ -126,7 +126,7 @@ internal fun HomePage(
 private fun RecommendedFoodSection(
     modifier: Modifier = Modifier,
     onNavigateToRecommendedFoodList: () -> Unit = {}
-) {
+) { 
 
     Row(modifier = modifier.fillMaxWidth()) {
         Column(

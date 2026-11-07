@@ -4,7 +4,8 @@ import com.example.nutritiontracker.data.model.food.FoodResponseDto
 import com.google.gson.annotations.SerializedName
 
 data class RecommendationFoodResponseDto(
-    val food: FoodResponseDto,
+    @SerializedName("food")
+    val food: FoodResponseDto?,
 
     @SerializedName("portion_g")
     val portion: Float,
@@ -12,11 +13,11 @@ data class RecommendationFoodResponseDto(
     @SerializedName("estimated_calories")
     val estimatedCalories: Float,
 
-    @SerializedName("similiarity_score")
+    @SerializedName("similarity_score")
     val similarityScore: Float,
 
     @SerializedName("nutrients")
-    val quantifiedFoodNutrientsDto: QuantifiedFoodNutrientsDto
+    val quantifiedFoodNutrientsDto: QuantifiedFoodNutrientsDto?
 
 )
 

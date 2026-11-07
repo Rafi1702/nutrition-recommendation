@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
@@ -205,7 +206,8 @@ private fun MainLayout(
                 HomePage(
                     modifier = Modifier.weight(2f),
                 )
-                FoodListPage()
+                Spacer(modifier = Modifier.width(Spacing.m))
+                FoodListPage( modifier = Modifier.weight(2f))
                 Spacer(modifier = Modifier.weight(.5f))
             }
         }
