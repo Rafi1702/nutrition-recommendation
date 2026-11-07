@@ -25,6 +25,7 @@ import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationVi
 import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogNav
 import com.example.nutritiontracker.ui.consumelog.page.consumeGraph
 import com.example.nutritiontracker.ui.food.page.FoodPath
+import com.example.nutritiontracker.ui.food.page.foodGraph
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.home.page.MainPage
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
@@ -77,7 +78,9 @@ fun AppNavigation(
             ) {
 
                 composable("/") {
-                    EntryScreen(entryScreenUiState)
+                    EntryScreen(entryScreenUiState, onRefresh = {
+                        entryViewModel.initEntry()
+                    })
                 }
 
                 composable(AuthPath.AUTH) {
@@ -109,6 +112,8 @@ fun AppNavigation(
                         onNavigateToRecommendedFoodList = { navController.navigate(FoodPath.FOOD_RECOMMENDATIONS) }
                     )
                 }
+
+                foodGraph()
 
                 consumeGraph(onNavigateBack = {
                     navController.popBackStack()

@@ -81,7 +81,7 @@ internal fun ConsumeLogSurface(
                 modifier = Modifier
                     .height(if (consumeLog.isNotEmpty()) 120.dp else 0.dp)
                     .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -118,14 +118,14 @@ private fun ConsumeLogHeader(
             icon?.let {
                 Icon(
                     icon,
-                    modifier = Modifier.padding(8.dp),
+                    modifier = Modifier.padding(Spacing.s),
                     contentDescription = "${mealType.label}_consume_logs",
                     tint = contentColor
                 )
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.xxs)) {
             Text(mealType.label, style = typography.titleMedium.copy(color = colorScheme.onSurface))
             nutrientsSubTotal?.let { subTotal ->
                 Text(
@@ -147,7 +147,6 @@ private fun ConsumeLogHeader(
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        ShowMoreButton(minimumInteractive = true, onClick = onNavigateToConsumeLogDetail)
     }
 }
 

@@ -26,71 +26,104 @@ fun <T : Any> ListPagingSection(
     paddingValues: PaddingValues = PaddingValues(horizontal = Spacing.m),
     pagingItems: LazyPagingItems<T>,
     headerProps: HeaderProps? = null,
-    key: ((@JvmSuppressWildcards T) -> Any),
-    initialDataError: (@Composable () -> Unit)? = null,
+    key: (Int) -> Any,
+    initialDataError: (@Composable (Throwable) -> Unit)? = null,
+    emptyDataContent: (@Composable () -> Unit)? = null,
     itemContent: @Composable (T) -> Unit,
 ) {
-
-    LazyColumn(
-        modifier = modifier,
-        contentPadding = paddingValues,
-        verticalArrangement = Arrangement.spacedBy(Spacing.m)
-    ) {
-        headerProps?.let {
-            val (isSticky, component) = headerProps
-
-            if (isSticky) stickyHeader { component() } else item { component() }
-        }
-        items(
-            count = pagingItems.itemCount,
-            key = pagingItems.itemKey(key),
-        ) { index ->
-            val item = pagingItems[index]
-            if (item != null) {
-                itemContent(item)
-            }
-        }
-        when (pagingItems.loadState.append) {
-            is LoadState.Loading -> {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Spacing.s),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-
-            else -> {}
-        }
-    }
-
-    val refreshState = pagingItems.loadState.refresh
-    when (refreshState) {
+    when (val refreshState = pagingItems.loadState.refresh) {
         is LoadState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            // Show full-screen loader during initial fetch
+            Box(modifier = modifier, contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
 
         is LoadState.Error -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            // Show error state if initial fetch fails
+            Box(modifier = modifier, contentAlignment = Alignment.Center) {
                 initialDataError?.let {
-                    initialDataError()
-                } ?: Text("Default Placeholder")
+                    it(refreshState.error)
+                } ?: Text("Terjadi kesalahan memuat data.")
             }
-
         }
 
-        else -> {
-            if (pagingItems.itemCount == 0) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Tidak ada data makanan ditemukan.")
+        is LoadState.NotLoading -> {
+            // Initial load is done; now safe to render LazyColumn and check item count
+            LazyColumn(
+                modifier = modifier,
+                contentPadding = paddingValues,
+                verticalArrangement = Arrangement.spacedBy(Spacing.m)
+            ) {
+                headerProps?.let { (isSticky, component) ->
+                    if (isSticky) stickyHeader { component() } else item { component() }
+                }
+
+                if (pagingItems.itemCount < 1) {
+                    // List is genuinely empty after loading finished
+                    item {
+                        emptyDataContent?.invoke() ?: Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Spacing.l),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Tidak ada data makanan ditemukan.")
+                        }
+                    }
+                } else {
+                    // Render items
+                    items(
+                        count = pagingItems.itemCount,
+                        key = key,
+                    ) { index ->
+                        val item = pagingItems[index]
+                        if (item != null) {
+                            itemContent(item)
+                        }
+                    }
+
+                    // Append loading indicator at the bottom when loading more pages
+                    if (pagingItems.loadState.append is LoadState.Loading) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(Spacing.s),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+
+@JvmName("ListPagingSectionWithItemKey")
+@Composable
+fun <T : Any> ListPagingSection(
+    modifier: Modifier = Modifier,
+    paddingValues: PaddingValues = PaddingValues(horizontal = Spacing.m),
+    pagingItems: LazyPagingItems<T>,
+    headerProps: HeaderProps? = null,
+    itemKey: ((@JvmSuppressWildcards T) -> Any), // Overload for item-based key selector
+    initialDataError: (@Composable (Throwable) -> Unit)? = null,
+    emptyDataContent: (@Composable () -> Unit)? = null,
+    itemContent: @Composable (T) -> Unit,
+) {
+    // Delegate to the primary implementation, wrapping the item key with pagingItems.itemKey
+    ListPagingSection(
+        modifier = modifier,
+        paddingValues = paddingValues,
+        pagingItems = pagingItems,
+        headerProps = headerProps,
+        key = pagingItems.itemKey(itemKey),
+        initialDataError = initialDataError,
+        emptyDataContent = emptyDataContent,
+        itemContent = itemContent
+    )
 }

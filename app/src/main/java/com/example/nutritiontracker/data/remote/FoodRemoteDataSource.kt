@@ -2,9 +2,6 @@ package com.example.nutritiontracker.data.remote
 
 import com.example.nutritiontracker.data.model.food.FoodResponseDto
 import com.example.nutritiontracker.data.utils.PaginatedListResponse
-import com.example.nutritiontracker.domain.model.Food
-import com.example.nutritiontracker.domain.model.MacroNutrients
-import com.example.nutritiontracker.domain.model.MacroType
 import com.example.nutritiontracker.ui.utils.network.AuthorizationPolicy
 import com.example.nutritiontracker.ui.utils.network.ContentType
 import com.example.nutritiontracker.ui.utils.network.CustomHeader

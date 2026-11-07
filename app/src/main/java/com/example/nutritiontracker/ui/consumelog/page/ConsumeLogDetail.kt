@@ -47,7 +47,7 @@ fun ConsumeLogDetail(
                 .fillMaxSize(),
             paddingValues = innerPadding + PaddingValues(horizontal = Spacing.m),
             pagingItems = lazyConsumeLogs,
-            key = { consumeLogStatus -> consumeLogStatus.consumeLog.id },
+            itemKey = { consumeLogStatus -> consumeLogStatus.consumeLog.id },
             initialDataError = {
                 Text("Initial Data Error")
             }) { consumeLog ->

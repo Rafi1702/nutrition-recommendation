@@ -9,9 +9,10 @@ import androidx.navigation.compose.navigation
 import com.example.nutritiontracker.ui.food.viewmodel.FoodRecommendationViewModel
 
 object FoodPath {
-    const val FOOD_RECOMMENDATIONS = "/recommendation"
-    const val FOOD_LIST = "/list"
     const val BASE_PATH = "/food"
+    const val FOOD_RECOMMENDATIONS = "$BASE_PATH/recommendation"
+    const val FOOD_LIST = "$BASE_PATH/list"
+
 }
 
 fun NavGraphBuilder.foodGraph(modifier: Modifier = Modifier) {

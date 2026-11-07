@@ -9,9 +9,9 @@ data class QuantifiedFoodNutrients(
 )
 
 data class RecommendationFood(
-    val food: Food,
+    val food: Food?,
     val portion: Float,
     val estimatedCalories: Float,
     val similarityScore: Float,
-    val nutrients: QuantifiedFoodNutrients,
+    val nutrients: QuantifiedFoodNutrients?,
 )

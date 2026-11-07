@@ -17,7 +17,7 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
         modifier = modifier
             .fillMaxSize(),
         pagingItems = lazyFoodItems,
-        key = { food -> food.id },
+        itemKey = { food -> food.id },
         initialDataError = {
             Text("Initial Data Error")
         }) { food ->

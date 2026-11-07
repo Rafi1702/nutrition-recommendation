@@ -4,17 +4,23 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nutritiontracker.R
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.domain.model.UserProfileData
@@ -23,6 +29,7 @@ import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileWi
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
+import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.typography
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -63,6 +70,7 @@ class EntryScreenViewModel @Inject constructor(
 
     fun initEntry() {
         viewModelScope.launch {
+            _entryNavigationState.update { EntryScreenUiState.Initial }
             val (accessToken, refreshToken) = localTokenDataSource.getUserToken()
 
             delay(3000)
@@ -112,9 +120,11 @@ class EntryScreenViewModel @Inject constructor(
 }
 
 
-@Preview(showBackground = true)
 @Composable
-fun EntryScreen(entryScreenUiState: EntryScreenUiState = EntryScreenUiState.Initial) {
+fun EntryScreen(
+    entryScreenUiState: EntryScreenUiState = EntryScreenUiState.Initial,
+    onRefresh: () -> Unit = {}
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -127,13 +137,24 @@ fun EntryScreen(entryScreenUiState: EntryScreenUiState = EntryScreenUiState.Init
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(
-                            Spacing.m,
+                            Spacing.l,
                             Alignment.CenterVertically
                         ),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Icon(Icons.Default.ErrorOutline, contentDescription = "server_error_icon")
-                        Text("Ada masalah dengan sistem kami :(", style = typography.labelLarge)
+                        Icon(
+                            painterResource(R.drawable.ic_error_system),
+                            contentDescription = "server_error_icon"
+                        )
+                        Text(
+                            "${stringResource(R.string.system_error_label)} :(",
+                            style = typography.titleLarge
+                        )
+                        Button(onClick = {
+                            onRefresh()
+                        }, shape = RoundedCornerShape(8.dp)) {
+                            Text("Refresh")
+                        }
                     }
                 }
             }
@@ -142,7 +163,13 @@ fun EntryScreen(entryScreenUiState: EntryScreenUiState = EntryScreenUiState.Init
                 CircularProgressIndicator()
             }
         }
+    }
+}
 
-
+@Preview(showBackground = true)
+@Composable
+private fun EntryScreenError() {
+    NutritionTrackerTheme {
+        EntryScreen(EntryScreenUiState.Error(ConnectException("...")))
     }
 }

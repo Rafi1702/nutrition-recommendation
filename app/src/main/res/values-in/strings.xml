@@ -21,6 +21,9 @@
     <string name="username_auth_textfield_placeholder">Masukkan username</string>
     <string name="password_auth_textfield_placeholder">Masukkan password</string>
 
+    <!--  ERRROR HANDLING  -->
+    <string name="system_error_label">Ada masalah dengan sistem kami</string>
+
     <!-- BUTTON LABEL  -->
     <string name="continue_label">Lanjut</string>
     <string name="submit_label">Kirim</string>
