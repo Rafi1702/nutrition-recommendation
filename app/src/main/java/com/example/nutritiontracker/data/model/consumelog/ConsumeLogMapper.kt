@@ -12,6 +12,14 @@ fun String.toMealType(): MealType {
     }
 }
 
+fun MealType.toString(): String {
+    return when (this) {
+        MealType.LUNCH -> "lunch"
+        MealType.DINNER -> "dinner"
+        else -> "breakfast"
+    }
+}
+
 fun ConsumeLogResponseDto.toConsumeLog(): ConsumeLog = ConsumeLog(
     id = this.id,
     userId = this.userId,
@@ -19,6 +27,7 @@ fun ConsumeLogResponseDto.toConsumeLog(): ConsumeLog = ConsumeLog(
     eatTime = this.eatTime,
     mealType = this.mealType.toMealType(),
 )
+
 
 fun List<ConsumeLogResponseDto>.toConsumeLogList(): List<ConsumeLog> =
     this.map { response -> response.toConsumeLog() }

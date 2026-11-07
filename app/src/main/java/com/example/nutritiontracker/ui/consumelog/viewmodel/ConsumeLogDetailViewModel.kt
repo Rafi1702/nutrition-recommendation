@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.nutritiontracker.domain.model.ConsumeLog
-import com.example.nutritiontracker.domain.usecase.GetConsumeLogUseCase
+import com.example.nutritiontracker.domain.usecase.consumelog.GetConsumeLogUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
