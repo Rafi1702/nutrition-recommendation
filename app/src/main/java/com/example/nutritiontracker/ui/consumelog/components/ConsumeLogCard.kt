@@ -91,7 +91,7 @@ internal fun ConsumeLogSurface(
                         style = typography.labelMedium.copy(color = colorScheme.onSurface)
                     )
                 } else {
-                    consumeLog.forEach { log -> FoodCard(log.food) }
+                    consumeLog.forEach { log -> FoodCard(food = log.food) }
                 }
             }
         }
