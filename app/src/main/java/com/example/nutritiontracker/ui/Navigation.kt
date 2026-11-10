@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.ui
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -25,7 +26,6 @@ import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationVi
 import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogNav
 import com.example.nutritiontracker.ui.consumelog.page.consumeGraph
 import com.example.nutritiontracker.ui.food.page.FoodPath
-import com.example.nutritiontracker.ui.food.page.foodGraph
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.home.page.MainPage
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
@@ -33,7 +33,7 @@ import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
-import com.example.nutritiontracker.ui.theme.userProfile
+import com.example.nutritiontracker.ui.utils.composable.NavigationListener
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -47,7 +47,6 @@ fun AppNavigation(
     val entryScreenUiState = entryViewModel.entryNavigationState.collectAsStateWithLifecycle().value
     val userProfileState = remember { mutableStateOf<UserProfileData<UserProfile>?>(null) }
 
-    //Observe the effect of the state changes on EntryScreenViewmodel
     LaunchedEffect(entryScreenUiState) {
         when (entryScreenUiState) {
             is EntryScreenUiState.Navigate -> {
@@ -65,6 +64,7 @@ fun AppNavigation(
         }
     }
 
+    NavigationListener(navController = navController, tag="main")
 
     CompositionLocalProvider(
         LocalUserProfile provides userProfileState,
@@ -76,7 +76,6 @@ fun AppNavigation(
                 startDestination = startDestination,
                 modifier = modifier,
             ) {
-
                 composable("/") {
                     EntryScreen(entryScreenUiState, onRefresh = {
                         entryViewModel.initEntry()
@@ -103,21 +102,13 @@ fun AppNavigation(
                         modifier = modifier,
                         onNavigateBack = { },
                         onNavigateToConsumeLogDetail = {
-                            navController.navigate(
-                                ConsumeLogNav.ConsumeLogDetail(
-                                    "0"
-                                ).route
-                            )
+                            navController.navigate(ConsumeLogNav.createDetailRoute("0"))
                         },
-                        onNavigateToRecommendedFoodList = { navController.navigate(FoodPath.FOOD_RECOMMENDATIONS) }
+                        onNavigateToRecommendedFoodList = {
+                            navController.navigate(FoodPath.FOOD_RECOMMENDATIONS)
+                        }
                     )
                 }
-
-                foodGraph()
-
-                consumeGraph(onNavigateBack = {
-                    navController.popBackStack()
-                })
 
                 composable(ProfileNav.USER_PROFILE) {
                     val currentUser = LocalUserProfile.current.value
@@ -129,6 +120,8 @@ fun AppNavigation(
                         )
                     UserProfilePageRoute(viewModel = userProfileViewModel)
                 }
+
+                consumeGraph(onNavigateBack = { navController.popBackStack() })
             }
         }
     }

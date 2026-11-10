@@ -84,6 +84,7 @@ val mockConsumeLogs = listOf(
 @Composable
 internal fun HomePage(
     modifier: Modifier = Modifier,
+    onDateChanged: (String) -> Unit = {},
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
@@ -93,7 +94,7 @@ internal fun HomePage(
     ) {
         LazyColumn(contentPadding = PaddingValues(horizontal = Spacing.m)) {
             item {
-                DatePicker()
+                DatePicker(onDateChanged = onDateChanged)
             }
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))

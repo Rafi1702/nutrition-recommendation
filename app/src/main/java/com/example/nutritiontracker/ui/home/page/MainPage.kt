@@ -14,15 +14,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItem as M3NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -40,10 +44,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nutritiontracker.ui.components.nowYyyyMMDD
 import com.example.nutritiontracker.ui.food.page.FoodListPage
-import com.example.nutritiontracker.ui.food.page.FoodRecommendationsContent
+import com.example.nutritiontracker.ui.food.page.FoodPath
 import com.example.nutritiontracker.ui.food.page.foodGraph
 import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
+import androidx.compose.ui.platform.LocalInspectionMode
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
@@ -54,6 +60,7 @@ import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
 import com.example.nutritiontracker.ui.utils.composable.AssistedUserViewModel
+import com.example.nutritiontracker.ui.utils.composable.NavigationListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -71,12 +78,13 @@ fun MainPage(
     onNavigateToRecommendedFoodList: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
 ) {
-
+    val isPreview = LocalInspectionMode.current
     val user = LocalUserProfile.current.value
     Log.d("[USER]", "$user")
     BackHandler { onNavigateBack() }
-    val bottomBarNavController: NavHostController? = when (screenSize) {
-        ScreenSize.MOBILE -> rememberNavController()
+    val bottomBarNavController: NavHostController? = when {
+        isPreview -> null
+        screenSize == ScreenSize.MOBILE -> rememberNavController()
         else -> null
     }
 
@@ -99,13 +107,13 @@ fun MainPage(
             ModalNavigationDrawer(
                 drawerState = drawerRequirementProps.drawerState,
                 drawerContent = {
-                    ModalDrawerSheet { /* Drawer content */
+                    ModalDrawerSheet {
                         Text("Drawer title", modifier = Modifier.padding(Spacing.m))
                         HorizontalDivider()
                         NavigationDrawerItem(
                             label = { Text(text = "Drawer Item") },
                             selected = false,
-                            onClick = { /*TODO*/ }
+                            onClick = { }
                         )
                     }
                 }) {
@@ -119,7 +127,6 @@ fun MainPage(
         }
     }
 }
-
 
 @Composable
 private fun MainScaffold(
@@ -159,9 +166,13 @@ private fun MainLayout(
     onNavigateToRecommendedFoodList: () -> Unit = {},
     bottomNavController: NavHostController? = null,
 ) {
+    val pickedDate = remember { mutableStateOf(nowYyyyMMDD()) }
     when (screenSize) {
         ScreenSize.MOBILE -> {
             bottomNavController?.let { navController ->
+
+                NavigationListener(navController = navController, tag = "home")
+
                 CompositionLocalProvider(LocalNavController provides navController) {
                     NavHost(
                         navController = navController,
@@ -171,13 +182,12 @@ private fun MainLayout(
                         composable(route = HomePath.HOME) {
                             HomePage(
                                 onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
-                                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail
-                            )
-                        }
-                        composable(route = HomePath.FOOD_LIST) {
-                            val foodListViewModel: FoodListViewModel = hiltViewModel()
-                            FoodListPage(
-                                viewModel = foodListViewModel
+                                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+                                onDateChanged = { date ->
+                                    if (pickedDate.value != date) {
+                                        pickedDate.value = date
+                                    }
+                                }
                             )
                         }
 
@@ -188,14 +198,18 @@ private fun MainLayout(
                                 }
                             UserProfilePageRoute(viewModel = userProfileViewModel)
                         }
-                        foodGraph()
-                    }
 
+                        foodGraph(navController = navController)
+                    }
                 }
             }
         }
 
         ScreenSize.FOLDABLE, ScreenSize.TABLET -> {
+            val foodListViewModel =
+                hiltViewModel<FoodListViewModel, FoodListViewModel.Factory>(
+                    creationCallback = { factory -> factory.create(consumedAt = pickedDate.value) }
+                )
             Row(
                 modifier = Modifier
                     .padding(padding)
@@ -207,12 +221,19 @@ private fun MainLayout(
                     modifier = Modifier.weight(2f),
                 )
                 Spacer(modifier = Modifier.width(Spacing.m))
-                FoodListPage( modifier = Modifier.weight(2f))
+
+                FoodListPage(modifier = Modifier.weight(2f), viewModel = foodListViewModel)
                 Spacer(modifier = Modifier.weight(.5f))
             }
         }
     }
 }
+
+data class TopAppBarComponents(
+    val navigationIcon: @Composable (() -> Unit)? = null,
+    val title: @Composable () -> Unit,
+    val actions: @Composable (() -> Unit)? = null
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
@@ -224,8 +245,29 @@ private fun AdaptiveTopBar(
     val navBackStackEntry = bottomNavController?.currentBackStackEntryAsState()?.value
     val currentRoute = navBackStackEntry?.destination?.route
 
-    TopAppBar(title = {
+    val components = when {
+        currentRoute == HomePath.HOME -> TopAppBarComponents(title = { Text("Home") }, actions = {
+            IconButton(onClick = {}) {
+                Icon(Icons.Default.Settings, contentDescription = "settings_button")
+            }
+        })
 
+        currentRoute?.startsWith(FoodPath.FOOD_LIST_BASE) == true -> TopAppBarComponents(title = {
+            Text(
+                "Food List"
+            )
+        })
+
+        currentRoute == ProfileNav.USER_PROFILE -> TopAppBarComponents(title = {
+            Text(
+                "Profile"
+            )
+        })
+
+        else -> TopAppBarComponents({}, {}, {})
+    }
+
+    TopAppBar(title = {
         drawerProps?.let {
             val (drawerState, coroutineScope) = it
             Icon(Icons.Default.Menu, modifier = Modifier.clickable {
@@ -237,18 +279,9 @@ private fun AdaptiveTopBar(
             }, contentDescription = "side_bar_menu")
         }
         if (bottomNavController != null) {
-            val title = remember(currentRoute) {
-                when (currentRoute) {
-                    HomePath.HOME -> "Home"
-                    HomePath.FOOD_LIST -> "Consume List"
-                    else -> null
-                }
-            }
-            title?.let {
-                Text(it)
-            }
+            components.title()
         }
-    })
+    }, actions = { components.actions?.invoke() })
 }
 
 @Preview
@@ -259,14 +292,16 @@ private fun BottomNavBar(
     val navBackStackEntry = navController?.currentBackStackEntryAsState()?.value
     val currentRoute = navBackStackEntry?.destination?.route
 
-    navController?.let {
+    navController?.let { controller ->
         NavigationBar(containerColor = colorScheme.surfaceContainer) {
-            NavigationBarItem(
+            M3NavigationBarItem(
                 selected = currentRoute == HomePath.HOME,
+                label = { Text("Home") },
+                alwaysShowLabel = true,
                 onClick = {
                     if (currentRoute != HomePath.HOME) {
-                        navController.navigate(HomePath.HOME) {
-                            popUpTo(navController.graph.startDestinationId) {
+                        controller.navigate(HomePath.HOME) {
+                            popUpTo(controller.graph.startDestinationId) {
                                 saveState = true
                             }
                             launchSingleTop = true
@@ -279,12 +314,16 @@ private fun BottomNavBar(
                 }
             )
 
-            NavigationBarItem(
-                selected = currentRoute == HomePath.FOOD_LIST,
+            val isFoodSelected = currentRoute?.startsWith(FoodPath.FOOD_LIST_BASE) == true
+            M3NavigationBarItem(
+                selected = isFoodSelected,
+                alwaysShowLabel = true,
+                label = { Text("Food") },
                 onClick = {
-                    if (currentRoute != HomePath.FOOD_LIST) {
-                        navController.navigate(HomePath.FOOD_LIST) {
-                            popUpTo(navController.graph.startDestinationId) {
+                    val targetRoute = FoodPath.createFoodListRoute()
+                    if (currentRoute != targetRoute) {
+                        controller.navigate(targetRoute) {
+                            popUpTo(controller.graph.startDestinationId) {
                                 saveState = true
                             }
                             launchSingleTop = true
@@ -293,16 +332,18 @@ private fun BottomNavBar(
                     }
                 },
                 icon = {
-                    Icon(Icons.Default.Home, contentDescription = "navigation_home")
+                    Icon(Icons.Default.RestaurantMenu, contentDescription = "navigation_food")
                 }
             )
 
-            NavigationBarItem(
+            M3NavigationBarItem(
                 selected = currentRoute == ProfileNav.USER_PROFILE,
+                alwaysShowLabel = true,
+                label = { Text("Profile") },
                 onClick = {
                     if (currentRoute != ProfileNav.USER_PROFILE) {
-                        navController.navigate(ProfileNav.USER_PROFILE) {
-                            popUpTo(navController.graph.startDestinationId) {
+                        controller.navigate(ProfileNav.USER_PROFILE) {
+                            popUpTo(controller.graph.startDestinationId) {
                                 saveState = true
                             }
                             launchSingleTop = true
@@ -317,5 +358,3 @@ private fun BottomNavBar(
         }
     }
 }
-
-

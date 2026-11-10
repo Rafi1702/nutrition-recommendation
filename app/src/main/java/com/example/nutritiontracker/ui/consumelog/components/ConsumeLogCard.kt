@@ -60,6 +60,12 @@ private fun MealType.properties(): MealTypeProperties = when (this) {
         contentColor = colorScheme.onTertiaryContainer,
         icon = Icons.Default.Adb
     )
+
+    else -> MealTypeProperties(
+        containerColor = Color.Unspecified,
+        contentColor = Color.Unspecified,
+        icon = null
+    )
 }
 
 @Composable

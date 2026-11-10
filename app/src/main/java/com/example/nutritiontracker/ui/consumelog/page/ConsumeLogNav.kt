@@ -1,6 +1,5 @@
 package com.example.nutritiontracker.ui.consumelog.page
 
-import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -9,32 +8,27 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.nutritiontracker.ui.consumelog.viewmodel.ConsumeLogDetailViewModel
 
-sealed class ConsumeLogNav(val route: String) {
-    companion object {
-        const val BASE_PATH = "/consume"
-    }
+object ConsumeLogNav {
+    const val BASE_PATH = "/consume"
+    const val CONSUME_LIST = "/consume/list"
+    const val CONSUME_DETAIL_ROUTE = "/consume/detail/{id}"
 
-    data object ConsumeList : ConsumeLogNav("/$BASE_PATH/list")
-    data class ConsumeLogDetail(val consumeLogId: String) :
-        ConsumeLogNav("/$BASE_PATH/detail/$consumeLogId")
-
+    fun createDetailRoute(id: String): String = "/consume/detail/$id"
 }
-
 
 fun NavGraphBuilder.consumeGraph(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit = {}
 ) {
     composable(
-        route = ConsumeLogNav.ConsumeLogDetail("{id}").route,
+        route = ConsumeLogNav.CONSUME_DETAIL_ROUTE,
         arguments = listOf(
             navArgument("id") {
                 type = NavType.IntType
-            })
-    ) { entry ->
+            }
+        )
+    ) {
         val consumeLogDetailViewModel: ConsumeLogDetailViewModel = hiltViewModel()
-        ConsumeLogDetail(consumeLogDetailViewModel, onNavigateBack)
+        ConsumeLogDetail(viewModel = consumeLogDetailViewModel, onNavigateBack = onNavigateBack)
     }
 }
-
-

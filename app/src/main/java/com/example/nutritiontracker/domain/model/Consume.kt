@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.domain.model
 
 enum class MealType(val label: String) {
+    UNSPECIFIED(""),
     BREAKFAST("Breakfast"),
     LUNCH("Lunch"),
     DINNER("Dinner")

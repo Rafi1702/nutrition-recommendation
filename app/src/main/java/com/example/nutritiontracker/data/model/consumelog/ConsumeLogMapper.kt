@@ -8,11 +8,11 @@ fun String.toMealType(): MealType {
     return when (this.lowercase()) {
         "lunch" -> MealType.LUNCH
         "dinner" -> MealType.DINNER
-        else -> MealType.BREAKFAST
+        else -> MealType.UNSPECIFIED
     }
 }
 
-fun MealType.toString(): String {
+fun MealType.toLabel(): String {
     return when (this) {
         MealType.LUNCH -> "lunch"
         MealType.DINNER -> "dinner"

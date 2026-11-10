@@ -29,7 +29,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
-import okhttp3.internal.toImmutableList
 
 class SelectableState(
     isSelectableMode: Boolean = false,
@@ -75,6 +74,7 @@ fun rememberSelectableState(initialValue: Set<String>): SelectableState {
 @Composable
 fun SelectableItemsWrapper(
     initialValue: Set<String> = emptySet(),
+    onFloatingButtonClicked: (ids: Set<String>) -> Unit = {},
     content: @Composable () -> Unit
 ) {
     val selectableState = rememberSelectableState(initialValue = initialValue)
@@ -101,7 +101,7 @@ fun SelectableItemsWrapper(
 
         if (selectableState.isSelectableMode) Button(
             modifier = Modifier.align(Alignment.BottomCenter),
-            onClick = {}) {
+            onClick = { onFloatingButtonClicked(selectableState.items) }) {
             Text("Tambah Semua")
         }
     }

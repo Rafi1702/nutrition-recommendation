@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.ui.utils.composable
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,6 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavHostController
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
@@ -135,4 +137,20 @@ fun <T> MutationEffect(
     showBackground = true
 )
 annotation class DevicePreviews
+
+@Composable
+fun NavigationListener(navController: NavHostController, tag: String){
+    LaunchedEffect(Unit) {
+        navController.addOnDestinationChangedListener { controller, destination, _ ->
+            Log.d(
+                "[NAVIGATION]",
+                """
+                       CURRENT_DESTINATION: ${tag.uppercase()}_${controller.currentDestination}
+                       CURRENT_BACKSTACK_ENTRY: ${controller.currentBackStackEntry}                    
+                       DESTINATION: ${destination.route}
+                """.trimIndent()
+            )
+        }
+    }
+}
 

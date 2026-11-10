@@ -159,7 +159,6 @@ fun <T : Any, V> FieldRegister(
     content: @Composable (() -> Unit)?
 ) {
     val form = currentForm<T>()
-
     DisposableEffect(form, name) {
         form.addField(name, fieldProperties)
         onDispose {
