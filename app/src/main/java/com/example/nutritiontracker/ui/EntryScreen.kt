@@ -134,7 +134,7 @@ fun EntryScreen(
         when (entryScreenUiState) {
             is EntryScreenUiState.Error -> {
                 Log.d("[DEBUG]", "${entryScreenUiState.error}")
-                if (entryScreenUiState.error is AppException.ConnectionFailed) {
+                if (entryScreenUiState.error is AppException.Network.ConnectionFailed) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(

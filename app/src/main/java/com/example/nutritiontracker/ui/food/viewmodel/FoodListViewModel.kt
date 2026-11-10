@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 class FoodListViewModel @AssistedInject constructor(
     getFoodsUseCase: GetFoodsUseCase,
     private val addFoodsToConsumeLogUseCase: AddFoodsToConsumeLogUseCase,
-    @Assisted private val mealType: MealType?,
+    @Assisted private val mealType: MealType,
     @Assisted private val consumedAt: String,
 ) :
     ViewModel() {
@@ -57,19 +57,27 @@ class FoodListViewModel @AssistedInject constructor(
             }
         }
 
-    fun addFoodToConsumeLog(food: Food) {
-        if(mealType == MealType.UNSPECIFIED) return
+    fun addFoodToConsumeLog(food: Food, mealType: MealType? = null) {
+        val currentMealType = mealType ?: this.mealType
+        val loading = foodMutations.value[food.id]?.isLoading == true
+
+        if (currentMealType == MealType.UNSPECIFIED && loading) return
 
         viewModelScope.launch {
-            val loading = foodMutations.value[food.id]?.isLoading == true
-
-            if (loading) return@launch
-
             foodMutations.update { currentMap ->
                 currentMap + (food.id to FoodUiState(food = food, isLoading = true))
             }
 
             delay(3000)
+
+            addFoodsToConsumeLogUseCase(listOf(food.id), currentMealType, consumedAt).fold(
+                onSuccess = {
+
+                },
+                onFailure = { err ->
+
+                }
+            )
 
             foodMutations.update { currentMap ->
                 currentMap - food.id
@@ -78,10 +86,10 @@ class FoodListViewModel @AssistedInject constructor(
     }
 
     fun addAllFoodsToConsumeLog(foodIds: List<Int>) {
-        if(mealType == MealType.UNSPECIFIED) return
+        if (mealType == MealType.UNSPECIFIED) return
 
         viewModelScope.launch {
-            mealType?.let{
+            mealType?.let {
                 addFoodsToConsumeLogUseCase(foodIds, mealType = mealType, consumedAt)
             }
         }

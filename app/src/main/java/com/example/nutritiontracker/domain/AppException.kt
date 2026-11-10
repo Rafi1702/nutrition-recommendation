@@ -4,16 +4,20 @@ import com.example.nutritiontracker.data.utils.NetworkException
 import java.net.ConnectException
 
 sealed class AppException(override val message: String) : Exception(message) {
-    object ConnectionFailed : AppException("No Connection Found")
-    object NoNetwork : AppException("No Network Provided")
 
-    data object NoSession : AppException("Unauthorized Access")
+    sealed class Network(message: String) : AppException(message) {
+        data object Unauthorized : Network("Unauthorized access")
+        data object ConnectionFailed : Network("No network connection")
+    }
+
+
+    open class DomainException(override val message: String): AppException(message)
 
     companion object {
         fun NetworkException.createAppException(): AppException {
             return when (this) {
-                is NetworkException.Unauthorized -> NoSession
-                else -> NoNetwork
+                is NetworkException.Unauthorized -> Network.Unauthorized
+                else -> Network.ConnectionFailed
             }
         }
     }

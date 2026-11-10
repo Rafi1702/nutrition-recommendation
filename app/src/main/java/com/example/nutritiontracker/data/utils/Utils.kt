@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.retryWhen
 import retrofit2.Response
 import java.io.IOException
 import java.net.ConnectException
-import java.net.UnknownHostException
 
 
 const val ITEMS_LIMIT = 10
@@ -94,9 +93,9 @@ inline fun <T> safeCall(apiCall: () -> Response<T>): Result<T> {
             Result.failure(appException)
         }
     } catch (e: IOException) {
-        Result.failure(AppException.ConnectionFailed)
+        Result.failure(AppException.Network.ConnectionFailed)
     } catch (_: ConnectException) {
-        Result.failure(AppException.ConnectionFailed)
+        Result.failure(AppException.Network.ConnectionFailed)
     } catch (e: Exception) {
         Result.failure(e)
     }

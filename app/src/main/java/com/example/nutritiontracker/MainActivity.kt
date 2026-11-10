@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 //Observe global AuthEvent. it trigger specific error to navigate back to Sign In
                 LaunchedEffect(Unit) {
                     AuthEventManager.authEvent.collect { err ->
-                        if (err is AppException.NoSession) {
+                        if (err is AppException.Network.Unauthorized) {
                             navController.navigate(AuthPath.AUTH)
                             snackBarHostState.showSnackbar(
                                 message = "Unauthorized Access",
