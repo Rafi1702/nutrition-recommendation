@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -35,11 +36,10 @@ import com.example.nutritiontracker.data.mocks.MOCK_FOODS
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MacroNutrients
 import com.example.nutritiontracker.domain.model.MacroType
-import com.example.nutritiontracker.domain.model.QuantifiedFoodNutrients
 import com.example.nutritiontracker.ui.components.Chip
+import com.example.nutritiontracker.ui.home.components.colors
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
-import com.example.nutritiontracker.ui.theme.colors
 import com.example.nutritiontracker.ui.theme.typography
 import kotlin.math.roundToInt
 
@@ -83,10 +83,11 @@ internal fun MacroChips(
 
 @Composable
 internal fun FoodCard(
+    modifier: Modifier = Modifier,
     name: String,
     totalCalories: Int,
     macros: List<MacroNutrients>,
-    modifier: Modifier = Modifier,
+    isLoading: Boolean = false,
     onAddClick: (() -> Unit)? = null
 ) {
     val totalCaloriesLabel = stringResource(R.string.total_calories_unit)
@@ -176,8 +177,14 @@ internal fun FoodCard(
                         contentColor = colorScheme.onPrimary
                     )
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    if (isLoading) CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = colorScheme.onPrimary
+                    ) else Row(
+                        horizontalArrangement = Arrangement.spacedBy(
+                            8.dp,
+                            Alignment.CenterHorizontally
+                        ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -217,8 +224,9 @@ internal fun FoodCard(
 
 @Composable
 internal fun FoodCard(
-    food: Food,
     modifier: Modifier = Modifier,
+    food: Food,
+    isLoading: Boolean = false,
     onAddClick: (() -> Unit)? = null
 ) {
     FoodCard(
@@ -226,6 +234,7 @@ internal fun FoodCard(
         totalCalories = food.totalCalories,
         macros = food.macros,
         modifier = modifier,
+        isLoading = isLoading,
         onAddClick = onAddClick
     )
 }

@@ -1,5 +1,7 @@
 package com.example.nutritiontracker.data.utils
 
+import com.example.nutritiontracker.domain.AppException
+import com.example.nutritiontracker.domain.AppException.Companion.createAppException
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -7,7 +9,6 @@ import kotlinx.coroutines.flow.retryWhen
 import retrofit2.Response
 import java.io.IOException
 import java.net.ConnectException
-import java.net.UnknownHostException
 
 
 const val ITEMS_LIMIT = 10
@@ -46,7 +47,7 @@ data class CursorPaginateQuery(
 sealed class NetworkException(val httpCode: Int, override val message: String) :
     Exception(message) {
     class NotFound(code: Int = 404) : NetworkException(code, "Resource Not Found")
-    class Unauthorized(code: Int = 401) : NetworkException(code, "Unauthorized Access")
+    data class Unauthorized(val code: Int = 401) : NetworkException(code, "Unauthorized Access")
     class ServerError(code: Int = 500) : NetworkException(code, "Internal Server Error")
     class GenericHttpError(code: Int, message: String) : NetworkException(code, message)
 
@@ -87,12 +88,14 @@ inline fun <T> safeCall(apiCall: () -> Response<T>): Result<T> {
         } else {
             val code = response.code()
             val errorBody = response.errorBody()?.string()
-            Result.failure(NetworkException.create(code, errorBody))
+            val networkException = NetworkException.create(code, errorBody)
+            val appException = networkException.createAppException()
+            Result.failure(appException)
         }
-    } catch (e: IOException) {
-        Result.failure(e)
-    } catch (e: ConnectException) {
-        Result.failure(ConnectException("Failed to connect"))
+    } catch (_: IOException) {
+        Result.failure(
+            AppException.Network.ConnectionFailed
+        )
     } catch (e: Exception) {
         Result.failure(e)
     }

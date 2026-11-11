@@ -1,11 +1,11 @@
 package com.example.nutritiontracker.domain.model
 
 enum class MealType(val label: String) {
+    UNSPECIFIED(""),
     BREAKFAST("Breakfast"),
     LUNCH("Lunch"),
     DINNER("Dinner")
 }
-
 
 data class NutrientsSubTotal(
     val calories: Int = 0,
@@ -16,7 +16,6 @@ data class NutrientsSubTotal(
 
 data class ConsumeLog(
     val id: Int,
-    val userId: Int,
     val food: Food,
     val eatTime: String,
     val mealType: MealType

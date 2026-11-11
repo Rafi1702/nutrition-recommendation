@@ -86,30 +86,3 @@ internal val LightColorScheme = lightColorScheme(
     surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = OnSurfaceVariantLight
 )
-
-data class MacroColors(
-    val main: Color,
-    val container: Color,
-    val onContainer: Color
-)
-
-@Composable
-fun MacroType.colors(): MacroColors = when (this) {
-    MacroType.PROTEIN -> MacroColors(
-        main = colorScheme.tertiary,
-        container = colorScheme.tertiaryContainer,
-        onContainer = colorScheme.onTertiaryContainer
-    )
-
-    MacroType.CARBS -> MacroColors(
-        main = colorScheme.primary,
-        container = colorScheme.primaryContainer,
-        onContainer = colorScheme.onPrimaryContainer
-    )
-
-    MacroType.FAT -> MacroColors(
-        main = colorScheme.secondary,
-        container = colorScheme.secondaryContainer,
-        onContainer = colorScheme.onSecondaryContainer
-    )
-}

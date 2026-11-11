@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.ui.components.MultiSelectionOptions
+import com.example.nutritiontracker.ui.components.MultiSelectionOptionsForm
 import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.profile.components.UserProfileContentSection
 import com.example.nutritiontracker.ui.profile.page.LocalUserProfileForm
@@ -60,7 +60,7 @@ fun UserAllergiesPreferenceContent() {
         }
 
         else -> {
-            MultiSelectionOptions(
+            MultiSelectionOptionsForm(
                 fieldName = UserProfileForm::userAllergies,
                 initialValue = LocalUserProfileForm.current.getField(UserProfileForm::userAllergies)?.state?.value
                     ?: emptyList(),

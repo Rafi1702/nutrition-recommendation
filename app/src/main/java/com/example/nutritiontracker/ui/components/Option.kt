@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -15,6 +18,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.toLowerCase
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.nutritiontracker.ui.theme.Spacing
+import kotlin.collections.listOf
 import kotlin.reflect.KProperty1
 
 @Composable
@@ -135,7 +141,7 @@ private fun <T : Any> MultiOptionForm(
 }
 
 @Composable
-internal fun <T : Any> MultiSelectionOptions(
+internal fun <T : Any> MultiSelectionOptionsForm(
     fieldName: KProperty1<T, List<String>>,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
@@ -148,7 +154,10 @@ internal fun <T : Any> MultiSelectionOptions(
         fieldName = fieldName,
         initialValue = initialValue
     ) { state ->
-        FlowRow(horizontalArrangement = horizontalArrangement, verticalArrangement = verticalArrangement) {
+        FlowRow(
+            horizontalArrangement = horizontalArrangement,
+            verticalArrangement = verticalArrangement
+        ) {
             items.forEach { item ->
                 ClickableBox(
                     modifier = Modifier.then(
@@ -176,6 +185,52 @@ internal fun <T : Any> MultiSelectionOptions(
                 }
             }
         }
+    }
+}
+
+
+@Composable
+internal fun <T> MultiSelectOptions(
+    modifier: Modifier = Modifier,
+    items: List<T> = emptyList(),
+    initialSelectedValues: List<T> = emptyList(),
+    onValuesChanged: (List<T>) -> Unit = {},
+    content: @Composable ((item: T, selected: Boolean) -> Unit) = { _, _ -> }
+) {
+    val initialItemsSelected =
+        remember(initialSelectedValues) { mutableStateOf(initialSelectedValues) }
+
+    LaunchedEffect(initialItemsSelected.value) {
+        onValuesChanged(initialItemsSelected.value)
+    }
+
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        content = {
+            items.forEach { item ->
+                Box(modifier = Modifier.clickable {
+                    if(initialItemsSelected.value.contains(item)){
+                        initialItemsSelected.value -= item
+                    }else{
+                        initialItemsSelected.value += item
+                    }
+                }) {
+                    content(item, initialItemsSelected.value.contains(item))
+                }
+            }
+        })
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MultiSelectOptionsPreview() {
+    MultiSelectOptions(
+        modifier = Modifier.fillMaxWidth(),
+        items = listOf("test", "test2"),
+        initialSelectedValues = listOf("test", "test2")
+    ) { item, selected ->
+        SelectionChip(selected = selected) { Text(item) }
     }
 }
 

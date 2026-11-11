@@ -23,7 +23,7 @@ typealias HeaderProps = Pair<Boolean, @Composable () -> Unit>
 @Composable
 fun <T : Any> ListPagingSection(
     modifier: Modifier = Modifier,
-    paddingValues: PaddingValues = PaddingValues(horizontal = Spacing.m),
+    paddingValues: PaddingValues = PaddingValues.Zero,
     pagingItems: LazyPagingItems<T>,
     headerProps: HeaderProps? = null,
     key: (Int) -> Any,

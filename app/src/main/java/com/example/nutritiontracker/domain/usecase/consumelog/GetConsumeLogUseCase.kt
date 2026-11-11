@@ -1,4 +1,4 @@
-package com.example.nutritiontracker.domain.usecase
+package com.example.nutritiontracker.domain.usecase.consumelog
 
 import androidx.paging.PagingData
 import com.example.nutritiontracker.domain.model.ConsumeLog

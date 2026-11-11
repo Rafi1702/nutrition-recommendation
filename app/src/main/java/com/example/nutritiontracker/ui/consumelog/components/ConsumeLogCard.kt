@@ -60,6 +60,12 @@ private fun MealType.properties(): MealTypeProperties = when (this) {
         contentColor = colorScheme.onTertiaryContainer,
         icon = Icons.Default.Adb
     )
+
+    else -> MealTypeProperties(
+        containerColor = Color.Unspecified,
+        contentColor = Color.Unspecified,
+        icon = null
+    )
 }
 
 @Composable
@@ -72,6 +78,7 @@ internal fun ConsumeLogSurface(
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         MealType.entries.forEach { mealType ->
+            if(mealType == MealType.UNSPECIFIED) return@forEach
             ConsumeLogHeader(
                 nutrientsSubTotal = consumeLog.nutrientsSubTotal(),
                 onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
@@ -91,7 +98,7 @@ internal fun ConsumeLogSurface(
                         style = typography.labelMedium.copy(color = colorScheme.onSurface)
                     )
                 } else {
-                    consumeLog.forEach { log -> FoodCard(log.food) }
+                    consumeLog.forEach { log -> FoodCard(food = log.food) }
                 }
             }
         }

@@ -1,20 +1,18 @@
 package com.example.nutritiontracker.ui.components
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -51,12 +49,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
 import com.example.nutritiontracker.ui.components.textfield.TextFormField
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
@@ -70,7 +65,6 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.reflect.KProperty1
 import androidx.compose.material3.DatePicker as M3DatePicker
-
 
 object DatePickerDefaults {
     @Composable
@@ -91,11 +85,11 @@ private data class DatePickerHolder(
     val month: String,
     val day: String,
     val dayName: String
-)
-
+) {
+    val yyMMDD: String = "${this.year}-${this.month}-${this.day}"
+}
 
 const val currentFormatter = "yyyy-MMMM-dd-EEEE"
-
 
 private fun formatDate(
     formatter: String = currentFormatter,
@@ -106,17 +100,21 @@ private fun formatDate(
 
 private fun LocalDate.createDatePicker(): DatePickerHolder {
     val currentDate = this.format(formatDate(currentFormatter)).split("-")
-    val year = currentDate[0]
-    val month = currentDate[1]
-    val day = currentDate[2]
-    val dayName = currentDate[3]
-    return DatePickerHolder(year = year, month = month, day = day, dayName = dayName)
+    return DatePickerHolder(
+        year = currentDate[0],
+        month = currentDate[1],
+        day = currentDate[2],
+        dayName = currentDate[3]
+    )
 }
 
+fun nowYyyyMMDD(): String {
+    return Instant.now().atZone(ZoneId.systemDefault()).toLocalDate().format(formatDate(currentFormatter))
+}
 
 private fun String.toMillisEpoch(): Long? {
     return try {
-        LocalDate.parse(this) // Parses "YYYY-MM-DD"
+        LocalDate.parse(this)
             .atStartOfDay(ZoneOffset.UTC)
             .toInstant()
             .toEpochMilli()
@@ -128,26 +126,20 @@ private fun String.toMillisEpoch(): Long? {
 @Composable
 private fun rememberDateBuild(
     year: Int = 2026,
-
     month: Int = 1,
-): List<DatePickerHolder?>? {
+): List<DatePickerHolder> {
     return remember(year, month) {
         LocalDate.of(year, month, 1)
             .datesUntil(LocalDate.of(year + 1, month, 1))
-            .map {
-                it.createDatePicker()
-            }
+            .map { it.createDatePicker() }
             .toList()
     }
 }
 
-
 private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
-
     save = { date ->
         listOf(date.year, date.month, date.day, date.dayName)
     },
-
     restore = { restoredList ->
         DatePickerHolder(
             year = restoredList[0] as String,
@@ -162,6 +154,7 @@ private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
 fun DatePicker(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues.Zero,
+    onDateChanged: (String) -> Unit = {},
     year: Int = 2026,
     month: Int = 1,
 ) {
@@ -178,34 +171,22 @@ fun DatePicker(
     }
 
     LaunchedEffect(Unit) {
-        val firstDateIndex = dates?.indexOfFirst { date ->
-            date?.let {
-                selectedDate == date
-            } == true
+        val firstDateIndex = dates.indexOfFirst { selectedDate == it }
+        if (firstDateIndex != -1) {
+            listState.scrollToItem(firstDateIndex)
         }
 
-        firstDateIndex?.let { value ->
-            if (value != -1) {
-                listState.scrollToItem(value)
-            }
-        }
-
-        dates?.let {
-
-            snapshotFlow { listState.isScrollInProgress }
-                .collect { isScrolling ->
-                    if (!isScrolling) {
-                        val currentDate = dates[listState.firstVisibleItemIndex]
-
-                        currentDate?.let {
-                            trackedMonth.value = currentDate
-                            Log.d("[DATE_PICKER]", "NOT SCROLLING")
-                        }
+        snapshotFlow { listState.isScrollInProgress }
+            .collect { isScrolling ->
+                if (!isScrolling) {
+                    val currentDate = dates.getOrNull(listState.firstVisibleItemIndex)
+                    currentDate?.let {
+                        trackedMonth.value = it
                     }
                 }
-        }
-
+            }
     }
+
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Row(
             modifier = Modifier
@@ -255,7 +236,10 @@ fun DatePicker(
             ) {
                 Text(
                     text = "${selectedDate.day} ${selectedDate.month.take(3)}",
-                    modifier = Modifier.padding(horizontal = Spacing.s, vertical = Spacing.xxs + 2.dp),
+                    modifier = Modifier.padding(
+                        horizontal = Spacing.s,
+                        vertical = Spacing.xxs + 2.dp
+                    ),
                     style = typography.labelSmall.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = colorScheme.onSecondaryContainer
@@ -269,20 +253,20 @@ fun DatePicker(
             contentPadding = contentPadding,
             flingBehavior = snapFlingBehavior,
         ) {
-            dates?.let {
-                items(dates) { date ->
-                    date?.let {
-                        val (_, _, day, dayName) = date
-                        DateTimePickerCard(dayName = dayName, day = day, onTap = {
-                            selectedDate = date
-                        }, isActive = selectedDate == date)
-                    }
-                }
+            items(dates) { date ->
+                DateTimePickerCard(
+                    dayName = date.dayName,
+                    day = date.day,
+                    onTap = {
+                        selectedDate = date
+                        onDateChanged(date.yyMMDD)
+                    },
+                    isActive = selectedDate == date
+                )
             }
         }
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -294,7 +278,6 @@ fun <T : Any> DatePickerField(
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     val formBuilder = currentForm<T>()
-
     val datePickerState = rememberDatePickerState()
 
     val existingField = remember {
@@ -304,23 +287,14 @@ fun <T : Any> DatePickerField(
         ) ?: FieldProperties(validator = listOf())
     }
 
-    var selectedDateText by remember {
-        mutableStateOf(
-            existingField.initialValue
-        )
+    val isDirty = remember {
+        derivedStateOf {
+            (existingField.state.value != datePickerState.getSelectedDate()
+                .toString()) && datePickerState.getSelectedDate() != null
+        }
     }
 
-    val isDirty =
-        remember {
-            derivedStateOf {
-                (existingField.state.value != datePickerState.getSelectedDate()
-                    .toString()) && datePickerState.getSelectedDate() != null
-            }
-        }
-
-    Box(
-        modifier = modifier.fillMaxWidth()
-    ) {
+    Box(modifier = modifier.fillMaxWidth()) {
         FieldRegister(
             name = fieldName,
             fieldProperties = existingField,
@@ -355,7 +329,6 @@ fun <T : Any> DatePickerField(
                         enabled = isDirty.value,
                         onClick = {
                             datePickerState.getSelectedDate()?.let { selectedDateState ->
-                                selectedDateText = selectedDateState.toString()
                                 existingField.onValueStateChange(selectedDateState.toString())
                                 showDatePicker = false
                             }
@@ -368,7 +341,8 @@ fun <T : Any> DatePickerField(
                         ),
                         onClick = {
                             showDatePicker = false
-                            datePickerState.selectedDateMillis = existingField.state.value?.toMillisEpoch()
+                            datePickerState.selectedDateMillis =
+                                existingField.state.value?.toMillisEpoch()
                         }) {
                         Text("Dismiss")
                     }
@@ -382,11 +356,6 @@ fun <T : Any> DatePickerField(
         }
     }
 }
-
-data class MockPurpose(
-    val date: String
-)
-
 
 @Preview(showBackground = true)
 @Composable
@@ -403,7 +372,6 @@ private fun DateTimePickerCard(
     onTap: () -> Unit = {},
     isActive: Boolean = false
 ) {
-
     Card(
         modifier = Modifier
             .clickable(onClick = onTap)
@@ -412,8 +380,7 @@ private fun DateTimePickerCard(
         colors = DatePickerDefaults.getDatePickerColor(isActive)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

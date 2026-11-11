@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -34,10 +35,35 @@ import com.example.nutritiontracker.domain.model.MacroType
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
-import com.example.nutritiontracker.ui.theme.colors
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.withStyle
 
+data class MacroColors(
+    val main: Color,
+    val container: Color,
+    val onContainer: Color
+)
+
+@Composable
+fun MacroType.colors(): MacroColors = when (this) {
+    MacroType.PROTEIN -> MacroColors(
+        main = colorScheme.tertiary,
+        container = colorScheme.tertiaryContainer,
+        onContainer = colorScheme.onTertiaryContainer
+    )
+
+    MacroType.CARBS -> MacroColors(
+        main = colorScheme.primary,
+        container = colorScheme.primaryContainer,
+        onContainer = colorScheme.onPrimaryContainer
+    )
+
+    MacroType.FAT -> MacroColors(
+        main = colorScheme.secondary,
+        container = colorScheme.secondaryContainer,
+        onContainer = colorScheme.onSecondaryContainer
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
