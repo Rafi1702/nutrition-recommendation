@@ -7,7 +7,7 @@ data class ConsumeMealRequestDto(
     val foodIds: List<Int>,
 
     @SerializedName("meal_type")
-    val mealType: String,
+    val mealType: Int,
 )
 
 data class ConsumeLogRequestDto(
@@ -15,5 +15,5 @@ data class ConsumeLogRequestDto(
     val meals: List<ConsumeMealRequestDto>,
 
     @SerializedName("consumed_at")
-    val consumedAt: String
+    val consumedAt: String? = null
 )

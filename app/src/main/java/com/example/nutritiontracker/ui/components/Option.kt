@@ -200,10 +200,6 @@ internal fun <T> MultiSelectOptions(
     val initialItemsSelected =
         remember(initialSelectedValues) { mutableStateOf(initialSelectedValues) }
 
-    LaunchedEffect(initialItemsSelected.value) {
-        onValuesChanged(initialItemsSelected.value)
-    }
-
     FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
@@ -215,6 +211,8 @@ internal fun <T> MultiSelectOptions(
                     }else{
                         initialItemsSelected.value += item
                     }
+
+                    onValuesChanged(initialItemsSelected.value)
                 }) {
                     content(item, initialItemsSelected.value.contains(item))
                 }

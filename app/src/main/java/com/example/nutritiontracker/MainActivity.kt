@@ -14,6 +14,7 @@ import com.example.nutritiontracker.domain.AppException
 import com.example.nutritiontracker.ui.AppNavigation
 import com.example.nutritiontracker.ui.authentication.AuthEventManager
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
+import com.example.nutritiontracker.ui.theme.LocalSnackBarHost
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.snackBarHostState
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,7 +34,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             NutritionTrackerTheme {
                 val navController = rememberNavController()
-                val snackBarHostState = snackBarHostState
+                val snackBarHostState = LocalSnackBarHost.current
 
                 //Observe global AuthEvent. it trigger specific error to navigate back to Sign In
                 LaunchedEffect(Unit) {

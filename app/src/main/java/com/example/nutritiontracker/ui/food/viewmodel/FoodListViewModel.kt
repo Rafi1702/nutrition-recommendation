@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.food.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
@@ -17,6 +18,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -33,6 +35,8 @@ class FoodListViewModel @AssistedInject constructor(
     ViewModel() {
     private val foodMutations = MutableStateFlow(emptyMap<Int, FoodUiState>())
     private val _uiState = MutableStateFlow<MutationState<Unit>>(MutationState.Idle)
+
+    val uiState = _uiState.asStateFlow()
 
     @AssistedFactory
     interface Factory {
@@ -85,13 +89,23 @@ class FoodListViewModel @AssistedInject constructor(
         }
     }
 
-    fun addAllFoodsToConsumeLog(foodIds: List<Int>, mealTypes: List<MealType> = emptyList()) {
-        if (mealType == MealType.UNSPECIFIED) return
-
+    fun addAllFoodsToConsumeLog(consumeMeals: Map<MealType, List<Int>>) {
         viewModelScope.launch {
-            mealType?.let {
-                addFoodsToConsumeLogUseCase(foodIds, mealType = mealType, consumedAt)
-            }
+            Log.d("[FOOD_LIST_VIEWMODEL]", "params: $consumeMeals")
+            _uiState.update { MutationState.Pending }
+            delay(1000)
+
+            addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
+                onSuccess = { data ->
+                    _uiState.update { MutationState.Success(data) }
+                },
+                onFailure = { err ->
+                    _uiState.update { MutationState.Error(err) }
+                }
+            )
+
+            delay(500)
+            _uiState.update { MutationState.Idle }
         }
     }
 }

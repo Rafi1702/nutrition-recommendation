@@ -28,17 +28,18 @@ class ConsumeLogRepositoryImpl @Inject constructor(
         meals: Map<MealType, List<Int>>,
         consumedAt: String
     ): Result<Unit> {
+        val request = ConsumeLogRequestDto(
+            meals = meals.map { (mealType, foodIds) ->
+                ConsumeMealRequestDto(
+                    foodIds = foodIds,
+                    mealType = mealType.ordinal
+                )
+            },
+        )
+
         return safeCall {
             consumeLogRemoteDataSource.addFoodsToConsumeLog(
-                ConsumeLogRequestDto(
-                    meals = meals.map { (mealType, foodIds) ->
-                        ConsumeMealRequestDto(
-                            foodIds = foodIds,
-                            mealType = mealType.toLabel()
-                        )
-                    },
-                    consumedAt = consumedAt
-                )
+                request
             )
         }.fold(
             onSuccess = { Result.success(Unit) },

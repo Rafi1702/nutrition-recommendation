@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -21,7 +22,9 @@ import androidx.navigation.NavHostController
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.ui.theme.LocalUserProfile
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 fun AnnotatedString.Builder.withStyle(
     style: TextStyle,
@@ -55,7 +58,9 @@ fun Debounce(query: String, delayInMillis: Long = 300L, callback: suspend (Strin
 
 operator fun PaddingValues.plus(other: PaddingValues): PaddingValues = object : PaddingValues {
     override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp {
-        return this@plus.calculateLeftPadding(layoutDirection) + other.calculateLeftPadding(layoutDirection)
+        return this@plus.calculateLeftPadding(layoutDirection) + other.calculateLeftPadding(
+            layoutDirection
+        )
     }
 
     override fun calculateTopPadding(): Dp {
@@ -63,7 +68,9 @@ operator fun PaddingValues.plus(other: PaddingValues): PaddingValues = object : 
     }
 
     override fun calculateRightPadding(layoutDirection: LayoutDirection): Dp {
-        return this@plus.calculateRightPadding(layoutDirection) + other.calculateRightPadding(layoutDirection)
+        return this@plus.calculateRightPadding(layoutDirection) + other.calculateRightPadding(
+            layoutDirection
+        )
     }
 
     override fun calculateBottomPadding(): Dp {
@@ -78,11 +85,11 @@ sealed class MutationState<out T> {
     data class Error(val error: Throwable) : MutationState<Nothing>()
 }
 
-sealed class QueryState<out T>{
-    data class Initial<out T>(val initial: T? = null): QueryState<T>()
+sealed class QueryState<out T> {
+    data class Initial<out T>(val initial: T? = null) : QueryState<T>()
     data object Loading : QueryState<Nothing>()
-    data class Success<out T>(val data: T): QueryState<T>()
-    data class Error(val error: Throwable): QueryState<Nothing>()
+    data class Success<out T>(val data: T) : QueryState<T>()
+    data class Error(val error: Throwable) : QueryState<Nothing>()
 }
 
 @Composable
@@ -98,7 +105,8 @@ fun <T> MutationEffect(
     mutationState: MutationState<T>,
     activeWhen: Boolean = true,
     onSuccess: (T) -> Unit,
-    onFailure: (Throwable) -> Unit
+    onFailure: suspend (Throwable) -> Unit,
+    coroutineScope: CoroutineScope = rememberCoroutineScope()
 ) {
     if (!activeWhen) return
 
@@ -107,11 +115,11 @@ fun <T> MutationEffect(
             is MutationState.Success -> {
                 onSuccess(mutationState.data)
             }
-
             is MutationState.Error -> {
-                onFailure(mutationState.error)
+                coroutineScope.launch{
+                    onFailure(mutationState.error)
+                }
             }
-
             else -> {}
         }
     }
@@ -139,7 +147,7 @@ fun <T> MutationEffect(
 annotation class DevicePreviews
 
 @Composable
-fun NavigationListener(navController: NavHostController, tag: String){
+fun NavigationListener(navController: NavHostController, tag: String) {
     LaunchedEffect(Unit) {
         navController.addOnDestinationChangedListener { controller, destination, _ ->
             Log.d(
