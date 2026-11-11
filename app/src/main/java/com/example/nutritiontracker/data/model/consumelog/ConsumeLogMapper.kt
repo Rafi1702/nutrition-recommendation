@@ -2,10 +2,12 @@ package com.example.nutritiontracker.data.model.consumelog
 
 import com.example.nutritiontracker.data.model.food.toFood
 import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MealType
 
 fun String.toMealType(): MealType {
     return when (this.lowercase()) {
+        "breakfast" -> MealType.BREAKFAST
         "lunch" -> MealType.LUNCH
         "dinner" -> MealType.DINNER
         else -> MealType.UNSPECIFIED
@@ -14,20 +16,37 @@ fun String.toMealType(): MealType {
 
 fun MealType.toLabel(): String {
     return when (this) {
+        MealType.BREAKFAST -> "breakfast"
         MealType.LUNCH -> "lunch"
         MealType.DINNER -> "dinner"
-        else -> "breakfast"
+        else -> ""
     }
 }
 
-fun ConsumeLogResponseDto.toConsumeLog(): ConsumeLog = ConsumeLog(
+fun ConsumeLogResponseDto.toConsumeLog(mealType: MealType = MealType.UNSPECIFIED): ConsumeLog = ConsumeLog(
     id = this.id,
-    userId = this.userId,
     food = this.food.toFood(),
-    eatTime = this.eatTime,
-    mealType = this.mealType.toMealType(),
+    eatTime = this.consumedAt,
+    mealType = mealType
 )
 
+fun ConsumeMealLogResponseDto.toConsumeLog(): ConsumeLog {
+    val parsedMealType = this.mealType.toMealType()
+    val firstConsume = this.consumes.firstOrNull()
+    return ConsumeLog(
+        id = firstConsume?.id ?: 0,
+        food = firstConsume?.food?.toFood() ?: Food(0, "", emptyList()),
+        eatTime = firstConsume?.consumedAt ?: "",
+        mealType = parsedMealType
+    )
+}
 
-fun List<ConsumeLogResponseDto>.toConsumeLogList(): List<ConsumeLog> =
-    this.map { response -> response.toConsumeLog() }
+fun ConsumeMealLogResponseDto.toConsumeLogList(): List<ConsumeLog> {
+    val parsedMealType = this.mealType.toMealType()
+    return this.consumes.map { dto ->
+        dto.toConsumeLog(parsedMealType)
+    }
+}
+
+fun List<ConsumeLogResponseDto>.toConsumeLogList(mealType: MealType = MealType.UNSPECIFIED): List<ConsumeLog> =
+    this.map { response -> response.toConsumeLog(mealType) }

@@ -35,7 +35,6 @@ import com.example.nutritiontracker.ui.theme.typography
 val mockConsumeLogs = listOf(
     ConsumeLog(
         id = 1,
-        userId = 101,
         eatTime = "2026-10-19T08:00:00Z",
         mealType = MealType.BREAKFAST,
         food = Food(
@@ -50,9 +49,8 @@ val mockConsumeLogs = listOf(
     ),
     ConsumeLog(
         id = 2,
-        userId = 101,
         eatTime = "2026-10-19T12:30:00Z",
-        mealType = MealType.LUNCH,
+        mealType = MealType.BREAKFAST,
         food = Food(
             id = 2,
             name = "Dada Ayam Bakar & Nasi Merah",
@@ -65,7 +63,6 @@ val mockConsumeLogs = listOf(
     ),
     ConsumeLog(
         id = 3,
-        userId = 101,
         eatTime = "2026-10-19T19:00:00Z",
         mealType = MealType.DINNER,
         food = Food(

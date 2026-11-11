@@ -75,7 +75,7 @@ fun rememberSelectableState(initialValue: Set<String>): SelectableState {
 fun SelectableItemsWrapper(
     initialValue: Set<String> = emptySet(),
     onFloatingButtonClicked: (ids: Set<String>) -> Unit = {},
-    content: @Composable () -> Unit
+    content: @Composable (ids: Set<String>) -> Unit
 ) {
     val selectableState = rememberSelectableState(initialValue = initialValue)
 
@@ -95,7 +95,7 @@ fun SelectableItemsWrapper(
             }
 
             CompositionLocalProvider(LocalSelectableState provides selectableState) {
-                content.invoke()
+                content.invoke(selectableState.items)
             }
         }
 

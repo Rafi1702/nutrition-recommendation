@@ -31,6 +31,7 @@ class UserProfileRepositoryImpl @Inject constructor(
             }?.data
 
         if (userProfileResponse != null) {
+            userProfileLocalDataSource.deleteUserProfile()
             return Result.success(
                 UserProfileData(
                     fromLocal = false,

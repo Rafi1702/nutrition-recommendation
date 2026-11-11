@@ -92,10 +92,10 @@ inline fun <T> safeCall(apiCall: () -> Response<T>): Result<T> {
             val appException = networkException.createAppException()
             Result.failure(appException)
         }
-    } catch (e: IOException) {
-        Result.failure(AppException.Network.ConnectionFailed)
-    } catch (_: ConnectException) {
-        Result.failure(AppException.Network.ConnectionFailed)
+    } catch (_: IOException) {
+        Result.failure(
+            AppException.Network.ConnectionFailed
+        )
     } catch (e: Exception) {
         Result.failure(e)
     }

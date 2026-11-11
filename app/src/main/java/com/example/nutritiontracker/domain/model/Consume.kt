@@ -7,7 +7,6 @@ enum class MealType(val label: String) {
     DINNER("Dinner")
 }
 
-
 data class NutrientsSubTotal(
     val calories: Int = 0,
     val carbs: Double = 0.0,
@@ -17,7 +16,6 @@ data class NutrientsSubTotal(
 
 data class ConsumeLog(
     val id: Int,
-    val userId: Int,
     val food: Food,
     val eatTime: String,
     val mealType: MealType

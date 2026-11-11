@@ -3,7 +3,6 @@ package com.example.nutritiontracker.ui.authentication
 import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.domain.AppException
 import com.example.nutritiontracker.domain.AppException.Companion.createAppException
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
@@ -12,7 +11,14 @@ object AuthEventManager {
 
     val authEvent = _authEvent.asSharedFlow()
 
-    suspend fun triggerLogout(networkException: NetworkException) {
-        _authEvent.emit(networkException.createAppException())
+    suspend fun triggerLogout(exception: Exception) {
+        when (exception) {
+            is NetworkException -> {
+                _authEvent.emit(exception.createAppException())
+            }
+            is AppException -> {
+                _authEvent.emit(exception)
+            }
+        }
     }
 }

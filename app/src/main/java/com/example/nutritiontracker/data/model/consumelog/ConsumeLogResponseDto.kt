@@ -7,15 +7,17 @@ data class ConsumeLogResponseDto(
     @SerializedName("id")
     val id: Int,
 
-    @SerializedName("user_id")
-    val userId: Int,
-
     @SerializedName("food")
     val food: FoodResponseDto,
 
-    @SerializedName("eat_time")
-    val eatTime: String,
+    @SerializedName("consumed_at")
+    val consumedAt: String,
+)
 
+data class ConsumeMealLogResponseDto(
     @SerializedName("meal_type")
-    val mealType: String
+    val mealType: String,
+
+    @SerializedName("consumes")
+    val consumes: List<ConsumeLogResponseDto>
 )

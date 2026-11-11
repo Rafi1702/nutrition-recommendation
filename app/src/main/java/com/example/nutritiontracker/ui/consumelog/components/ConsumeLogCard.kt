@@ -78,6 +78,7 @@ internal fun ConsumeLogSurface(
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         MealType.entries.forEach { mealType ->
+            if(mealType == MealType.UNSPECIFIED) return@forEach
             ConsumeLogHeader(
                 nutrientsSubTotal = consumeLog.nutrientsSubTotal(),
                 onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,

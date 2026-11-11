@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Preview(showBackground = true)
 @Composable
 fun FoodListPageHeader(){
-    FoodListMealSelections(selectedMealType = MealType.BREAKFAST)
+    FoodListMealSelections({})
 }
 
 @Preview(showBackground = true)

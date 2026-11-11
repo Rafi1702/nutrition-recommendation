@@ -85,7 +85,7 @@ class FoodListViewModel @AssistedInject constructor(
         }
     }
 
-    fun addAllFoodsToConsumeLog(foodIds: List<Int>) {
+    fun addAllFoodsToConsumeLog(foodIds: List<Int>, mealTypes: List<MealType> = emptyList()) {
         if (mealType == MealType.UNSPECIFIED) return
 
         viewModelScope.launch {

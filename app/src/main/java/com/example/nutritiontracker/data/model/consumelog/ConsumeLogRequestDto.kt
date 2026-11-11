@@ -2,12 +2,17 @@ package com.example.nutritiontracker.data.model.consumelog
 
 import com.google.gson.annotations.SerializedName
 
-data class ConsumeLogRequestDto(
+data class ConsumeMealRequestDto(
     @SerializedName("food_ids")
     val foodIds: List<Int>,
 
     @SerializedName("meal_type")
     val mealType: String,
+)
+
+data class ConsumeLogRequestDto(
+    @SerializedName("meals")
+    val meals: List<ConsumeMealRequestDto>,
 
     @SerializedName("consumed_at")
     val consumedAt: String

@@ -36,11 +36,10 @@ import com.example.nutritiontracker.data.mocks.MOCK_FOODS
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MacroNutrients
 import com.example.nutritiontracker.domain.model.MacroType
-import com.example.nutritiontracker.domain.model.QuantifiedFoodNutrients
 import com.example.nutritiontracker.ui.components.Chip
+import com.example.nutritiontracker.ui.home.components.colors
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.colorScheme
-import com.example.nutritiontracker.ui.theme.colors
 import com.example.nutritiontracker.ui.theme.typography
 import kotlin.math.roundToInt
 

@@ -22,17 +22,18 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.utils.composable.plus
 
+import androidx.compose.ui.platform.LocalInspectionMode
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConsumeLogDetail(
-    viewModel: ConsumeLogDetailViewModel = hiltViewModel(),
+    viewModel: ConsumeLogDetailViewModel? = if (LocalInspectionMode.current) null else hiltViewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
-    val lazyConsumeLogs = viewModel.consumeLogsFlow.collectAsLazyPagingItems()
     Scaffold(topBar = {
         TopAppBar(
             navigationIcon = {
-                IconButton(onClick =  onNavigateBack) {
+                IconButton(onClick = onNavigateBack) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
@@ -42,16 +43,18 @@ fun ConsumeLogDetail(
             title = { Text("Consume Logs") }
         )
     }) { innerPadding ->
-        ListPagingSection(
-            modifier = Modifier
-                .fillMaxSize(),
-            paddingValues = innerPadding + PaddingValues(horizontal = Spacing.m),
-            pagingItems = lazyConsumeLogs,
-            itemKey = { consumeLogStatus -> consumeLogStatus.consumeLog.id },
-            initialDataError = {
-                Text("Initial Data Error")
-            }) { consumeLog ->
-            FoodCard(food = consumeLog.consumeLog.food)
+        if (viewModel != null) {
+            val lazyConsumeLogs = viewModel.consumeLogsFlow.collectAsLazyPagingItems()
+            ListPagingSection(
+                modifier = Modifier.fillMaxSize(),
+                paddingValues = innerPadding + PaddingValues(horizontal = Spacing.m),
+                pagingItems = lazyConsumeLogs,
+                itemKey = { consumeLogStatus -> consumeLogStatus.consumeLog.id },
+                initialDataError = {
+                    Text("Initial Data Error")
+                }) { consumeLog ->
+                FoodCard(food = consumeLog.consumeLog.food)
+            }
         }
     }
 }
