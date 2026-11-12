@@ -12,5 +12,5 @@ import retrofit2.http.QueryMap
 interface RecommendationFoodRemoteDataSource {
     @GET("/foods/recommendations")
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
-    suspend fun getRecommendedFoods(@QueryMap(encoded = true) query: Map<String, Int>): Response<PaginatedListResponse<RecommendationFoodResponseDto>>
+    suspend fun getRecommendedFoods(@QueryMap(encoded = true) query: Map<String, Int?>): Response<PaginatedListResponse<RecommendationFoodResponseDto>>
 }

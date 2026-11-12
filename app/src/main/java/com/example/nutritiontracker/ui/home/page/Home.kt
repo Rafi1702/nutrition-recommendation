@@ -16,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.model.ConsumeLog
 import com.example.nutritiontracker.domain.model.Food
@@ -27,6 +30,7 @@ import com.example.nutritiontracker.ui.consumelog.components.ConsumeLogSurface
 import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
 import com.example.nutritiontracker.ui.home.components.ShowMoreButton
 import com.example.nutritiontracker.ui.home.components.UserNeedsCard
+import com.example.nutritiontracker.ui.home.viewmodel.HomeViewModel
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -81,10 +85,12 @@ val mockConsumeLogs = listOf(
 @Composable
 internal fun HomePage(
     modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
     onDateChanged: (String) -> Unit = {},
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
+    val uiState = viewModel.personalConsumeLogState.collectAsStateWithLifecycle()
     Surface(
         modifier = modifier,
         color = colorScheme.surface
@@ -111,7 +117,7 @@ internal fun HomePage(
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))
                 ConsumeLogSurface(
-                    consumeLog = mockConsumeLogs,
+                    personalConsumeLogState = uiState.value,
                     onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail
                 )
             }

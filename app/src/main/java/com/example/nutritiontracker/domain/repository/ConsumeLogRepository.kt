@@ -17,8 +17,13 @@ interface ConsumeLogRepository {
         consumedAt: String
     ): Result<Unit>
 
-    suspend fun getPersonalConsumeLog(
+    fun getPersonalConsumeLog(
         mealType: MealType,
         consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString()
     ): Flow<PagingData<ConsumeLog>>
+
+    suspend fun getPersonalConsumeLogList(
+        mealType: MealType,
+        consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString()
+    ): Result<List<ConsumeLog>>
 }

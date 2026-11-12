@@ -33,14 +33,14 @@ data class CursorPaginate<out T>(
 )
 
 data class CursorPaginateQuery(
-    val cursor: Int,
-    val limit: Int = ITEMS_LIMIT,
+    val cursor: Int? = null,
+    val limit: Int? = ITEMS_LIMIT,
 ) {
     fun toMap(): Map<String, Int> {
-        return mapOf(
-            "cursor" to cursor,
-            "limit" to limit
-        )
+        return buildMap {
+            cursor?.let { put("cursor", it) }
+            limit?.let { put("limit", it) }
+        }
     }
 }
 

@@ -4,7 +4,6 @@ import androidx.paging.PagingData
 import com.example.nutritiontracker.data.model.consumelog.ConsumeLogRequestDto
 import com.example.nutritiontracker.data.model.consumelog.ConsumeMealRequestDto
 import com.example.nutritiontracker.data.model.consumelog.toConsumeLog
-import com.example.nutritiontracker.data.model.consumelog.toLabel
 import com.example.nutritiontracker.data.remote.ConsumeLogRemoteDataSource
 import com.example.nutritiontracker.data.utils.CursorPaginateQuery
 import com.example.nutritiontracker.data.utils.ITEMS_LIMIT
@@ -47,7 +46,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getPersonalConsumeLog(
+    override fun getPersonalConsumeLog(
         mealType: MealType,
         consumedAt: String
     ): Flow<PagingData<ConsumeLog>> {
@@ -61,13 +60,39 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                                 limit = ITEMS_LIMIT
                             ).toMap()
                         )
-                        put("meal_type", mealType.toString())
-                        put("consumed_at", consumedAt)
+                        put("meal_type", mealType.ordinal)
+//                        put("consumed_at", consumedAt)
                     }
                 )
             },
             mapToData = { json ->
                 json.toConsumeLog()
+            }
+        )
+    }
+
+    override suspend fun getPersonalConsumeLogList(
+        mealType: MealType,
+        consumedAt: String
+    ): Result<List<ConsumeLog>> {
+        return safeCall {
+            consumeLogRemoteDataSource.getPersonalConsumeLogs(
+                buildMap {
+                    putAll(
+                        CursorPaginateQuery(
+                            limit = 3
+                        ).toMap()
+                    )
+                    put("meal_type", mealType.ordinal)
+//                    put("consumed_at", consumedAt)
+                }
+            )
+        }.fold(
+            onSuccess = { data ->
+                Result.success(data.data.items.map { consumeLog -> consumeLog.toConsumeLog() })
+            },
+            onFailure = { err ->
+                Result.failure(err)
             }
         )
     }
