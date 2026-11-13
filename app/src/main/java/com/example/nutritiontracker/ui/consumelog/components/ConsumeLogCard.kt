@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -75,7 +74,8 @@ internal fun ConsumeLogSurface(
     onNavigateToConsumeLogDetail: () -> Unit = {}
 ) {
     Column(
-        modifier = Modifier.background(colorScheme.surface),
+        modifier = Modifier.background(colorScheme.surface).fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         MealType.entries.forEach { mealType ->
@@ -97,7 +97,6 @@ internal fun ConsumeLogSurface(
                     val consumeLog = personalConsumeLogMealType.data
                     Column(
                         modifier = Modifier
-                            .height(if (consumeLog.isNotEmpty()) 120.dp else 0.dp)
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(
                             Spacing.xs,
