@@ -29,6 +29,16 @@
     <string name="submit_label">Kirim</string>
     <string name="save_label">Simpan</string>
 
+    <string-array name="selection_mode_array">
+        <item>Tunggal</item>
+        <item>Banyak</item>
+    </string-array>
+    <string name="item_selected_format">Item Dipilih: %1$d</string>
+    <string name="add_all">Tambah Semua</string>
+    <string name="see_selected_items">Lihat Item Dipilih</string>
+    <string name="add_foods_to_consume_logs">Tambah Makanan ke Catatan Konsumsi</string>
+    <string name="initial_data_error">Gagal Memuat Data</string>
+
     <string-array name="body_mass_index_level">
         <item>Dibawah rerata</item>
         <item>Normal</item>

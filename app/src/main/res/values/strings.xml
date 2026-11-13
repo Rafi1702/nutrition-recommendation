@@ -31,6 +31,16 @@
     <string name="save_label">Save</string>
 
     <!-- Selection or Multiple Selections Label -->
+    <string-array name="selection_mode_array">
+        <item>Single</item>
+        <item>Bulk</item>
+    </string-array>
+    <string name="item_selected_format">Item Selected: %1$d</string>
+    <string name="add_all">Add All</string>
+    <string name="see_selected_items">See Selected Items</string>
+    <string name="add_foods_to_consume_logs">Add Foods to Consume Logs</string>
+    <string name="initial_data_error">Initial Data Error</string>
+
     <string-array name="body_mass_index_level">
         <item>Below Average</item>
         <item>Normal</item>
