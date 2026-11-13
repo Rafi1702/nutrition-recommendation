@@ -16,75 +16,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
-import com.example.nutritiontracker.domain.model.ConsumeLog
-import com.example.nutritiontracker.domain.model.Food
-import com.example.nutritiontracker.domain.model.MacroNutrients
 import com.example.nutritiontracker.domain.model.MacroType
-import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.ui.components.DatePicker
 import com.example.nutritiontracker.ui.consumelog.components.ConsumeLogSurface
 import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
 import com.example.nutritiontracker.ui.home.components.ShowMoreButton
 import com.example.nutritiontracker.ui.home.components.UserNeedsCard
+import com.example.nutritiontracker.ui.home.viewmodel.HomeViewModel
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
-
-
-val mockConsumeLogs = listOf(
-    ConsumeLog(
-        id = 1,
-        eatTime = "2026-10-19T08:00:00Z",
-        mealType = MealType.BREAKFAST,
-        food = Food(
-            id = 1,
-            name = "Nasi Goreng Spesial",
-            macros = listOf(
-                MacroNutrients(type = MacroType.PROTEIN, serveValue = 12.5), // Indeks 0
-                MacroNutrients(type = MacroType.CARBS, serveValue = 45.0),   // Indeks 1
-                MacroNutrients(type = MacroType.FAT, serveValue = 15.0)      // Indeks 2
-            )
-        )
-    ),
-    ConsumeLog(
-        id = 2,
-        eatTime = "2026-10-19T12:30:00Z",
-        mealType = MealType.BREAKFAST,
-        food = Food(
-            id = 2,
-            name = "Dada Ayam Bakar & Nasi Merah",
-            macros = listOf(
-                MacroNutrients(type = MacroType.PROTEIN, serveValue = 30.0),
-                MacroNutrients(type = MacroType.CARBS, serveValue = 35.0),
-                MacroNutrients(type = MacroType.FAT, serveValue = 5.5)
-            )
-        )
-    ),
-    ConsumeLog(
-        id = 3,
-        eatTime = "2026-10-19T19:00:00Z",
-        mealType = MealType.DINNER,
-        food = Food(
-            id = 3,
-            name = "Sup Ikan Kuah Kuning",
-            macros = listOf(
-                MacroNutrients(type = MacroType.PROTEIN, serveValue = 22.0),
-                MacroNutrients(type = MacroType.CARBS, serveValue = 10.0),
-                MacroNutrients(type = MacroType.FAT, serveValue = 8.0)
-            )
-        )
-    )
-)
 
 @Preview(showBackground = true)
 @Composable
 internal fun HomePage(
     modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
     onDateChanged: (String) -> Unit = {},
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
+    val uiState = viewModel.personalConsumeLogState.collectAsStateWithLifecycle()
     Surface(
         modifier = modifier,
         color = colorScheme.surface
@@ -111,7 +66,7 @@ internal fun HomePage(
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))
                 ConsumeLogSurface(
-                    consumeLog = mockConsumeLogs,
+                    personalConsumeLogState = uiState.value,
                     onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail
                 )
             }

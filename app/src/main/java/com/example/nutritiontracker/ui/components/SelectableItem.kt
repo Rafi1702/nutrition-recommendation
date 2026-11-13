@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,6 +77,7 @@ fun rememberSelectableState(initialValue: Set<String>): SelectableState {
 fun SelectableItemsWrapper(
     initialValue: Set<String> = emptySet(),
     onFloatingButtonClicked: (ids: Set<String>) -> Unit = {},
+    isLoading: Boolean? = null,
     content: @Composable (ids: Set<String>) -> Unit
 ) {
     val selectableState = rememberSelectableState(initialValue = initialValue)
@@ -102,7 +105,12 @@ fun SelectableItemsWrapper(
         if (selectableState.isSelectableMode) Button(
             modifier = Modifier.align(Alignment.BottomCenter),
             onClick = { onFloatingButtonClicked(selectableState.items) }) {
-            Text("Tambah Semua")
+            if (isLoading == true) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else {
+                Text("Tambah Semua")
+            }
+
         }
     }
 }
@@ -111,6 +119,7 @@ fun SelectableItemsWrapper(
 fun SelectableItem(
     modifier: Modifier = Modifier,
     itemId: String,
+    onItemClick: (String) -> Unit = {},
     itemContent: @Composable (isSelected: Boolean) -> Unit,
 ) {
     val stateContainer = LocalSelectableState.current
@@ -120,8 +129,13 @@ fun SelectableItem(
             .combinedClickable(
                 interactionSource = null,
                 indication = null,
-                onLongClick = { stateContainer.toggleSelectableMode(itemId) },
-                onClick = { stateContainer.addItems(itemId) }
+                onLongClick = {
+                    stateContainer.toggleSelectableMode(itemId)
+                },
+                onClick = {
+                    stateContainer.addItems(itemId)
+                    onItemClick(itemId)
+                }
             )
             .background(if (stateContainer.items.contains(itemId)) colorScheme.primaryContainer else Color.Unspecified)
     ) {

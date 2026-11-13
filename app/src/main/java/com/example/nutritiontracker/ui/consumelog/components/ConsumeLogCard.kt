@@ -6,11 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Adb
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,12 +29,11 @@ import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.model.NutrientsSubTotal
 import com.example.nutritiontracker.domain.model.nutrientsSubTotal
 import com.example.nutritiontracker.ui.food.components.FoodCard
-import com.example.nutritiontracker.ui.home.components.ShowMoreButton
-import com.example.nutritiontracker.ui.home.page.mockConsumeLogs
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import com.example.nutritiontracker.ui.utils.composable.QueryState
 
 private data class MealTypeProperties(
     val containerColor: Color,
@@ -70,36 +70,57 @@ private fun MealType.properties(): MealTypeProperties = when (this) {
 
 @Composable
 internal fun ConsumeLogSurface(
-    consumeLog: List<ConsumeLog> = mockConsumeLogs,
+    personalConsumeLogState: Map<MealType, QueryState<List<ConsumeLog>>> = emptyMap(),
     onNavigateToConsumeLogDetail: () -> Unit = {}
 ) {
     Column(
-        modifier = Modifier.background(colorScheme.surface),
+        modifier = Modifier.background(colorScheme.surface).fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         MealType.entries.forEach { mealType ->
-            if(mealType == MealType.UNSPECIFIED) return@forEach
+            if (mealType == MealType.UNSPECIFIED) return@forEach
+
+            val personalConsumeLogMealType = personalConsumeLogState[mealType]
             ConsumeLogHeader(
-                nutrientsSubTotal = consumeLog.nutrientsSubTotal(),
+                nutrientsSubTotal = if (personalConsumeLogMealType is QueryState.Success) personalConsumeLogMealType.data.nutrientsSubTotal() else null,
                 onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
                 mealType = mealType
             )
-            Column(
-                modifier = Modifier
-                    .height(if (consumeLog.isNotEmpty()) 120.dp else 0.dp)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
 
-                if (consumeLog.isEmpty()) {
-                    Text(
-                        "No Data",
-                        style = typography.labelMedium.copy(color = colorScheme.onSurface)
-                    )
-                } else {
-                    consumeLog.forEach { log -> FoodCard(food = log.food) }
+            when (personalConsumeLogMealType) {
+                is QueryState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
+
+                is QueryState.Success -> {
+                    val consumeLog = personalConsumeLogMealType.data
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(
+                            Spacing.xs,
+                            Alignment.CenterVertically
+                        ),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        if (consumeLog.isEmpty()) {
+                            Text(
+                                "No Data",
+                                style = typography.labelMedium.copy(color = colorScheme.onSurface)
+                            )
+                        } else {
+                            consumeLog.forEach { log -> FoodCard(food = log.food) }
+                        }
+                    }
+                }
+
+                is QueryState.Error -> {
+                    Text("${personalConsumeLogMealType.error.message}")
+                }
+
+                else -> {}
             }
         }
     }
@@ -110,7 +131,7 @@ internal fun ConsumeLogSurface(
 private fun ConsumeLogHeader(
     nutrientsSubTotal: NutrientsSubTotal? = null,
     onNavigateToConsumeLogDetail: () -> Unit = {},
-    mealType: MealType = MealType.BREAKFAST,
+    mealType: MealType = MealType.UNSPECIFIED,
 
     ) {
     val (containerColor, contentColor, icon) = mealType.properties()
@@ -160,7 +181,7 @@ private fun ConsumeLogHeader(
 
 private val DUMMY_NUTRIENTS_SUB_TOTAL = NutrientsSubTotal(
     calories = 100,
-    proteins = 45.0
+    proteins = 45
 )
 
 @Preview(showBackground = true)

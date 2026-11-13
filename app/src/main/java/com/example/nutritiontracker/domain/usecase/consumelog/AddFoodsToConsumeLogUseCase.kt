@@ -26,7 +26,7 @@ class AddFoodsToConsumeLogUseCase @Inject constructor(
         meals: Map<MealType, List<Int>>,
         consumedAt: String
     ): Result<Unit> {
-        if(meals.isEmpty()) return Result.failure(ConsumeLogException.AddFoodToConsumeLogsException(""))
+        if(meals.isEmpty()) return Result.failure(ConsumeLogException.AddFoodToConsumeLogsException("Need at least one or more meal type selected"))
         return consumeLogRepository.addFoodsToConsumeLog(
             meals = meals,
             consumedAt = consumedAt

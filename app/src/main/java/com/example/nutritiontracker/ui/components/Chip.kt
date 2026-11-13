@@ -24,49 +24,66 @@ import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 
-data class ChipColors(
-    val backgroundColor: Color,
-    val contentColor: Color,
-)
-
 data class ChipBorder(
     val borderColor: Color = Color.Transparent,
     val borderWidth: Dp = 1.dp,
 )
 
-object FilledChipStyle {
-    @Composable
-    fun defaultColor(): ChipColors {
-        return ChipColors(
-            backgroundColor = colorScheme.primaryContainer,
-            contentColor = colorScheme.onPrimaryContainer
-        )
-    }
+data class ChipColorStyle(
+    val backgroundColor: Color,
+    val contentColor: Color,
+    val chipBorder: ChipBorder,
+)
+
+enum class ChipState {
+    ENABLED, DISABLED
 }
 
-object OutlinedChipStyle {
-    @Composable
-    fun defaultColor(): ChipColors {
-        return ChipColors(
-            backgroundColor = Color.Transparent,
-            contentColor = colorScheme.primary
-        )
-    }
+val FilledChipStyle: Map<ChipState, ChipColorStyle>
+    @Composable get() = mapOf(
+        ChipState.ENABLED to ChipColorStyle(
+            backgroundColor = colorScheme.primaryContainer,
+            contentColor = colorScheme.onPrimaryContainer,
+            chipBorder = ChipBorder()
+        ),
+        ChipState.DISABLED to ChipColorStyle(
+            backgroundColor = colorScheme.primaryContainer.copy(alpha = 0.38f),
+            contentColor = colorScheme.onPrimaryContainer.copy(alpha = 0.38f),
+            chipBorder = ChipBorder()
+        ),
+    )
 
-    @Composable
-    fun defaultBorder(): ChipBorder {
-        return ChipBorder(
-            borderColor = colorScheme.primary,
-            borderWidth = 1.dp
-        )
-    }
+val OutlinedChipStyle: Map<ChipState, ChipColorStyle>
+    @Composable get() = mapOf(
+        ChipState.ENABLED to ChipColorStyle(
+            backgroundColor = Color.Transparent,
+            contentColor = colorScheme.primary,
+            chipBorder = ChipBorder(borderColor = colorScheme.primary, borderWidth = 1.dp)
+        ),
+        ChipState.DISABLED to ChipColorStyle(
+            backgroundColor = Color.Transparent,
+            contentColor = colorScheme.onSurface.copy(alpha = 0.38f),
+            chipBorder = ChipBorder(borderColor = colorScheme.onSurface.copy(alpha = 0.12f), borderWidth = 1.dp)
+        ),
+    )
+
+fun Map<ChipState, ChipColorStyle>.defaultColor(chipState: ChipState = ChipState.ENABLED): ChipColorStyle {
+    return this[chipState] ?: ChipColorStyle(
+        backgroundColor = Color.Transparent,
+        contentColor = Color.Unspecified,
+        chipBorder = ChipBorder()
+    )
+}
+
+fun Map<ChipState, ChipColorStyle>.defaultBorder(chipState: ChipState = ChipState.ENABLED): ChipBorder {
+    return this[chipState]?.chipBorder ?: ChipBorder()
 }
 
 @Composable
 internal fun Chip(
     modifier: Modifier = Modifier,
     radius: Dp? = null,
-    colors: ChipColors = FilledChipStyle.defaultColor(),
+    colors: ChipColorStyle = FilledChipStyle.defaultColor(),
     content: @Composable () -> Unit,
 ) {
     Surface(
@@ -92,7 +109,7 @@ internal fun Chip(
     Chip(
         modifier = modifier,
         radius = radius,
-        colors = ChipColors(backgroundColor = color, contentColor = contentColor),
+        colors = ChipColorStyle(backgroundColor = color, contentColor = contentColor, chipBorder = ChipBorder()),
         content = content
     )
 }
@@ -102,7 +119,7 @@ internal fun Chip(
     modifier: Modifier = Modifier,
     radius: Dp? = null,
     label: String,
-    colors: ChipColors = FilledChipStyle.defaultColor()
+    colors: ChipColorStyle = FilledChipStyle.defaultColor()
 ) {
     Chip(modifier = modifier, radius = radius, colors = colors) {
         Text(
@@ -118,8 +135,8 @@ internal fun SelectionChip(
     modifier: Modifier = Modifier,
     radius: Dp? = null,
     selected: Boolean = false,
-    selectedColors: ChipColors = FilledChipStyle.defaultColor(),
-    unselectedColors: ChipColors = OutlinedChipStyle.defaultColor(),
+    selectedColors: ChipColorStyle = FilledChipStyle.defaultColor(),
+    unselectedColors: ChipColorStyle = OutlinedChipStyle.defaultColor(),
     border: ChipBorder? = if (!selected) OutlinedChipStyle.defaultBorder() else null,
     content: @Composable () -> Unit,
 ) {
@@ -168,7 +185,7 @@ internal fun SelectionChip(
         modifier = modifier,
         radius = radius,
         selected = selected,
-        selectedColors = ChipColors(backgroundColor = color, contentColor = contentColor),
+        selectedColors = ChipColorStyle(backgroundColor = color, contentColor = contentColor, chipBorder = ChipBorder()),
         unselectedColors = OutlinedChipStyle.defaultColor(),
         border = if (!selected) ChipBorder(borderColor = borderColor) else null,
         content = content

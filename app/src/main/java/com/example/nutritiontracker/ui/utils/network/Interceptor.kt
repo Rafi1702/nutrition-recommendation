@@ -1,24 +1,18 @@
 package com.example.nutritiontracker.ui.utils.network
 
-import android.util.Log
-import com.example.nutritiontracker.BuildConfig
-import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.data.local.LocalTokenDataSource
 import com.example.nutritiontracker.data.local.UserToken
 import com.example.nutritiontracker.data.model.auth.RefreshTokenRequestDto
 import com.example.nutritiontracker.data.remote.AuthService
+import com.example.nutritiontracker.data.utils.NetworkException
 import com.example.nutritiontracker.ui.authentication.AuthEventManager
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Invocation
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.Interceptor as OkHttpInterceptor
-
 
 class HeaderInterceptor(private val localTokenDataSource: LocalTokenDataSource) :
     OkHttpInterceptor {
@@ -74,7 +68,8 @@ class MockUnauthorizedInterceptor : OkHttpInterceptor {
             val response = Response.Builder()
                 .code(401)
                 .protocol(Protocol.HTTP_1_1)
-                .message("Unauthorized").body(errorBody.toResponseBody("application/json".toMediaType()))
+                .message("Unauthorized")
+                .body(errorBody.toResponseBody("application/json".toMediaType()))
                 .request(request)
                 .addHeader("Content-Type", "application/json")
                 .build()
@@ -89,83 +84,83 @@ class MockUnauthorizedInterceptor : OkHttpInterceptor {
     }
 }
 
-class ResponseInterceptor(private val localTokenDataSource: LocalTokenDataSource) :
-    OkHttpInterceptor {
+class ResponseInterceptor(
+    private val localTokenDataSource: LocalTokenDataSource,
+    private val authService: AuthService
+) : OkHttpInterceptor {
 
-    private fun updateUserToken(authService: AuthService): Result<UserToken> {
+    private fun updateUserToken(): Result<UserToken> {
         val oldToken = runBlocking { localTokenDataSource.getUserToken() }
 
-        val refreshTokenResponse = oldToken.refreshToken?.let {
-            runBlocking {
-                authService.refreshToken(RefreshTokenRequestDto(refreshToken = oldToken.refreshToken))
-            }
+        val refreshToken = oldToken.refreshToken ?: return Result.failure(Exception("No refresh token available"))
+
+        val refreshTokenResponse = runBlocking {
+            authService.refreshToken(RefreshTokenRequestDto(refreshToken = refreshToken))
         }
 
-        refreshTokenResponse?.let { response ->
-            if (response.code() != 200) return Result.failure(
+        if (refreshTokenResponse.code() != 200 || refreshTokenResponse.body() == null) {
+            return Result.failure(
                 NetworkException.create(
                     refreshTokenResponse.code(),
-                    errorBody = response.errorBody()?.string()
+                    errorBody = refreshTokenResponse.errorBody()?.string()
                 )
             )
-
-            response.body()?.let { body ->
-                runBlocking {
-                    localTokenDataSource.setToken(body.data.accessToken)
-                    localTokenDataSource.setRefreshToken(body.data.refreshToken)
-                }
-            }
-            val newStoreToken = runBlocking { localTokenDataSource.getUserToken() }
-
-
-            return Result.success(newStoreToken)
         }
 
-        return Result.failure(Exception("Unknown Error"))
+        val body = refreshTokenResponse.body()!!.data
+        runBlocking {
+            localTokenDataSource.setToken(body.accessToken)
+            localTokenDataSource.setRefreshToken(body.refreshToken)
+        }
+
+        val newStoreToken = runBlocking { localTokenDataSource.getUserToken() }
+        return Result.success(newStoreToken)
     }
 
     override fun intercept(chain: OkHttpInterceptor.Chain): Response {
         val request = chain.request()
         val response = chain.proceed(request)
 
+        if (response.code != 401) return response
+
         synchronized(this) {
-            if (response.code == 401) {
-                val refreshClient = OkHttpClient.Builder().build()
-                val retrofitRefresh = Retrofit.Builder()
-                    .baseUrl(BuildConfig.BASE_URL)
-                    .client(refreshClient)
-                    .addConverterFactory(GsonConverterFactory.create())
+            val currentToken = runBlocking { localTokenDataSource.getUserToken() }
+            val requestToken = request.header(AuthorizationPolicy.BEARER.key)
+
+            // Double-check: If another concurrent request already refreshed the token while we were waiting,
+            // retry this request immediately with the newly stored token.
+            if (requestToken != null && requestToken != "Bearer ${currentToken.accessToken}") {
+                response.close()
+                val newRequest = request.newBuilder()
+                    .header(AuthorizationPolicy.BEARER.key, "Bearer ${currentToken.accessToken}")
+                    .header("Content-Type", ContentType.JSON.value)
                     .build()
-
-                val authService = retrofitRefresh.create(AuthService::class.java)
-
-                val newUserToken = updateUserToken(authService)
-
-                var finalResponse: Response? = null
-                newUserToken.fold(
-                    onSuccess = { (accessToken, refreshToken) ->
-                        response.close()
-                        val newRequest = request.newBuilder()
-                            .header(AuthorizationPolicy.BEARER.key, "Bearer $accessToken")
-                            .header("Content-Type", ContentType.JSON.value)
-                            .build()
-
-                        finalResponse = chain.proceed(newRequest)
-
-                    },
-                    onFailure = { err ->
-                        if(err is NetworkException){
-                            runBlocking {
-                                localTokenDataSource.clearToken()
-                                AuthEventManager.triggerLogout(err)
-                            }
-                        }
-                        finalResponse = response
-                    }
-                )
-                return finalResponse!!
+                return chain.proceed(newRequest)
             }
+
+            val newUserToken = updateUserToken()
+
+            return newUserToken.fold(
+                onSuccess = { (accessToken, _) ->
+                    response.close()
+                    val newRequest = request.newBuilder()
+                        .header(AuthorizationPolicy.BEARER.key, "Bearer $accessToken")
+                        .header("Content-Type", ContentType.JSON.value)
+                        .build()
+
+                    chain.proceed(newRequest)
+                },
+                onFailure = { err ->
+                    response.close()
+                    if (err is NetworkException) {
+                        runBlocking {
+                            localTokenDataSource.clearToken()
+                            AuthEventManager.triggerLogout(err)
+                        }
+                    }
+                    response
+                }
+            )
         }
-        return response
     }
 }

@@ -16,7 +16,7 @@ import retrofit2.http.QueryMap
 interface ConsumeLogRemoteDataSource {
     @GET("/consume/filter")
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
-    suspend fun getConsumeLog(@QueryMap(encoded = true) query: Map<String, @JvmSuppressWildcards Any>): Response<PaginatedListResponse<ConsumeMealLogResponseDto>>
+    suspend fun getConsumeLog(@QueryMap(encoded = true) query: Map<String, @JvmSuppressWildcards Any?>): Response<PaginatedListResponse<ConsumeMealLogResponseDto>>
 
     @POST("/consume")
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
@@ -24,6 +24,6 @@ interface ConsumeLogRemoteDataSource {
 
     @GET("/consume/me")
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
-    suspend fun getPersonalConsumeLogs(@QueryMap(encoded = true) query: Map<String, @JvmSuppressWildcards Any>): Response<PaginatedListResponse<ConsumeMealLogResponseDto>>
+    suspend fun getPersonalConsumeLogs(@QueryMap(encoded = true) query: Map<String, @JvmSuppressWildcards Any?>): Response<PaginatedListResponse<ConsumeMealLogResponseDto>>
 
 }

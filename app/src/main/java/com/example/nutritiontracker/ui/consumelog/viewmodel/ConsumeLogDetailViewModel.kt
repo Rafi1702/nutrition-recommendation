@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.consumelog.GetConsumeLogUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
@@ -21,7 +22,7 @@ class ConsumeLogDetailViewModel @Inject constructor(
     getConsumeLogUseCase: GetConsumeLogUseCase,
 ) : ViewModel() {
 
-    val consumeLogsFlow = getConsumeLogUseCase().map { consumeLogs ->
+    val consumeLogsFlow = getConsumeLogUseCase(mealType = MealType.BREAKFAST, consumedAt = "").map { consumeLogs ->
         consumeLogs.map { consumeLog ->
             ConsumeLogUiStatus(consumeLog = consumeLog)
         }

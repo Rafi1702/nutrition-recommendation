@@ -67,15 +67,15 @@ object UserProfilePreferenceSerializer : Serializer<UserProfileLocal?> {
         get() = null
 
     override suspend fun readFrom(input: InputStream): UserProfileLocal? {
-        try {
-            return Json.decodeFromString(
+        return try {
+            Json.decodeFromString(
                 deserializer = UserProfileLocal.serializer(),
                 string = input.readBytes().decodeToString()
             )
         } catch (e: SerializationException) {
             throw CorruptionException("Unable to read UserProfileLocal", e)
         } catch (_: Exception){
-            return null
+            null
         }
     }
 
