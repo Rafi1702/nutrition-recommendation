@@ -4,16 +4,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.PagingData
 import com.example.nutritiontracker.data.mocks.MOCK_FOODS
-import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.ui.components.SelectableItemsWrapper
+import com.example.nutritiontracker.ui.components.SelectionMode
 import com.example.nutritiontracker.ui.food.model.FoodUiState
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Preview(showBackground = true)
 @Composable
-fun FoodListPageHeader(){
-    FoodListMealSelections({})
+fun FoodListPageHeaderPreview() {
+    NutritionTrackerTheme {
+        FoodListMealSelections()
+    }
 }
 
 @Preview(showBackground = true)
@@ -22,7 +24,9 @@ fun FoodListPreview() {
     val pagingData = PagingData.from(MOCK_FOODS.map { FoodUiState(food = it, isLoading = false) })
     val fakeDataFlow = MutableStateFlow(pagingData)
     NutritionTrackerTheme {
-        SelectableItemsWrapper { FoodList(foodItems = fakeDataFlow) }
+        SelectableItemsWrapper {
+            FoodList(foodItems = fakeDataFlow)
+        }
     }
 }
 
@@ -32,6 +36,16 @@ fun FoodListPreviewBulk() {
     val pagingData = PagingData.from(MOCK_FOODS.map { FoodUiState(food = it, isLoading = false) })
     val fakeDataFlow = MutableStateFlow(pagingData)
     NutritionTrackerTheme {
-        SelectableItemsWrapper { FoodList(foodItems = fakeDataFlow) }
+        SelectableItemsWrapper(selectionMode = SelectionMode.BULK) {
+            FoodList(foodItems = fakeDataFlow)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SelectionModeDropdownPreview() {
+    NutritionTrackerTheme {
+        SelectionModeDropdown(selectionMode = SelectionMode.SINGLE) {}
     }
 }

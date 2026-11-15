@@ -8,6 +8,8 @@
     <string name="total_calories_unit">kkal</string>
     <string name="add_to_consume_log">Tambah ke Catatan</string>
     <string name="food_recommendation_list">Rekomendasi Makanan</string>
+    <string name="food_list_title">Daftar Makanan</string>
+    <string name="food_list_subtitle">Pilih satu atau banyak makanan</string>
     <string name="today_macro_nutrition_needs">Nutrisi Hari Ini</string>
     <string name="user_needs_card_recorded_daily_nutrition">Tercatat</string>
     <string name="user_needs_card_recorded_daily_energy">Energi Harian</string>
