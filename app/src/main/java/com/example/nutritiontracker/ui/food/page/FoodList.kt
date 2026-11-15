@@ -2,7 +2,6 @@ package com.example.nutritiontracker.ui.food.page
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -33,8 +32,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -78,8 +76,9 @@ import kotlinx.coroutines.launch
 fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = hiltViewModel()) {
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val selectedMealType = remember { mutableStateMapOf<MealType, List<Int>>() }
+    val selectedMealType = remember { mutableMapOf<MealType, List<Int>>() }
     val selectionMode = remember { mutableStateOf(SelectionMode.SINGLE) }
+    val selectionModeState = remember { derivedStateOf { selectionMode.value } }
     val showBottomSheet = remember { mutableStateOf(false) }
 
     val snackBarState = LocalSnackBarHost.current
@@ -90,13 +89,12 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
         onFailure = { err ->
             snackBarState.showSnackbar(message = err.message ?: "Unknown")
         },
-        onSuccess = {},
         coroutineScope = scope
     )
 
     SelectableItemsWrapper(
-        selectionMode = selectionMode.value,
-        floatingButton = { ids ->
+        selectionMode = selectionModeState.value,
+        floatingButton = { state ->
             Button(
                 onClick = { showBottomSheet.value = true },
                 shape = RoundedCornerShape(20.dp),
@@ -135,9 +133,9 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
                     selectionMode.value = newMode
                 }
             }
-        }) { selectableItems ->
+        }) { selectableState ->
 
-        val selectableItemsId = selectableItems.toList().map { it.toInt() }
+        val selectableItemsId = selectableState.items.toList().map { it.toInt() }
         FoodList(
             modifier = modifier,
             foodItems = viewModel.foodsFlow,
@@ -177,7 +175,7 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
                     )
 
                     val filteredFoods = viewModel.availableFoods.filter { food ->
-                        selectableItems.contains(food.id.toString())
+                        selectableState.items.contains(food.id.toString())
                     }
 
                     LazyColumn(
@@ -197,7 +195,7 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
                             .height(50.dp),
                         enabled = uiState.value !is MutationState.Pending,
                         onClick = {
-                            val selectableItemsId = selectableItems.toList().map { it.toInt() }
+                            val selectableItemsId = selectableState.items.toList().map { it.toInt() }
 
                             selectedMealType.keys.toList().forEach { key ->
                                 selectedMealType[key] = selectableItemsId

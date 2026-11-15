@@ -104,7 +104,7 @@ internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(
 fun <T> MutationEffect(
     mutationState: MutationState<T>,
     activeWhen: Boolean = true,
-    onSuccess: (T) -> Unit,
+    onSuccess: ((T) -> Unit)? = null,
     onFailure: suspend (Throwable) -> Unit,
     coroutineScope: CoroutineScope = rememberCoroutineScope()
 ) {
@@ -113,7 +113,7 @@ fun <T> MutationEffect(
     LaunchedEffect(mutationState) {
         when (mutationState) {
             is MutationState.Success -> {
-                onSuccess(mutationState.data)
+                onSuccess?.invoke(mutationState.data)
             }
             is MutationState.Error -> {
                 coroutineScope.launch{

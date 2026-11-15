@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,8 @@ val SelectionMode.label: String
         return labels.getOrElse(this.index) { this.name }
     }
 
+
+
 class SelectableState(
     isSelectableMode: Boolean = false,
     initialValue: Set<String> = emptySet(),
@@ -58,7 +61,7 @@ class SelectableState(
     private val _items = mutableStateOf(initialValue)
     private val isSelectableState = mutableStateOf(isSelectableMode)
     val items get() = _items.value
-    val isSelectableMode get() = isSelectableState.value && _items.value.isNotEmpty()
+    val isSelectableMode = derivedStateOf { isSelectableState.value && _items.value.isNotEmpty() }.value
     val itemCount get() = _items.value.size
 
     fun toggleSelectableMode(item: String? = null) {
@@ -106,12 +109,15 @@ fun rememberSelectableState(
 }
 
 
+/*
+* TODO: Fix the Rebuilding issue later
+* */
 @Composable
 fun SelectableItemsWrapper(
     initialValue: Set<String> = emptySet(),
-    onFloatingButtonClicked: (ids: Set<String>) -> Unit = {},
+    onFloatingButtonClicked: (SelectableState) -> Unit = {},
     isLoading: Boolean? = null,
-    content: @Composable (ids: Set<String>) -> Unit
+    content: @Composable (SelectableState) -> Unit
 ) {
     val selectableState = rememberSelectableState(initialValue = initialValue)
 
@@ -125,19 +131,19 @@ fun SelectableItemsWrapper(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(stringResource(R.string.item_selected_format, selectableState.itemCount))
-                Checkbox(checked = selectableState.isSelectableMode, onCheckedChange = {
+                Checkbox(checked = true, onCheckedChange = {
                     selectableState.toggleSelectableMode()
                 })
             }
 
             CompositionLocalProvider(LocalSelectableState provides selectableState) {
-                content.invoke(selectableState.items)
+                content.invoke(selectableState)
             }
         }
 
         if (selectableState.isSelectableMode) Button(
             modifier = Modifier.align(Alignment.BottomCenter),
-            onClick = { onFloatingButtonClicked(selectableState.items) }) {
+            onClick = { onFloatingButtonClicked(selectableState) }) {
             if (isLoading == true) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             } else {
@@ -151,9 +157,9 @@ fun SelectableItemsWrapper(
 fun SelectableItemsWrapper(
     initialValue: Set<String> = emptySet(),
     selectionMode: SelectionMode = SelectionMode.SINGLE,
-    header: @Composable ((ids: Set<String>) -> Unit)? = null,
-    floatingButton: @Composable ((ids: Set<String>) -> Unit)? = null,
-    content: @Composable (ids: Set<String>) -> Unit
+    header: @Composable ((SelectableState) -> Unit)? = null,
+    floatingButton: @Composable ((SelectableState) -> Unit)? = null,
+    content: @Composable (SelectableState) -> Unit
 ) {
     val selectableState = rememberSelectableState(key = selectionMode, initialValue = initialValue)
     var visible by remember {
@@ -166,9 +172,9 @@ fun SelectableItemsWrapper(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
-            header?.invoke(selectableState.items)
+            header?.invoke(selectableState)
             CompositionLocalProvider(LocalSelectableState provides selectableState) {
-                content.invoke(selectableState.items)
+                content.invoke(selectableState)
             }
         }
 
@@ -180,7 +186,7 @@ fun SelectableItemsWrapper(
                 alpha = animatedAlpha
             }) {
                 floatingButton?.invoke(
-                    selectableState.items
+                    selectableState
                 )
             }
         }
