@@ -27,10 +27,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.nutritiontracker.R
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
+
+enum class SelectionMode(val index: Int) {
+    SINGLE(0),
+    BULK(1)
+}
+
+val SelectionMode.label: String
+    @Composable get() {
+        val labels = stringArrayResource(R.array.selection_mode_array)
+        return labels.getOrElse(this.index) { this.name }
+    }
 
 class SelectableState(
     isSelectableMode: Boolean = false,
@@ -55,6 +69,8 @@ class SelectableState(
     }
 
     fun addItems(item: String) {
+        if (!isSelectableState.value) return
+
         if (_items.value.contains(item)) {
             _items.value -= item
         } else {
@@ -63,13 +79,25 @@ class SelectableState(
     }
 }
 
-
 val LocalSelectableState =
     compositionLocalOf<SelectableState> { error("No selectable state provided") }
 
 @Composable
-fun rememberSelectableState(initialValue: Set<String>): SelectableState {
+fun rememberSelectableState( initialValue: Set<String>): SelectableState {
     return remember { SelectableState(initialValue = initialValue) }
+}
+
+@Composable
+fun rememberSelectableState(
+    key: SelectionMode,
+    initialValue: Set<String>,
+): SelectableState {
+    return remember(key) {
+        SelectableState(
+            initialValue = initialValue,
+            isSelectableMode = key == SelectionMode.BULK
+        )
+    }
 }
 
 
@@ -91,7 +119,7 @@ fun SelectableItemsWrapper(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Item Selected: ${selectableState.itemCount}")
+                Text(stringResource(R.string.item_selected_format, selectableState.itemCount))
                 Checkbox(checked = selectableState.isSelectableMode, onCheckedChange = {
                     selectableState.toggleSelectableMode()
                 })
@@ -108,9 +136,34 @@ fun SelectableItemsWrapper(
             if (isLoading == true) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             } else {
-                Text("Tambah Semua")
+                Text(stringResource(R.string.add_all))
             }
+        }
+    }
+}
 
+@Composable
+fun SelectableItemsWrapper(
+    initialValue: Set<String> = emptySet(),
+    selectionMode: SelectionMode = SelectionMode.SINGLE,
+    header: @Composable ((ids: Set<String>) -> Unit)? = null,
+    floatingButton: @Composable ((ids: Set<String>) -> Unit)? = null,
+    content: @Composable (ids: Set<String>) -> Unit
+) {
+    val selectableState = rememberSelectableState(key = selectionMode, initialValue = initialValue)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column {
+            header?.invoke(selectableState.items)
+            CompositionLocalProvider(LocalSelectableState provides selectableState) {
+                content.invoke(selectableState.items)
+            }
+        }
+
+        if (selectionMode == SelectionMode.BULK) Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+            floatingButton?.invoke(
+                selectableState.items
+            )
         }
     }
 }
@@ -119,6 +172,7 @@ fun SelectableItemsWrapper(
 fun SelectableItem(
     modifier: Modifier = Modifier,
     itemId: String,
+    enableLongClick: Boolean = true,
     onItemClick: (String) -> Unit = {},
     itemContent: @Composable (isSelected: Boolean) -> Unit,
 ) {
@@ -130,7 +184,9 @@ fun SelectableItem(
                 interactionSource = null,
                 indication = null,
                 onLongClick = {
-                    stateContainer.toggleSelectableMode(itemId)
+                    if (enableLongClick) {
+                        stateContainer.toggleSelectableMode(itemId)
+                    }
                 },
                 onClick = {
                     stateContainer.addItems(itemId)
@@ -159,16 +215,13 @@ private fun ExampleUse() {
                     Text(item)
                 }
             }
-
         }
     }
 }
 
-
 @Composable
 private fun BarItem(selected: Boolean = false) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
         Box(
             modifier = Modifier
                 .background(

@@ -36,6 +36,10 @@ class FoodListViewModel @AssistedInject constructor(
     private val foodMutations = MutableStateFlow(emptyMap<Int, FoodUiState>())
     private val _uiState = MutableStateFlow<MutationState<Unit>>(MutationState.Idle)
 
+    private val _availableFoods = mutableListOf<Food>()
+    val availableFoods: List<Food>
+        get() = _availableFoods.toList()
+
     val uiState = _uiState.asStateFlow()
 
     @AssistedFactory
@@ -49,6 +53,7 @@ class FoodListViewModel @AssistedInject constructor(
     val foodsFlow =
         getFoodsUseCase().map { data ->
             data.map { food ->
+                _availableFoods += food
                 FoodUiState(
                     food = food,
                     isLoading = false

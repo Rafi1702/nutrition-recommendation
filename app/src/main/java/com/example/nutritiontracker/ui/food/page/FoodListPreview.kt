@@ -25,3 +25,13 @@ fun FoodListPreview() {
         SelectableItemsWrapper { FoodList(foodItems = fakeDataFlow) }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun FoodListPreviewBulk() {
+    val pagingData = PagingData.from(MOCK_FOODS.map { FoodUiState(food = it, isLoading = false) })
+    val fakeDataFlow = MutableStateFlow(pagingData)
+    NutritionTrackerTheme {
+        SelectableItemsWrapper { FoodList(foodItems = fakeDataFlow) }
+    }
+}
