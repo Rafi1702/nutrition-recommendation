@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.UserProfileData
@@ -115,11 +117,13 @@ fun <T> MutationEffect(
             is MutationState.Success -> {
                 onSuccess?.invoke(mutationState.data)
             }
+
             is MutationState.Error -> {
-                coroutineScope.launch{
+                coroutineScope.launch {
                     onFailure(mutationState.error)
                 }
             }
+
             else -> {}
         }
     }
@@ -147,9 +151,17 @@ fun <T> MutationEffect(
 annotation class DevicePreviews
 
 @Composable
-fun NavigationListener(navController: NavHostController, tag: String) {
-    LaunchedEffect(Unit) {
-        navController.addOnDestinationChangedListener { controller, destination, _ ->
+fun NavigationListener(
+    navController: NavHostController,
+    tag: String,
+    onNavigationChange: ((Boolean) -> Unit)? = null
+) {
+
+   val currentCallback by rememberUpdatedState(onNavigationChange)
+
+    DisposableEffect(Unit) {
+        val listener = NavController.OnDestinationChangedListener { controller, destination, _ ->
+            val previousRoute = controller.previousBackStackEntry?.destination?.route
             Log.d(
                 "[NAVIGATION]",
                 """
@@ -158,7 +170,13 @@ fun NavigationListener(navController: NavHostController, tag: String) {
                        DESTINATION: ${destination.route}
                 """.trimIndent()
             )
+
+            currentCallback?.invoke(previousRoute != destination.route)
         }
+        navController.addOnDestinationChangedListener(listener)
+
+
+        onDispose { navController.removeOnDestinationChangedListener(listener) }
     }
 }
 

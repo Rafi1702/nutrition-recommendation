@@ -59,7 +59,7 @@ class SelectableState<T : Any>(
     private val isSelectableState = mutableStateOf(isSelectableMode)
     val items get() = _items.value
     val isSelectableMode: Boolean by derivedStateOf {
-        isSelectableState.value && _items.value.isNotEmpty()
+        isSelectableState.value || _items.value.isNotEmpty()
     }
     val itemCount get() = _items.value.size
 
@@ -248,7 +248,7 @@ fun <T : Any> SelectableItem(
             )
             .background(if (selectableState.items.contains(item)) colorScheme.primaryContainer else Color.Unspecified)
     ) {
-        itemContent(selectableState.items.contains(item))
+            itemContent(selectableState.items.contains(item))
     }
 }
 
