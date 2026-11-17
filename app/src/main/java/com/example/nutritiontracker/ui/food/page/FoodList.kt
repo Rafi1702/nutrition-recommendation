@@ -56,6 +56,8 @@ import com.example.nutritiontracker.ui.ListPagingSection
 import com.example.nutritiontracker.ui.components.MultiSelectOptions
 import com.example.nutritiontracker.ui.components.SelectableItem
 import com.example.nutritiontracker.ui.components.SelectableItemsWrapper
+import com.example.nutritiontracker.ui.components.SelectableState
+import com.example.nutritiontracker.ui.components.rememberSelectableState
 import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.components.SelectionMode
 import com.example.nutritiontracker.ui.components.label
@@ -78,7 +80,6 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val selectedMealType = remember { mutableMapOf<MealType, List<Int>>() }
     val selectionMode = remember { mutableStateOf(SelectionMode.SINGLE) }
-    val selectionModeState = remember { derivedStateOf { selectionMode.value } }
     val showBottomSheet = remember { mutableStateOf(false) }
 
     val snackBarState = LocalSnackBarHost.current
@@ -89,11 +90,14 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
         onFailure = { err ->
             snackBarState.showSnackbar(message = err.message ?: "Unknown")
         },
+        onSuccess = {
+
+        },
         coroutineScope = scope
     )
 
-    SelectableItemsWrapper(
-        selectionMode = selectionModeState.value,
+    SelectableItemsWrapper<Food>(
+        selectionMode = selectionMode.value,
         floatingButton = { state ->
             Button(
                 onClick = { showBottomSheet.value = true },
@@ -135,10 +139,11 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
             }
         }) { selectableState ->
 
-        val selectableItemsId = selectableState.items.toList().map { it.toInt() }
+        val selectableItemsId = selectableState.items.toList().map { it.id }
         FoodList(
             modifier = modifier,
             foodItems = viewModel.foodsFlow,
+            selectableState= selectableState,
             onSelectableModeItemClick = {
                 selectedMealType.keys.toList().forEach { key ->
                     selectedMealType[key] = selectableItemsId
@@ -175,7 +180,7 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
                     )
 
                     val filteredFoods = viewModel.availableFoods.filter { food ->
-                        selectableState.items.contains(food.id.toString())
+                        selectableState.items.contains(food)
                     }
 
                     LazyColumn(
@@ -195,7 +200,8 @@ fun FoodListPage(modifier: Modifier = Modifier, viewModel: FoodListViewModel = h
                             .height(50.dp),
                         enabled = uiState.value !is MutationState.Pending,
                         onClick = {
-                            val selectableItemsId = selectableState.items.toList().map { it.toInt() }
+                            val selectableItemsId =
+                                selectableState.items.toList().map { it.id }
 
                             selectedMealType.keys.toList().forEach { key ->
                                 selectedMealType[key] = selectableItemsId
@@ -244,6 +250,7 @@ fun FoodListMealSelections(
 fun FoodList(
     modifier: Modifier = Modifier,
     foodItems: Flow<PagingData<FoodUiState>>,
+    selectableState: SelectableState<Food> = rememberSelectableState(initialValue = emptySet()),
     onMealsChanged: (List<MealType>) -> Unit = {},
     onSelectableModeItemClick: (Int) -> Unit = {},
     onAddFoodToConsumeLogs: (food: Food, mealType: MealType) -> Unit = { _, _ -> },
@@ -254,7 +261,7 @@ fun FoodList(
         modifier = modifier.fillMaxSize(),
         paddingValues = PaddingValues(bottom = Spacing.m),
         pagingItems = foodLazyItems,
-        itemKey = { uiState -> uiState.food.id },
+        itemKey = { foodStateHolder -> foodStateHolder.food.id },
         headerProps = (false to {
             FoodListMealSelections(
                 onMealsChanged = onMealsChanged
@@ -262,23 +269,24 @@ fun FoodList(
         }),
         initialDataError = {
             Text(stringResource(R.string.initial_data_error))
-        }) { uiState ->
+        }) { foodStateHolder ->
         SelectableItem(
-            itemId = uiState.food.id.toString(),
+            item = foodStateHolder.food,
+            selectableState = selectableState,
             enableLongClick = false,
             onItemClick = {
-                onSelectableModeItemClick(uiState.food.id)
+                onSelectableModeItemClick(foodStateHolder.food.id)
             }
         ) { isSelected ->
             FoodCard(
                 modifier = Modifier.padding(horizontal = Spacing.s),
-                food = uiState.food,
-                isLoading = uiState.isLoading,
+                food = foodStateHolder.food,
+                isLoading = foodStateHolder.isLoading,
                 onAddClick = if (isSelected) {
                     null
                 } else {
                     {
-                        onAddFoodToConsumeLogs(uiState.food, MealType.UNSPECIFIED)
+                        onAddFoodToConsumeLogs(foodStateHolder.food, MealType.UNSPECIFIED)
                     }
                 }
             )

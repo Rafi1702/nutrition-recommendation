@@ -24,8 +24,11 @@ fun FoodListPreview() {
     val pagingData = PagingData.from(MOCK_FOODS.map { FoodUiState(food = it, isLoading = false) })
     val fakeDataFlow = MutableStateFlow(pagingData)
     NutritionTrackerTheme {
-        SelectableItemsWrapper {
-            FoodList(foodItems = fakeDataFlow)
+        SelectableItemsWrapper { selectableState ->
+            FoodList(
+                foodItems = fakeDataFlow,
+                selectableState = selectableState
+            )
         }
     }
 }
@@ -36,8 +39,11 @@ fun FoodListPreviewBulk() {
     val pagingData = PagingData.from(MOCK_FOODS.map { FoodUiState(food = it, isLoading = false) })
     val fakeDataFlow = MutableStateFlow(pagingData)
     NutritionTrackerTheme {
-        SelectableItemsWrapper(selectionMode = SelectionMode.BULK) {
-            FoodList(foodItems = fakeDataFlow)
+        SelectableItemsWrapper(selectionMode = SelectionMode.BULK) { selectableState ->
+            FoodList(
+                foodItems = fakeDataFlow,
+                selectableState = selectableState
+            )
         }
     }
 }

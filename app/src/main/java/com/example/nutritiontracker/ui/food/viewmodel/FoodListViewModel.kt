@@ -100,14 +100,14 @@ class FoodListViewModel @AssistedInject constructor(
             _uiState.update { MutationState.Pending }
             delay(1000)
 
-            addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
-                onSuccess = { data ->
-                    _uiState.update { MutationState.Success(data) }
-                },
-                onFailure = { err ->
-                    _uiState.update { MutationState.Error(err) }
-                }
-            )
+//            addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
+//                onSuccess = { data ->
+//                    _uiState.update { MutationState.Success(data) }
+//                },
+//                onFailure = { err ->
+//                    _uiState.update { MutationState.Error(err) }
+//                }
+//            )
 
             delay(500)
             _uiState.update { MutationState.Idle }

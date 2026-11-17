@@ -22,8 +22,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,18 +51,19 @@ val SelectionMode.label: String
     }
 
 
-
-class SelectableState(
+class SelectableState<T : Any>(
     isSelectableMode: Boolean = false,
-    initialValue: Set<String> = emptySet(),
+    initialValue: Set<T> = emptySet(),
 ) {
     private val _items = mutableStateOf(initialValue)
     private val isSelectableState = mutableStateOf(isSelectableMode)
     val items get() = _items.value
-    val isSelectableMode = derivedStateOf { isSelectableState.value && _items.value.isNotEmpty() }.value
+    val isSelectableMode: Boolean by derivedStateOf {
+        isSelectableState.value && _items.value.isNotEmpty()
+    }
     val itemCount get() = _items.value.size
 
-    fun toggleSelectableMode(item: String? = null) {
+    fun toggleSelectableMode(item: T? = null) {
         if (isSelectableState.value) {
             _items.value = emptySet()
             isSelectableState.value = false
@@ -76,7 +75,7 @@ class SelectableState(
         }
     }
 
-    fun addItems(item: String) {
+    fun addItems(item: T) {
         if (!isSelectableState.value) return
 
         if (_items.value.contains(item)) {
@@ -87,19 +86,16 @@ class SelectableState(
     }
 }
 
-val LocalSelectableState =
-    compositionLocalOf<SelectableState> { error("No selectable state provided") }
-
 @Composable
-fun rememberSelectableState(initialValue: Set<String>): SelectableState {
+fun <T : Any> rememberSelectableState(initialValue: Set<T>): SelectableState<T> {
     return remember { SelectableState(initialValue = initialValue) }
 }
 
 @Composable
-fun rememberSelectableState(
+fun <T : Any> rememberSelectableState(
     key: SelectionMode,
-    initialValue: Set<String>,
-): SelectableState {
+    initialValue: Set<T>,
+): SelectableState<T> {
     return remember(key) {
         SelectableState(
             initialValue = initialValue,
@@ -113,11 +109,11 @@ fun rememberSelectableState(
 * TODO: Fix the Rebuilding issue later
 * */
 @Composable
-fun SelectableItemsWrapper(
-    initialValue: Set<String> = emptySet(),
-    onFloatingButtonClicked: (SelectableState) -> Unit = {},
+fun <T: Any> SelectableItemsWrapper(
+    initialValue: Set<T> = emptySet(),
+    onFloatingButtonClicked: (SelectableState<T>) -> Unit = {},
     isLoading: Boolean? = null,
-    content: @Composable (SelectableState) -> Unit
+    content: @Composable (SelectableState<T>) -> Unit
 ) {
     val selectableState = rememberSelectableState(initialValue = initialValue)
 
@@ -136,9 +132,7 @@ fun SelectableItemsWrapper(
                 })
             }
 
-            CompositionLocalProvider(LocalSelectableState provides selectableState) {
-                content.invoke(selectableState)
-            }
+            content.invoke(selectableState)
         }
 
         if (selectableState.isSelectableMode) Button(
@@ -154,12 +148,12 @@ fun SelectableItemsWrapper(
 }
 
 @Composable
-fun SelectableItemsWrapper(
-    initialValue: Set<String> = emptySet(),
+fun <T : Any> SelectableItemsWrapper(
+    initialValue: Set<T> = emptySet(),
     selectionMode: SelectionMode = SelectionMode.SINGLE,
-    header: @Composable ((SelectableState) -> Unit)? = null,
-    floatingButton: @Composable ((SelectableState) -> Unit)? = null,
-    content: @Composable (SelectableState) -> Unit
+    header: @Composable ((SelectableState<T>) -> Unit)? = null,
+    floatingButton: @Composable ((SelectableState<T>) -> Unit)? = null,
+    content: @Composable (SelectableState<T>) -> Unit
 ) {
     val selectableState = rememberSelectableState(key = selectionMode, initialValue = initialValue)
     var visible by remember {
@@ -173,9 +167,7 @@ fun SelectableItemsWrapper(
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
             header?.invoke(selectableState)
-            CompositionLocalProvider(LocalSelectableState provides selectableState) {
-                content.invoke(selectableState)
-            }
+            content.invoke(selectableState)
         }
 
         AnimatedVisibility(
@@ -194,14 +186,50 @@ fun SelectableItemsWrapper(
 }
 
 @Composable
-fun SelectableItem(
+fun <T : Any> SelectableItemsWrapper(
+    initialState: SelectableState<T>,
+    header: @Composable ((SelectableState<T>) -> Unit)? = null,
+    floatingButton: @Composable ((SelectableState<T>) -> Unit)? = null,
+    content: @Composable (SelectableState<T>) -> Unit
+) {
+    var visible by remember {
+        mutableStateOf(true)
+    }
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (visible) 1.0f else 0f,
+        label = "alpha"
+    )
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column {
+            header?.invoke(initialState)
+            content.invoke(initialState)
+        }
+
+        AnimatedVisibility(
+            initialState.isSelectableMode,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Box(Modifier.graphicsLayer {
+                alpha = animatedAlpha
+            }) {
+                floatingButton?.invoke(
+                    initialState
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun <T : Any> SelectableItem(
     modifier: Modifier = Modifier,
-    itemId: String,
+    item: T,
+    selectableState: SelectableState<T>,
     enableLongClick: Boolean = true,
-    onItemClick: (String) -> Unit = {},
+    onItemClick: (T) -> Unit = {},
     itemContent: @Composable (isSelected: Boolean) -> Unit,
 ) {
-    val stateContainer = LocalSelectableState.current
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -210,17 +238,17 @@ fun SelectableItem(
                 indication = null,
                 onLongClick = {
                     if (enableLongClick) {
-                        stateContainer.toggleSelectableMode(itemId)
+                        selectableState.toggleSelectableMode(item)
                     }
                 },
                 onClick = {
-                    stateContainer.addItems(itemId)
-                    onItemClick(itemId)
+                    selectableState.addItems(item)
+                    onItemClick(item)
                 }
             )
-            .background(if (stateContainer.items.contains(itemId)) colorScheme.primaryContainer else Color.Unspecified)
+            .background(if (selectableState.items.contains(item)) colorScheme.primaryContainer else Color.Unspecified)
     ) {
-        itemContent(stateContainer.items.contains(itemId))
+        itemContent(selectableState.items.contains(item))
     }
 }
 
@@ -230,12 +258,13 @@ private fun ExampleUse() {
     val name = List(10) { index ->
         "item-$index"
     }
-    SelectableItemsWrapper(initialValue = setOf("item-1")) {
+    SelectableItemsWrapper(initialValue = setOf("item-1")) { state ->
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
             name.forEach { item ->
                 SelectableItem(
+                    selectableState = state,
                     modifier = Modifier.fillMaxWidth(),
-                    itemId = item
+                    item = item
                 ) {
                     Text(item)
                 }
