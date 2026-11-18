@@ -50,6 +50,7 @@
         <item>Perempuan</item>
     </string-array>
 
+    <!-- USER PROFILE   -->
     <string name="user_profile_daily_estimation_section_title">Estimasi Harian</string>
     <string name="user_profile_tdee_not_ready">New Profile</string>
     <string name="user_profile_calculate_nutrition_button">Simpan &amp; Hitung Kebutuhan Nutrisi</string>
@@ -69,4 +70,7 @@
     <string name="user_profile_weight_unit">kg</string>
     <string name="user_profile_kcal_per_day">kkal / day</string>
     <string name="user_profile_tdee_ready">TDEE Siap</string>
+
+    <!-- FOOD LIST  -->
+    <string name="success_add_to_consume_logs_message">Berhasil menambahkan makanan ke konsumsi</string>
 </resources>

@@ -65,6 +65,7 @@
     </string-array>
 
 
+    <!--  USER PROFILE PAGE  -->
     <string name="user_profile_daily_estimation_section_title">Daily Estimation</string>
     <string name="user_profile_tdee_ready">TDEE Ready</string>
     <string name="user_profile_tdee_not_ready">New Profile</string>
@@ -84,4 +85,7 @@
     <string name="user_profile_weight_label">WEIGHT</string>
     <string name="user_profile_weight_unit">kg</string>
     <string name="user_profile_kcal_per_day">kcal / day</string>
+
+    <!--  Food List Page  -->
+    <string name="success_add_to_consume_logs_message">Success add foods to consume logs</string>
 </resources>

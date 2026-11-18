@@ -378,8 +378,16 @@ private fun BottomNavBar(
     nextTargetRoute: String,
     navController: NavHostController
 ) {
+    val navBackStackEntry = navController.currentBackStackEntryAsState().value
+    val currentRoute = navBackStackEntry?.destination?.route
+
     LaunchedEffect(showFoodConfirmationDialog, nextTargetRoute) {
-        if (showFoodConfirmationDialog == false) {
+        val normalizedCurrentRoute = when {
+            currentRoute?.startsWith(FoodPath.FOOD_LIST_BASE) == true -> FoodPath.createFoodListRoute()
+            else -> currentRoute
+        }
+
+        if (showFoodConfirmationDialog == false && nextTargetRoute != normalizedCurrentRoute) {
             navController.navigate(nextTargetRoute)
         }
     }

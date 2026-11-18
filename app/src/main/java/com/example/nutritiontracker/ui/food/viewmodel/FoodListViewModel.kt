@@ -108,9 +108,6 @@ class FoodListViewModel @AssistedInject constructor(
                     _uiState.update { MutationState.Error(err) }
                 }
             )
-
-            delay(500)
-            _uiState.update { MutationState.Idle }
         }
     }
 }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,9 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -37,8 +36,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -52,7 +51,6 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
@@ -71,14 +69,13 @@ import com.example.nutritiontracker.ui.components.label
 import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.food.model.FoodUiState
 import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
-import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.LocalSnackBarHost
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
+import com.example.nutritiontracker.ui.theme.extended
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.MutationEffect
 import com.example.nutritiontracker.ui.utils.composable.MutationState
-import com.example.nutritiontracker.ui.utils.composable.NavigationListener
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -92,29 +89,38 @@ fun FoodListPage(
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
     val selectedMealType = remember { mutableMapOf<MealType, List<Int>>() }
-    val selectionMode = remember { mutableStateOf(SelectionMode.SINGLE) }
-    val showBottomSheet = remember { mutableStateOf(false) }
+    var selectionMode by remember { mutableStateOf(SelectionMode.SINGLE) }
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     val snackBarState = LocalSnackBarHost.current
     val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
-        onDispose { selectionMode.value = SelectionMode.SINGLE }
+        onDispose { selectionMode = SelectionMode.SINGLE }
     }
+
+    val addFoodsToConsumeLogSuccessMessage =
+        stringResource(R.string.success_add_to_consume_logs_message)
 
     MutationEffect(
         mutationState = uiState.value,
         onFailure = { err ->
-            snackBarState.showSnackbar(message = err.message ?: "Unknown")
+            if (selectionMode == SelectionMode.SINGLE) {
+                snackBarState.showSnackbar(message = err.message ?: "Unknown")
+            }
+        },
+        onSuccess = {
+            showBottomSheet = false
+            snackBarState.showSnackbar(addFoodsToConsumeLogSuccessMessage)
         },
         coroutineScope = scope
     )
 
     SelectableItemsWrapper<Food>(
-        selectionMode = selectionMode.value,
+        selectionMode = selectionMode,
         floatingButton = { state ->
             Button(
-                onClick = { showBottomSheet.value = true },
+                onClick = { showBottomSheet = true },
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.padding(bottom = Spacing.m)
             ) {
@@ -146,17 +152,15 @@ fun FoodListPage(
                 }
 
                 SelectionModeDropdown(
-                    selectionMode = selectionMode.value
+                    selectionMode = selectionMode
                 ) { newMode ->
-                    selectionMode.value = newMode
+                    selectionMode = newMode
                 }
             }
         }) { selectableState ->
 
         LaunchedEffect(selectableState.isSelectableMode, selectableState.items) {
-            if (selectableState.isSelectableMode) {
-                onSelectedFoodPicked(selectableState.items.isNotEmpty())
-            }
+            onSelectedFoodPicked(selectableState.items.isNotEmpty() && selectableState.isSelectableMode)
         }
 
         val selectableItemsId = selectableState.items.toList().map { it.id }
@@ -184,9 +188,9 @@ fun FoodListPage(
             }
         )
 
-        if (showBottomSheet.value) {
+        if (showBottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showBottomSheet.value = false },
+                onDismissRequest = { showBottomSheet = false },
             ) {
                 Column(
                     modifier = Modifier
@@ -240,6 +244,26 @@ fun FoodListPage(
                             )
                         }
                     }
+
+                    if (uiState.value is MutationState.Error) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.ErrorOutline,
+                                contentDescription = "bulk_mutation_error",
+                                tint = colorScheme.extended.error
+                            )
+                            (uiState.value as MutationState.Error).error.message?.let {
+                                Text(
+                                    it,
+                                    style = typography.labelMedium.copy(color = colorScheme.extended.error)
+                                )
+                            }
+                        }
+                    }
+
                 }
             }
         }
