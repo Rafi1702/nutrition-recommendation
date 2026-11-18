@@ -379,11 +379,11 @@ private fun BottomNavBar(
     navController: NavHostController
 ) {
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
-    val currentRoute = navBackStackEntry?.destination?.route
+    val currentRoute = navBackStackEntry?.destination?.route ?: HomePath.HOME
 
     LaunchedEffect(showFoodConfirmationDialog, nextTargetRoute) {
         val normalizedCurrentRoute = when {
-            currentRoute?.startsWith(FoodPath.FOOD_LIST_BASE) == true -> FoodPath.createFoodListRoute()
+            currentRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute()
             else -> currentRoute
         }
 
