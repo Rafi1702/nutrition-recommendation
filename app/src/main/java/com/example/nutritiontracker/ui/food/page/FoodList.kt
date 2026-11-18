@@ -98,6 +98,10 @@ fun FoodListPage(
     val snackBarState = LocalSnackBarHost.current
     val scope = rememberCoroutineScope()
 
+    DisposableEffect(Unit) {
+        onDispose { selectionMode.value = SelectionMode.SINGLE }
+    }
+
     MutationEffect(
         mutationState = uiState.value,
         onFailure = { err ->
