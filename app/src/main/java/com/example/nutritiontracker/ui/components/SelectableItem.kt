@@ -63,6 +63,8 @@ class SelectableState<T : Any>(
     }
     val itemCount get() = _items.value.size
 
+    val isDirty: Boolean by derivedStateOf { _items.value != initialValue }
+
     fun toggleSelectableMode(item: T? = null) {
         if (isSelectableState.value) {
             _items.value = emptySet()
