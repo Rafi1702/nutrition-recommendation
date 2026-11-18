@@ -148,6 +148,7 @@ private fun MainScaffold(
     //This state passed to FoodList composable (not ViewModel)
     var isSelectedFoodsNotEmpty by remember { mutableStateOf<Boolean?>(null) }
     var nextTargetRoute by remember { mutableStateOf(HomePath.HOME) }
+    val pickedDate = remember { mutableStateOf(nowYyyyMMDD()) }
 
     Scaffold(
         modifier = modifier,
@@ -164,12 +165,17 @@ private fun MainScaffold(
                     onNavBarItemPressed = { currentEntryRoute ->
                         val isFoodPageSelected =
                             !currentEntryRoute.startsWith(FoodPath.FOOD_LIST_BASE)
-                        showFoodConfirmationDialog = isFoodPageSelected && isSelectedFoodsNotEmpty == true
+                        showFoodConfirmationDialog =
+                            isFoodPageSelected && isSelectedFoodsNotEmpty == true
                         nextTargetRoute = currentEntryRoute
 
                     },
                     nextTargetRoute = when {
-                        nextTargetRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute()
+                        nextTargetRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute(
+                            pickedDate.value,
+                            MealType.UNSPECIFIED.label
+                        )
+
                         else -> nextTargetRoute
                     },
                     showFoodConfirmationDialog = showFoodConfirmationDialog || isSelectedFoodsNotEmpty == true
@@ -182,6 +188,10 @@ private fun MainScaffold(
             bottomNavController = bottomNavController,
             onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
             showFoodConfirmationDialog = showFoodConfirmationDialog,
+            pickedDate = pickedDate.value,
+            onPickedDateChanged = { newDate ->
+                pickedDate.value = newDate
+            },
             confirmationDialogEvent = object : DialogEvent {
                 override fun onDismissRequest() {
                     showFoodConfirmationDialog = false
@@ -208,10 +218,12 @@ private fun MainLayout(
     showFoodConfirmationDialog: Boolean? = null,
     isSelectedFoodsNotEmpty: Boolean? = null,
     confirmationDialogEvent: DialogEvent,
+    pickedDate: String = nowYyyyMMDD(),
+    onPickedDateChanged: (String) -> Unit = {},
     onSelectedFoodPicked: (Boolean) -> Unit = {},
     bottomNavController: NavHostController? = null,
 ) {
-    val pickedDate = remember { mutableStateOf(nowYyyyMMDD()) }
+
 
     when (screenSize) {
         ScreenSize.MOBILE -> {
@@ -229,8 +241,8 @@ private fun MainLayout(
                                 onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
                                 onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
                                 onDateChanged = { date ->
-                                    if (pickedDate.value != date) {
-                                        pickedDate.value = date
+                                    if (pickedDate != date) {
+                                        onPickedDateChanged(date)
                                     }
                                 }
                             )
@@ -295,7 +307,7 @@ private fun MainLayout(
         ScreenSize.FOLDABLE, ScreenSize.TABLET -> {
             val foodListViewModel =
                 hiltViewModel<FoodListViewModel, FoodListViewModel.Factory>(
-                    creationCallback = { factory -> factory.create(consumedAt = pickedDate.value) }
+                    creationCallback = { factory -> factory.create(consumedAt = pickedDate) }
                 )
             Row(
                 modifier = Modifier
@@ -375,6 +387,8 @@ private fun AdaptiveTopBar(
 private fun BottomNavBar(
     onNavBarItemPressed: (currentRoute: String) -> Unit = {},
     showFoodConfirmationDialog: Boolean? = null,
+    pickedDate: String = nowYyyyMMDD(),
+    mealType: MealType = MealType.UNSPECIFIED,
     nextTargetRoute: String,
     navController: NavHostController
 ) {
@@ -383,7 +397,11 @@ private fun BottomNavBar(
 
     LaunchedEffect(showFoodConfirmationDialog, nextTargetRoute) {
         val normalizedCurrentRoute = when {
-            currentRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute()
+            currentRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute(
+                consumedAt = pickedDate,
+                mealType.label
+            )
+
             else -> currentRoute
         }
 
