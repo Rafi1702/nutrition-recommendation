@@ -11,10 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
@@ -25,7 +22,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem as M3NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,23 +29,34 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.nutritiontracker.data.model.consumelog.toMealType
+import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.ui.components.nowYyyyMMDD
 import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodPath
-import com.example.nutritiontracker.ui.food.page.foodGraph
+import com.example.nutritiontracker.ui.food.page.FoodRecommendationsPage
 import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
-import androidx.compose.ui.platform.LocalInspectionMode
+import com.example.nutritiontracker.ui.food.viewmodel.FoodRecommendationViewModel
+import com.example.nutritiontracker.ui.home.components.DialogEvent
+import com.example.nutritiontracker.ui.home.components.FoodSelectionConfirmation
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.profile.page.UserProfilePageRoute
 import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
@@ -63,6 +70,7 @@ import com.example.nutritiontracker.ui.utils.composable.AssistedUserViewModel
 import com.example.nutritiontracker.ui.utils.composable.NavigationListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import androidx.compose.material3.NavigationBarItem as M3NavigationBarItem
 
 data class DrawerRequirementProps(
     val drawerState: DrawerState,
@@ -136,6 +144,11 @@ private fun MainScaffold(
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
+    var showFoodConfirmationDialog by remember { mutableStateOf(false) }
+    //This state passed to FoodList composable (not ViewModel)
+    var isSelectedFoodsNotEmpty by remember { mutableStateOf<Boolean?>(null) }
+    var nextTargetRoute by remember { mutableStateOf(HomePath.HOME) }
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -146,7 +159,21 @@ private fun MainScaffold(
         },
         bottomBar = {
             bottomNavController?.let { navController ->
-                BottomNavBar(navController = navController)
+                BottomNavBar(
+                    navController = navController,
+                    onNavBarItemPressed = { currentEntryRoute ->
+                        val isFoodPageSelected =
+                            !currentEntryRoute.startsWith(FoodPath.FOOD_LIST_BASE)
+                        showFoodConfirmationDialog = isFoodPageSelected && isSelectedFoodsNotEmpty == true
+                        nextTargetRoute = currentEntryRoute
+
+                    },
+                    nextTargetRoute = when {
+                        nextTargetRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute()
+                        else -> nextTargetRoute
+                    },
+                    showFoodConfirmationDialog = showFoodConfirmationDialog || isSelectedFoodsNotEmpty == true
+                )
             }
         }
     ) { innerPadding ->
@@ -154,6 +181,20 @@ private fun MainScaffold(
             padding = innerPadding,
             bottomNavController = bottomNavController,
             onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+            showFoodConfirmationDialog = showFoodConfirmationDialog,
+            confirmationDialogEvent = object : DialogEvent {
+                override fun onDismissRequest() {
+                    showFoodConfirmationDialog = false
+                }
+
+                override fun onConfirm() {
+                    showFoodConfirmationDialog = false
+                    isSelectedFoodsNotEmpty = false
+                }
+
+            },
+            onSelectedFoodPicked = { isFoodsPicked -> isSelectedFoodsNotEmpty = isFoodsPicked },
+            isSelectedFoodsNotEmpty = isSelectedFoodsNotEmpty,
             onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList
         )
     }
@@ -164,13 +205,17 @@ private fun MainLayout(
     padding: PaddingValues = PaddingValues(Spacing.none),
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {},
+    showFoodConfirmationDialog: Boolean? = null,
+    isSelectedFoodsNotEmpty: Boolean? = null,
+    confirmationDialogEvent: DialogEvent,
+    onSelectedFoodPicked: (Boolean) -> Unit = {},
     bottomNavController: NavHostController? = null,
 ) {
     val pickedDate = remember { mutableStateOf(nowYyyyMMDD()) }
+
     when (screenSize) {
         ScreenSize.MOBILE -> {
             bottomNavController?.let { navController ->
-
                 NavigationListener(navController = navController, tag = "home")
 
                 CompositionLocalProvider(LocalNavController provides navController) {
@@ -199,8 +244,50 @@ private fun MainLayout(
                             UserProfilePageRoute(viewModel = userProfileViewModel)
                         }
 
-                        foodGraph(navController = navController)
+                        composable(route = FoodPath.FOOD_RECOMMENDATIONS) {
+                            val foodRecommendationViewModel: FoodRecommendationViewModel =
+                                hiltViewModel()
+                            FoodRecommendationsPage(viewModel = foodRecommendationViewModel)
+                        }
+
+                        composable(
+                            route = FoodPath.FOOD_LIST_ROUTE,
+                            arguments = listOf(
+                                navArgument("consumedAt") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                },
+                                navArgument("mealType") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                }
+                            )
+                        ) { backStackEntry ->
+                            val returnedConsumedAt =
+                                backStackEntry.arguments?.getString("consumedAt")
+                            val returnedMealType = backStackEntry.arguments?.getString("mealType")
+                            val foodListViewModel =
+                                hiltViewModel<FoodListViewModel, FoodListViewModel.Factory>(
+                                    creationCallback = { factory ->
+                                        factory.create(
+                                            consumedAt = returnedConsumedAt ?: nowYyyyMMDD(),
+                                            mealType = returnedMealType?.toMealType()
+                                                ?: MealType.UNSPECIFIED
+                                        )
+                                    }
+                                )
+
+                            FoodListPage(
+                                viewModel = foodListViewModel,
+                                onSelectedFoodPicked = { isSelectedFoods ->
+                                    onSelectedFoodPicked(isSelectedFoods)
+                                })
+                        }
                     }
+                }
+
+                if (isSelectedFoodsNotEmpty == true && showFoodConfirmationDialog == true) {
+                    FoodSelectionConfirmation(confirmationDialogEvent)
                 }
             }
         }
@@ -284,77 +371,40 @@ private fun AdaptiveTopBar(
     }, actions = { components.actions?.invoke() })
 }
 
-@Preview
 @Composable
 private fun BottomNavBar(
-    navController: NavHostController? = null,
+    onNavBarItemPressed: (currentRoute: String) -> Unit = {},
+    showFoodConfirmationDialog: Boolean? = null,
+    nextTargetRoute: String,
+    navController: NavHostController
 ) {
-    val navBackStackEntry = navController?.currentBackStackEntryAsState()?.value
-    val currentRoute = navBackStackEntry?.destination?.route
+    LaunchedEffect(showFoodConfirmationDialog, nextTargetRoute) {
+        if (showFoodConfirmationDialog == false) {
+            navController.navigate(nextTargetRoute)
+        }
+    }
 
-    navController?.let { controller ->
+    navController.let { controller ->
         NavigationBar(containerColor = colorScheme.surfaceContainer) {
-            M3NavigationBarItem(
-                selected = currentRoute == HomePath.HOME,
-                label = { Text("Home") },
-                alwaysShowLabel = true,
-                onClick = {
-                    if (currentRoute != HomePath.HOME) {
-                        controller.navigate(HomePath.HOME) {
-                            popUpTo(controller.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
-                icon = {
-                    Icon(Icons.Default.Home, contentDescription = "navigation_home")
-                }
-            )
+            MainNavigation.entries.forEach { entry ->
+                val props = entry.toMainNavigationProps(controller)
+                M3NavigationBarItem(
+                    selected = props.selected,
+                    label = { Text(props.label) },
+                    onClick = {
+                        onNavBarItemPressed(props.route)
+                    },
+                    icon = {
+                        Icon(
+                            props.icon,
+                            contentDescription = "main_bottom_nav_bar_${props.label.lowercase()}"
+                        )
+                    })
+            }
 
-            val isFoodSelected = currentRoute?.startsWith(FoodPath.FOOD_LIST_BASE) == true
-            M3NavigationBarItem(
-                selected = isFoodSelected,
-                alwaysShowLabel = true,
-                label = { Text("Food") },
-                onClick = {
-                    val targetRoute = FoodPath.createFoodListRoute()
-                    if (currentRoute != targetRoute) {
-                        controller.navigate(targetRoute) {
-                            popUpTo(controller.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
-                icon = {
-                    Icon(Icons.Default.RestaurantMenu, contentDescription = "navigation_food")
-                }
-            )
-
-            M3NavigationBarItem(
-                selected = currentRoute == ProfileNav.USER_PROFILE,
-                alwaysShowLabel = true,
-                label = { Text("Profile") },
-                onClick = {
-                    if (currentRoute != ProfileNav.USER_PROFILE) {
-                        controller.navigate(ProfileNav.USER_PROFILE) {
-                            popUpTo(controller.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
-                icon = {
-                    Icon(Icons.Default.Person, contentDescription = "navigation_profile")
-                }
-            )
         }
     }
 }
+
+
+
