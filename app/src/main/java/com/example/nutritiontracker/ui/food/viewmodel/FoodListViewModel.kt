@@ -9,6 +9,7 @@ import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.GetFoodsUseCase
 import com.example.nutritiontracker.domain.usecase.consumelog.AddFoodsToConsumeLogUseCase
+import com.example.nutritiontracker.domain.usecase.consumelog.ConsumeLogException
 import com.example.nutritiontracker.ui.food.model.FoodUiState
 import com.example.nutritiontracker.ui.utils.composable.MutationState
 import dagger.assisted.Assisted
@@ -76,7 +77,15 @@ class FoodListViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _uiState.update { Pair(MutationState.Pending, it.second) }
 
-            if (consumeMeals.isEmpty()) return@launch
+            if (consumeMeals.isEmpty()) {
+                return@launch _eventMutation.send(
+                    MutationState.Error(
+                        ConsumeLogException.AddFoodToConsumeLogsException(
+                            "Need at least one or more meal type selected"
+                        )
+                    )
+                )
+            }
 
             val transformedConsumeMeal = consumeMeals.mapValues { (_) ->
                 listOf(food.id)
@@ -110,6 +119,16 @@ class FoodListViewModel @AssistedInject constructor(
 
     fun addAllFoodsToConsumeLog(consumeMeals: Map<MealType, List<Int>>) {
         viewModelScope.launch {
+            if (consumeMeals.isEmpty()) {
+                return@launch _eventMutation.send(
+                    MutationState.Error(
+                        ConsumeLogException.AddFoodToConsumeLogsException(
+                            "Need at least one or more meal type selected"
+                        )
+                    )
+                )
+            }
+
             Log.d("[FOOD_LIST_VIEWMODEL]", "params: $consumeMeals")
             _uiState.update { Pair(it.first, MutationState.Pending) }
 
