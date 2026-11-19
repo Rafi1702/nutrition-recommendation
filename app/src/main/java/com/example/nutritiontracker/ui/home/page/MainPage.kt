@@ -29,8 +29,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -144,11 +142,47 @@ private fun MainScaffold(
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
-    var showFoodConfirmationDialog by remember { mutableStateOf(false) }
+
     //This state passed to FoodList composable (not ViewModel)
     var isSelectedFoodsNotEmpty by remember { mutableStateOf<Boolean?>(null) }
-    var nextTargetRoute by remember { mutableStateOf(HomePath.HOME) }
+    var pendingRoute by remember { mutableStateOf<String?>(null) }
     val pickedDate = remember { mutableStateOf(nowYyyyMMDD()) }
+
+    val showFoodConfirmationDialog =
+        isSelectedFoodsNotEmpty == true && pendingRoute != null
+
+    fun navigateTo(route: String) {
+        val currentRoute =
+            bottomNavController?.currentBackStackEntry?.destination?.route
+
+        val targetRoute = when {
+            route.startsWith(FoodPath.FOOD_LIST_BASE) ->
+                FoodPath.createFoodListRoute(
+                    consumedAt = pickedDate.value,
+                    mealType = MealType.UNSPECIFIED.label
+                )
+
+            else -> route
+        }
+        if (currentRoute == targetRoute) return
+
+        if (isSelectedFoodsNotEmpty == true) {
+            pendingRoute = targetRoute
+        } else {
+            bottomNavController?.navigate(targetRoute)
+        }
+    }
+
+    fun confirmNavigation() {
+        isSelectedFoodsNotEmpty = false
+
+        pendingRoute?.let { route ->
+            bottomNavController?.navigate(route)
+        }
+
+        pendingRoute = null
+    }
+
 
     Scaffold(
         modifier = modifier,
@@ -162,23 +196,7 @@ private fun MainScaffold(
             bottomNavController?.let { navController ->
                 BottomNavBar(
                     navController = navController,
-                    onNavBarItemPressed = { currentEntryRoute ->
-                        val isFoodPageSelected =
-                            !currentEntryRoute.startsWith(FoodPath.FOOD_LIST_BASE)
-                        showFoodConfirmationDialog =
-                            isFoodPageSelected && isSelectedFoodsNotEmpty == true
-                        nextTargetRoute = currentEntryRoute
-
-                    },
-                    nextTargetRoute = when {
-                        nextTargetRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute(
-                            pickedDate.value,
-                            MealType.UNSPECIFIED.label
-                        )
-
-                        else -> nextTargetRoute
-                    },
-                    showFoodConfirmationDialog = showFoodConfirmationDialog || isSelectedFoodsNotEmpty == true
+                    onNavBarItemPressed = ::navigateTo
                 )
             }
         }
@@ -194,12 +212,11 @@ private fun MainScaffold(
             },
             confirmationDialogEvent = object : DialogEvent {
                 override fun onDismissRequest() {
-                    showFoodConfirmationDialog = false
+                    pendingRoute = null
                 }
 
                 override fun onConfirm() {
-                    showFoodConfirmationDialog = false
-                    isSelectedFoodsNotEmpty = false
+                   confirmNavigation()
                 }
 
             },
@@ -386,30 +403,8 @@ private fun AdaptiveTopBar(
 @Composable
 private fun BottomNavBar(
     onNavBarItemPressed: (currentRoute: String) -> Unit = {},
-    showFoodConfirmationDialog: Boolean? = null,
-    pickedDate: String = nowYyyyMMDD(),
-    mealType: MealType = MealType.UNSPECIFIED,
-    nextTargetRoute: String,
     navController: NavHostController
 ) {
-    val navBackStackEntry = navController.currentBackStackEntryAsState().value
-    val currentRoute = navBackStackEntry?.destination?.route ?: HomePath.HOME
-
-    LaunchedEffect(showFoodConfirmationDialog, nextTargetRoute) {
-        val normalizedCurrentRoute = when {
-            currentRoute.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute(
-                consumedAt = pickedDate,
-                mealType.label
-            )
-
-            else -> currentRoute
-        }
-
-        if (showFoodConfirmationDialog == false && nextTargetRoute != normalizedCurrentRoute) {
-            navController.navigate(nextTargetRoute)
-        }
-    }
-
     navController.let { controller ->
         NavigationBar(containerColor = colorScheme.surfaceContainer) {
             MainNavigation.entries.forEach { entry ->
