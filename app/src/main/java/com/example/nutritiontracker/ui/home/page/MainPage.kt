@@ -152,8 +152,17 @@ private fun MainScaffold(
         isSelectedFoodsNotEmpty == true && pendingRoute != null
 
     fun navigateTo(route: String) {
-        val currentRoute =
-            bottomNavController?.currentBackStackEntry?.destination?.route
+        val normalizedCurrentRoute =
+            bottomNavController?.currentBackStackEntry?.destination?.route?.let { route ->
+                when {
+                    route.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute(
+                        consumedAt = pickedDate.value,
+                        mealType = MealType.UNSPECIFIED.label
+                    )
+
+                    else -> route
+                }
+            }
 
         val targetRoute = when {
             route.startsWith(FoodPath.FOOD_LIST_BASE) ->
@@ -164,7 +173,7 @@ private fun MainScaffold(
 
             else -> route
         }
-        if (currentRoute == targetRoute) return
+        if (normalizedCurrentRoute == targetRoute) return
 
         if (isSelectedFoodsNotEmpty == true) {
             pendingRoute = targetRoute
@@ -172,6 +181,7 @@ private fun MainScaffold(
             bottomNavController?.navigate(targetRoute)
         }
     }
+
 
     fun confirmNavigation() {
         isSelectedFoodsNotEmpty = false
@@ -216,7 +226,7 @@ private fun MainScaffold(
                 }
 
                 override fun onConfirm() {
-                   confirmNavigation()
+                    confirmNavigation()
                 }
 
             },
