@@ -163,7 +163,7 @@ fun FoodListPage(
                     })
                 }
             },
-            onAddFoodToConsumeLogs = { food, mealType ->
+            onAddFoodToConsumeLogs = { food, _ ->
                 viewModel.addFoodToConsumeLog(food, selectedMealType)
             }
         )

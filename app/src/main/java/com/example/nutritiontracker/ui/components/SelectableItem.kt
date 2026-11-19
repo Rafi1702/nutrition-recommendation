@@ -52,25 +52,39 @@ val SelectionMode.label: String
 
 
 class SelectableState<T : Any>(
-    isSelectableMode: Boolean = false,
+    selectionMode: SelectionMode = SelectionMode.SINGLE,
     initialValue: Set<T> = emptySet(),
 ) {
     private val _items = mutableStateOf(initialValue)
-    private val isSelectableState = mutableStateOf(isSelectableMode)
+    private val selectionModeState = mutableStateOf(selectionMode)
+    val selectionMode get() = selectionModeState.value
+
     val items get() = _items.value
     val isSelectableMode: Boolean by derivedStateOf {
-        isSelectableState.value || _items.value.isNotEmpty()
+        selectionModeState.value == SelectionMode.BULK && _items.value.isNotEmpty()
     }
     val itemCount get() = _items.value.size
 
     val isDirty: Boolean by derivedStateOf { _items.value != initialValue }
 
-    fun toggleSelectableMode(item: T? = null) {
-        if (isSelectableState.value) {
+
+    fun onSelectionModeChange(selectionMode: SelectionMode) {
+        selectionModeState.value = selectionMode
+        if(selectionMode == SelectionMode.SINGLE){
             _items.value = emptySet()
-            isSelectableState.value = false
+        }
+    }
+
+    /*
+    *
+    * Specific for Toggleable SelectableItem
+    * */
+    fun toggleSelectableMode(item: T? = null) {
+        if (selectionModeState.value == SelectionMode.BULK) {
+            _items.value = emptySet()
+            selectionModeState.value = SelectionMode.SINGLE
         } else {
-            isSelectableState.value = true
+            selectionModeState.value = SelectionMode.BULK
             item?.let {
                 _items.value += item
             }
@@ -78,13 +92,18 @@ class SelectableState<T : Any>(
     }
 
     fun addItems(item: T) {
-        if (!isSelectableState.value) return
+        if (selectionModeState.value == SelectionMode.SINGLE) return
 
         if (_items.value.contains(item)) {
             _items.value -= item
         } else {
             _items.value += item
         }
+    }
+
+    fun resetState() {
+        _items.value = emptySet()
+        selectionModeState.value = SelectionMode.SINGLE
     }
 }
 
@@ -101,7 +120,7 @@ fun <T : Any> rememberSelectableState(
     return remember(key) {
         SelectableState(
             initialValue = initialValue,
-            isSelectableMode = key == SelectionMode.BULK
+            selectionMode = key,
         )
     }
 }
@@ -111,7 +130,7 @@ fun <T : Any> rememberSelectableState(
 * TODO: Fix the Rebuilding issue later
 * */
 @Composable
-fun <T: Any> SelectableItemsWrapper(
+fun <T : Any> SelectableItemsWrapper(
     initialValue: Set<T> = emptySet(),
     onFloatingButtonClicked: (SelectableState<T>) -> Unit = {},
     isLoading: Boolean? = null,
@@ -190,9 +209,9 @@ fun <T : Any> SelectableItemsWrapper(
 @Composable
 fun <T : Any> SelectableItemsWrapper(
     initialState: SelectableState<T>,
-    header: @Composable ((SelectableState<T>) -> Unit)? = null,
-    floatingButton: @Composable ((SelectableState<T>) -> Unit)? = null,
-    content: @Composable (SelectableState<T>) -> Unit
+    header: @Composable (() -> Unit)? = null,
+    floatingButton: @Composable (() -> Unit)? = null,
+    content: @Composable () -> Unit
 ) {
     var visible by remember {
         mutableStateOf(true)
@@ -204,8 +223,8 @@ fun <T : Any> SelectableItemsWrapper(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
-            header?.invoke(initialState)
-            content.invoke(initialState)
+            header?.invoke()
+            content.invoke()
         }
 
         AnimatedVisibility(
@@ -215,9 +234,7 @@ fun <T : Any> SelectableItemsWrapper(
             Box(Modifier.graphicsLayer {
                 alpha = animatedAlpha
             }) {
-                floatingButton?.invoke(
-                    initialState
-                )
+                floatingButton?.invoke()
             }
         }
     }
@@ -250,7 +267,7 @@ fun <T : Any> SelectableItem(
             )
             .background(if (selectableState.items.contains(item)) colorScheme.primaryContainer else Color.Unspecified)
     ) {
-            itemContent(selectableState.items.contains(item))
+        itemContent(selectableState.items.contains(item))
     }
 }
 

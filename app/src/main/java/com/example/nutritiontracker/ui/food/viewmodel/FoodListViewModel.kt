@@ -10,7 +10,6 @@ import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.GetFoodsUseCase
 import com.example.nutritiontracker.domain.usecase.consumelog.AddFoodsToConsumeLogUseCase
 import com.example.nutritiontracker.ui.food.model.FoodUiState
-import com.example.nutritiontracker.ui.profile.viewmodel.UserProfileViewModel
 import com.example.nutritiontracker.ui.utils.composable.MutationState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -24,6 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+typealias FoodMutation = Pair<MutationState<Unit>, MutationState<Unit>>
 
 @HiltViewModel(assistedFactory = FoodListViewModel.Factory::class)
 class FoodListViewModel @AssistedInject constructor(
@@ -34,7 +34,7 @@ class FoodListViewModel @AssistedInject constructor(
 ) :
     ViewModel() {
     private val foodMutations = MutableStateFlow(emptyMap<Int, FoodUiState>())
-    private val _uiState = MutableStateFlow<MutationState<Unit>>(MutationState.Idle)
+    private val _uiState = MutableStateFlow<FoodMutation>(MutationState.Idle to MutationState.Idle)
 
     private val _availableFoods = mutableListOf<Food>()
     val availableFoods: List<Food>
@@ -66,25 +66,26 @@ class FoodListViewModel @AssistedInject constructor(
             }
         }
 
-    fun addFoodToConsumeLog(food: Food, mealType: MealType? = null) {
-        val currentMealType = mealType ?: this.mealType
+    fun addFoodToConsumeLog(food: Food, consumeMeals: Map<MealType, List<Int>>) {
+        if (consumeMeals.isEmpty()) return
+
         val loading = foodMutations.value[food.id]?.isLoading == true
 
-        if (currentMealType == MealType.UNSPECIFIED && loading) return
+        if (loading) return
 
         viewModelScope.launch {
+            _uiState.update { Pair(MutationState.Pending, it.second) }
             foodMutations.update { currentMap ->
                 currentMap + (food.id to FoodUiState(food = food, isLoading = true))
             }
 
-            delay(3000)
-
-            addFoodsToConsumeLogUseCase(listOf(food.id), currentMealType, consumedAt).fold(
+            delay(500)
+            addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
                 onSuccess = {
-
+                    _uiState.update { Pair(MutationState.Success(Unit), it.second) }
                 },
                 onFailure = { err ->
-
+                    _uiState.update { Pair(MutationState.Error(err), it.second) }
                 }
             )
 
@@ -97,15 +98,15 @@ class FoodListViewModel @AssistedInject constructor(
     fun addAllFoodsToConsumeLog(consumeMeals: Map<MealType, List<Int>>) {
         viewModelScope.launch {
             Log.d("[FOOD_LIST_VIEWMODEL]", "params: $consumeMeals")
-            _uiState.update { MutationState.Pending }
+            _uiState.update { Pair(it.first, MutationState.Pending) }
             delay(1000)
 
             addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
                 onSuccess = { data ->
-                    _uiState.update { MutationState.Success(data) }
+                    _uiState.update { Pair(it.first, MutationState.Success(data)) }
                 },
                 onFailure = { err ->
-                    _uiState.update { MutationState.Error(err) }
+                    _uiState.update { Pair(it.first, MutationState.Error(err)) }
                 }
             )
         }
