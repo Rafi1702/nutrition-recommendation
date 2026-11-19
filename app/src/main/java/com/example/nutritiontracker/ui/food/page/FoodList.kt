@@ -79,6 +79,7 @@ import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.MutationEffect
 import com.example.nutritiontracker.ui.utils.composable.MutationState
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,6 +91,7 @@ fun FoodListPage(
 ) {
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
+
 
     val selectedMealType = remember { mutableStateMapOf<MealType, List<Int>>() }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -105,21 +107,25 @@ fun FoodListPage(
     val addFoodsToConsumeLogSuccessMessage =
         stringResource(R.string.success_add_to_consume_logs_message)
 
-    MutationEffect(
-        mutationStates = arrayOf(uiState.value.first, uiState.value.second),
-        onFailure = { err ->
-            if (selectableState.selectionMode == SelectionMode.SINGLE) {
-                snackBarState.showSnackbar(message = err.message ?: "Unknown")
+    LaunchedEffect(Unit) {
+        viewModel.eventMutation.collectLatest { mutationState ->
+            when (mutationState) {
+                is MutationState.Error -> {
+                    if (selectableState.selectionMode == SelectionMode.SINGLE) {
+                        snackBarState.showSnackbar(message = mutationState.error.message ?: "Unknown")
+                    }
+                }
+                is MutationState.Success<*> -> {
+                    if (selectableState.selectionMode == SelectionMode.BULK) {
+                        showBottomSheet = false
+                        selectableState.resetState()
+                    }
+                    snackBarState.showSnackbar(addFoodsToConsumeLogSuccessMessage)
+                }
+                else -> return@collectLatest
             }
-        },
-        onSuccess = {
-            if (selectableState.selectionMode == SelectionMode.BULK) {
-                showBottomSheet = false
-                selectableState.resetState()
-            }
-            snackBarState.showSnackbar(addFoodsToConsumeLogSuccessMessage)
-        },
-    )
+        }
+    }
 
     SelectableItemsWrapper(
         initialState = selectableState,

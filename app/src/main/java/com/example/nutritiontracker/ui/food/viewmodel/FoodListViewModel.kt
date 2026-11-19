@@ -9,17 +9,20 @@ import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.GetFoodsUseCase
 import com.example.nutritiontracker.domain.usecase.consumelog.AddFoodsToConsumeLogUseCase
+import com.example.nutritiontracker.domain.usecase.consumelog.ConsumeLogException
 import com.example.nutritiontracker.ui.food.model.FoodUiState
 import com.example.nutritiontracker.ui.utils.composable.MutationState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -33,6 +36,10 @@ class FoodListViewModel @AssistedInject constructor(
     @Assisted private val consumedAt: String,
 ) :
     ViewModel() {
+    private val _eventMutation = Channel<MutationState<*>>(Channel.CONFLATED)
+
+    val eventMutation = _eventMutation.receiveAsFlow()
+
     private val foodMutations = MutableStateFlow(emptyMap<Int, FoodUiState>())
     private val _uiState = MutableStateFlow<FoodMutation>(MutationState.Idle to MutationState.Idle)
 
@@ -70,9 +77,15 @@ class FoodListViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _uiState.update { Pair(MutationState.Pending, it.second) }
 
-            delay(500)
-
-            if (consumeMeals.isEmpty()) return@launch
+            if (consumeMeals.isEmpty()) {
+                return@launch _eventMutation.send(
+                    MutationState.Error(
+                        ConsumeLogException.AddFoodToConsumeLogsException(
+                            "Need at least one or more meal type selected"
+                        )
+                    )
+                )
+            }
 
             val transformedConsumeMeal = consumeMeals.mapValues { (_) ->
                 listOf(food.id)
@@ -85,12 +98,16 @@ class FoodListViewModel @AssistedInject constructor(
                 currentMap + (food.id to FoodUiState(food = food, isLoading = true))
             }
 
+            delay(1000)
+
             addFoodsToConsumeLogUseCase(transformedConsumeMeal, consumedAt).fold(
                 onSuccess = {
                     _uiState.update { Pair(MutationState.Success(Unit), it.second) }
+                    _eventMutation.send(MutationState.Success(Unit))
                 },
                 onFailure = { err ->
                     _uiState.update { Pair(MutationState.Error(err), it.second) }
+                    _eventMutation.send(MutationState.Error(err))
                 }
             )
 
@@ -102,20 +119,30 @@ class FoodListViewModel @AssistedInject constructor(
 
     fun addAllFoodsToConsumeLog(consumeMeals: Map<MealType, List<Int>>) {
         viewModelScope.launch {
+            if (consumeMeals.isEmpty()) {
+                return@launch _eventMutation.send(
+                    MutationState.Error(
+                        ConsumeLogException.AddFoodToConsumeLogsException(
+                            "Need at least one or more meal type selected"
+                        )
+                    )
+                )
+            }
+
             Log.d("[FOOD_LIST_VIEWMODEL]", "params: $consumeMeals")
             _uiState.update { Pair(it.first, MutationState.Pending) }
 
+            delay(500)
             addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
                 onSuccess = { data ->
                     _uiState.update { Pair(it.first, MutationState.Success(data)) }
+                    _eventMutation.send(MutationState.Success(Unit))
                 },
                 onFailure = { err ->
                     _uiState.update { Pair(it.first, MutationState.Error(err)) }
+                    _eventMutation.send(MutationState.Error(err))
                 }
             )
-
-            delay(500)
-            _uiState.update { Pair(it.first, MutationState.Idle) }
         }
     }
 }
