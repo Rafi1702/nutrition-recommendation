@@ -86,33 +86,35 @@ private data class DatePickerHolder(
     val year: String,
     val month: String,
     val day: String,
-    val dayName: String
-) {
-    val yyMMDD: String = "${this.year}-${this.month}-${this.day}"
-}
+    val dayName: String,
+    val yyMMDD: String,
+)
 
-const val currentFormatter = "yyyy-MMMM-dd-EEEE"
+const val displayFormatter = "yyyy-MMMM-dd-EEEE"
+const val serviceFormatter = "yyyy-MM-dd"
 
 private fun formatDate(
-    formatter: String = currentFormatter,
+    formatter: String = displayFormatter,
     locale: Locale = Locale.forLanguageTag("id-ID")
 ): DateTimeFormatter {
     return DateTimeFormatter.ofPattern(formatter, locale)
 }
 
 private fun LocalDate.createDatePicker(): DatePickerHolder {
-    val currentDate = this.format(formatDate(currentFormatter)).split("-")
+    val currentDateyyMMDD = this.format(formatDate(serviceFormatter))
+    val formattedDate = this.format(formatDate(displayFormatter)).split("-")
     return DatePickerHolder(
-        year = currentDate[0],
-        month = currentDate[1],
-        day = currentDate[2],
-        dayName = currentDate[3]
+        year = formattedDate[0],
+        month = formattedDate[1],
+        day = formattedDate[2],
+        dayName = formattedDate[3],
+        yyMMDD = currentDateyyMMDD
     )
 }
 
 fun nowYyyyMMDD(): String {
     return Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
-        .format(formatDate(currentFormatter))
+        .format(formatDate(serviceFormatter))
 }
 
 private fun String.toMillisEpoch(): Long? {
@@ -121,7 +123,7 @@ private fun String.toMillisEpoch(): Long? {
             .atStartOfDay(ZoneOffset.UTC)
             .toInstant()
             .toEpochMilli()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -141,14 +143,15 @@ private fun rememberDateBuild(
 
 private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
     save = { date ->
-        listOf(date.year, date.month, date.day, date.dayName)
+        listOf(date.year, date.month, date.day, date.dayName, date.yyMMDD)
     },
     restore = { restoredList ->
         DatePickerHolder(
             year = restoredList[0] as String,
             month = restoredList[1] as String,
             day = restoredList[2] as String,
-            dayName = restoredList[3] as String
+            dayName = restoredList[3] as String,
+            yyMMDD = restoredList[4] as String,
         )
     }
 )
