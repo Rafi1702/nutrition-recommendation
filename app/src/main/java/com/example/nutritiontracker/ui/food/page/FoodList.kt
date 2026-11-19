@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,7 +91,7 @@ fun FoodListPage(
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
 
-    val selectedMealType = remember { mutableMapOf<MealType, List<Int>>() }
+    val selectedMealType = remember { mutableStateMapOf<MealType, List<Int>>() }
     var showBottomSheet by remember { mutableStateOf(false) }
     val selectableState =
         rememberSelectableState(initialValue = emptySet<Food>())
@@ -148,6 +149,7 @@ fun FoodListPage(
             modifier = modifier,
             foodItems = viewModel.foodsFlow,
             selectableState = selectableState,
+            selectedMeals = selectedMealType.keys.toList(),
             onSelectableModeItemClick = {
                 selectedMealType.keys.toList().forEach { key ->
                     selectedMealType[key] = selectableItemsId
@@ -253,6 +255,7 @@ fun FoodListPage(
 @Composable
 fun FoodListMealSelections(
     modifier: Modifier = Modifier,
+    selectedMeals: List<MealType> = emptyList(),
     onMealsChanged: (List<MealType>) -> Unit = {},
 ) {
     MultiSelectOptions(
@@ -260,6 +263,7 @@ fun FoodListMealSelections(
             .fillMaxWidth()
             .padding(horizontal = Spacing.m, vertical = Spacing.xs),
         items = MealType.entries.filter { it != MealType.UNSPECIFIED },
+        initialSelectedValues = selectedMeals,
         onValuesChanged = onMealsChanged
     ) { mealType, selected ->
         SelectionChip(
@@ -314,6 +318,7 @@ fun FoodList(
     modifier: Modifier = Modifier,
     foodItems: Flow<PagingData<FoodUiState>>,
     selectableState: SelectableState<Food>,
+    selectedMeals: List<MealType> = emptyList(),
     selectedMealType: MealType = MealType.UNSPECIFIED,
     onMealsChanged: (List<MealType>) -> Unit = {},
     onSelectableModeItemClick: (Int) -> Unit = {},
@@ -328,6 +333,7 @@ fun FoodList(
         itemKey = { foodStateHolder -> foodStateHolder.food.id },
         headerProps = (false to {
             FoodListMealSelections(
+                selectedMeals = selectedMeals,
                 onMealsChanged = onMealsChanged
             )
         }),

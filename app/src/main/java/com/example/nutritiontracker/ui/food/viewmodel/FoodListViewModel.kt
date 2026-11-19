@@ -67,20 +67,25 @@ class FoodListViewModel @AssistedInject constructor(
         }
 
     fun addFoodToConsumeLog(food: Food, consumeMeals: Map<MealType, List<Int>>) {
-        if (consumeMeals.isEmpty()) return
-
-        val loading = foodMutations.value[food.id]?.isLoading == true
-
-        if (loading) return
-
         viewModelScope.launch {
             _uiState.update { Pair(MutationState.Pending, it.second) }
+
+            delay(500)
+
+            if (consumeMeals.isEmpty()) return@launch
+
+            val transformedConsumeMeal = consumeMeals.mapValues { (_) ->
+                listOf(food.id)
+            }.toMutableMap()
+
+            val loading = foodMutations.value[food.id]?.isLoading == true
+            if (loading) return@launch
+
             foodMutations.update { currentMap ->
                 currentMap + (food.id to FoodUiState(food = food, isLoading = true))
             }
 
-            delay(500)
-            addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
+            addFoodsToConsumeLogUseCase(transformedConsumeMeal, consumedAt).fold(
                 onSuccess = {
                     _uiState.update { Pair(MutationState.Success(Unit), it.second) }
                 },
@@ -99,7 +104,6 @@ class FoodListViewModel @AssistedInject constructor(
         viewModelScope.launch {
             Log.d("[FOOD_LIST_VIEWMODEL]", "params: $consumeMeals")
             _uiState.update { Pair(it.first, MutationState.Pending) }
-            delay(1000)
 
             addFoodsToConsumeLogUseCase(consumeMeals, consumedAt).fold(
                 onSuccess = { data ->
@@ -109,6 +113,9 @@ class FoodListViewModel @AssistedInject constructor(
                     _uiState.update { Pair(it.first, MutationState.Error(err)) }
                 }
             )
+
+            delay(500)
+            _uiState.update { Pair(it.first, MutationState.Idle) }
         }
     }
 }
