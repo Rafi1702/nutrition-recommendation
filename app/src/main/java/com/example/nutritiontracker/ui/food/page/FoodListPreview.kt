@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 @Composable
 fun FoodListPageHeaderPreview() {
     NutritionTrackerTheme {
-        FoodListMealSelections()
+        FoodListMealSelections(selectedMeals = emptyList())
     }
 }
 

@@ -11,13 +11,14 @@ fun NutritionTrackerTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-
-    val colorScheme = LocalColorScheme.current
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val extendedColorScheme = if (darkTheme) DarkExtendedColorScheme else LightExtendedColorScheme
 
     CompositionLocalProvider(
         LocalTypography provides typography,
         LocalScreenSize provides screenSize,
         LocalColorScheme provides colorScheme,
+        LocalExtendedColorScheme provides extendedColorScheme,
         LocalSnackBarHost provides snackBarHostState,
     ) {
         MaterialTheme(

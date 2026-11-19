@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +30,7 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
@@ -84,32 +86,35 @@ private data class DatePickerHolder(
     val year: String,
     val month: String,
     val day: String,
-    val dayName: String
-) {
-    val yyMMDD: String = "${this.year}-${this.month}-${this.day}"
-}
+    val dayName: String,
+    val yyMMDD: String,
+)
 
-const val currentFormatter = "yyyy-MMMM-dd-EEEE"
+const val displayFormatter = "yyyy-MMMM-dd-EEEE"
+const val serviceFormatter = "yyyy-MM-dd"
 
 private fun formatDate(
-    formatter: String = currentFormatter,
+    formatter: String = displayFormatter,
     locale: Locale = Locale.forLanguageTag("id-ID")
 ): DateTimeFormatter {
     return DateTimeFormatter.ofPattern(formatter, locale)
 }
 
 private fun LocalDate.createDatePicker(): DatePickerHolder {
-    val currentDate = this.format(formatDate(currentFormatter)).split("-")
+    val currentDateyyMMDD = this.format(formatDate(serviceFormatter))
+    val formattedDate = this.format(formatDate(displayFormatter)).split("-")
     return DatePickerHolder(
-        year = currentDate[0],
-        month = currentDate[1],
-        day = currentDate[2],
-        dayName = currentDate[3]
+        year = formattedDate[0],
+        month = formattedDate[1],
+        day = formattedDate[2],
+        dayName = formattedDate[3],
+        yyMMDD = currentDateyyMMDD
     )
 }
 
 fun nowYyyyMMDD(): String {
-    return Instant.now().atZone(ZoneId.systemDefault()).toLocalDate().format(formatDate(currentFormatter))
+    return Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
+        .format(formatDate(serviceFormatter))
 }
 
 private fun String.toMillisEpoch(): Long? {
@@ -118,7 +123,7 @@ private fun String.toMillisEpoch(): Long? {
             .atStartOfDay(ZoneOffset.UTC)
             .toInstant()
             .toEpochMilli()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -138,14 +143,15 @@ private fun rememberDateBuild(
 
 private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
     save = { date ->
-        listOf(date.year, date.month, date.day, date.dayName)
+        listOf(date.year, date.month, date.day, date.dayName, date.yyMMDD)
     },
     restore = { restoredList ->
         DatePickerHolder(
             year = restoredList[0] as String,
             month = restoredList[1] as String,
             day = restoredList[2] as String,
-            dayName = restoredList[3] as String
+            dayName = restoredList[3] as String,
+            yyMMDD = restoredList[4] as String,
         )
     }
 )
@@ -257,6 +263,7 @@ fun DatePicker(
                 DateTimePickerCard(
                     dayName = date.dayName,
                     day = date.day,
+                    monthName = date.month.take(3),
                     onTap = {
                         selectedDate = date
                         onDateChanged(date.yyMMDD)
@@ -369,22 +376,30 @@ private fun DatePickerPreview() {
 private fun DateTimePickerCard(
     dayName: String = "Thu",
     day: String = "01",
+    monthName: String? = null,
     onTap: () -> Unit = {},
     isActive: Boolean = false
 ) {
     Card(
         modifier = Modifier
             .clickable(onClick = onTap)
-            .size(72.dp),
+            .size(80.dp),
         shape = RoundedCornerShape(Spacing.s),
         colors = DatePickerDefaults.getDatePickerColor(isActive)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs, Alignment.CenterVertically),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            monthName?.let {
+                Text(monthName, style = typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            }
+            Spacer(modifier = Modifier.height(Spacing.xxs))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(Spacing.xs))
             Text(dayName, style = typography.labelLarge)
+            Spacer(modifier = Modifier.height(Spacing.xs))
             Text(day, style = typography.labelMedium)
         }
     }
@@ -393,5 +408,5 @@ private fun DateTimePickerCard(
 @Preview(name = "DateTimePickerActive", showBackground = true)
 @Composable
 private fun DateTimePickerActive() {
-    NutritionTrackerTheme { DateTimePickerCard(isActive = true) }
+    NutritionTrackerTheme { DateTimePickerCard(isActive = true, monthName = "Jan") }
 }

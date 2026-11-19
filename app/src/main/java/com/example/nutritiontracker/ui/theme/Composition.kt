@@ -9,6 +9,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation.NavHostController
 import com.example.nutritiontracker.domain.model.UserProfile
 import com.example.nutritiontracker.domain.model.UserProfileData
@@ -19,13 +20,24 @@ val typography: Typography
     @Composable
     get() = rememberAppTypography(LocalScreenSize.current)
 
-
 val LocalColorScheme = compositionLocalOf { LightColorScheme }
 
 val colorScheme: ColorScheme
     @Composable
     @ReadOnlyComposable
     get() = LocalColorScheme.current
+
+val LocalExtendedColorScheme = staticCompositionLocalOf { LightExtendedColorScheme }
+
+val extendedColorScheme: ExtendedColorScheme
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalExtendedColorScheme.current
+
+val ColorScheme.extended: ExtendedColorScheme
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalExtendedColorScheme.current
 
 val LocalScreenSize = compositionLocalOf { ScreenSize.MOBILE }
 
@@ -48,4 +60,3 @@ val LocalUserProfile =
 val userProfile: UserProfileData<UserProfile>?
     @Composable
     get() = LocalUserProfile.current.value
-

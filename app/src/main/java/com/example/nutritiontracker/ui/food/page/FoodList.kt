@@ -7,7 +7,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,9 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -37,11 +36,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +52,6 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
@@ -68,17 +67,17 @@ import com.example.nutritiontracker.ui.components.SelectableState
 import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.components.SelectionMode
 import com.example.nutritiontracker.ui.components.label
+import com.example.nutritiontracker.ui.components.rememberSelectableState
 import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.food.model.FoodUiState
 import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
-import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.LocalSnackBarHost
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
+import com.example.nutritiontracker.ui.theme.extended
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.MutationEffect
 import com.example.nutritiontracker.ui.utils.composable.MutationState
-import com.example.nutritiontracker.ui.utils.composable.NavigationListener
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
@@ -91,30 +90,42 @@ fun FoodListPage(
 ) {
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-    val selectedMealType = remember { mutableMapOf<MealType, List<Int>>() }
-    val selectionMode = remember { mutableStateOf(SelectionMode.SINGLE) }
-    val showBottomSheet = remember { mutableStateOf(false) }
+
+    val selectedMealType = remember { mutableStateMapOf<MealType, List<Int>>() }
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val selectableState =
+        rememberSelectableState(initialValue = emptySet<Food>())
 
     val snackBarState = LocalSnackBarHost.current
-    val scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
-        onDispose { selectionMode.value = SelectionMode.SINGLE }
+        onDispose { selectableState.resetState() }
     }
 
+    val addFoodsToConsumeLogSuccessMessage =
+        stringResource(R.string.success_add_to_consume_logs_message)
+
     MutationEffect(
-        mutationState = uiState.value,
+        mutationStates = arrayOf(uiState.value.first, uiState.value.second),
         onFailure = { err ->
-            snackBarState.showSnackbar(message = err.message ?: "Unknown")
+            if (selectableState.selectionMode == SelectionMode.SINGLE) {
+                snackBarState.showSnackbar(message = err.message ?: "Unknown")
+            }
         },
-        coroutineScope = scope
+        onSuccess = {
+            if (selectableState.selectionMode == SelectionMode.BULK) {
+                showBottomSheet = false
+                selectableState.resetState()
+            }
+            snackBarState.showSnackbar(addFoodsToConsumeLogSuccessMessage)
+        },
     )
 
-    SelectableItemsWrapper<Food>(
-        selectionMode = selectionMode.value,
-        floatingButton = { state ->
+    SelectableItemsWrapper(
+        initialState = selectableState,
+        floatingButton = {
             Button(
-                onClick = { showBottomSheet.value = true },
+                onClick = { showBottomSheet = true },
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.padding(bottom = Spacing.m)
             ) {
@@ -122,41 +133,15 @@ fun FoodListPage(
             }
         },
         header = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Spacing.m, vertical = Spacing.xs),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Selection Mode",
-                        style = typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onSurface
-                        )
-                    )
-                    Text(
-                        text = stringResource(R.string.food_list_subtitle),
-                        style = typography.labelSmall.copy(
-                            color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    )
-                }
-
-                SelectionModeDropdown(
-                    selectionMode = selectionMode.value
-                ) { newMode ->
-                    selectionMode.value = newMode
-                }
-            }
-        }) { selectableState ->
+            FoodListHeader(
+                selectableState.selectionMode,
+                onSelectionModeChanged = { newSelectionMode ->
+                    selectableState.onSelectionModeChange(newSelectionMode)
+                })
+        }) {
 
         LaunchedEffect(selectableState.isSelectableMode, selectableState.items) {
-            if (selectableState.isSelectableMode) {
-                onSelectedFoodPicked(selectableState.items.isNotEmpty())
-            }
+            onSelectedFoodPicked(selectableState.items.isNotEmpty() && selectableState.isSelectableMode)
         }
 
         val selectableItemsId = selectableState.items.toList().map { it.id }
@@ -164,6 +149,7 @@ fun FoodListPage(
             modifier = modifier,
             foodItems = viewModel.foodsFlow,
             selectableState = selectableState,
+            selectedMeals = selectedMealType.keys.toList(),
             onSelectableModeItemClick = {
                 selectedMealType.keys.toList().forEach { key ->
                     selectedMealType[key] = selectableItemsId
@@ -179,14 +165,14 @@ fun FoodListPage(
                     })
                 }
             },
-            onAddFoodToConsumeLogs = { food, mealType ->
-                viewModel.addFoodToConsumeLog(food, mealType)
+            onAddFoodToConsumeLogs = { food, _ ->
+                viewModel.addFoodToConsumeLog(food, selectedMealType)
             }
         )
 
-        if (showBottomSheet.value) {
+        if (showBottomSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showBottomSheet.value = false },
+                onDismissRequest = { showBottomSheet = false },
             ) {
                 Column(
                     modifier = Modifier
@@ -218,7 +204,7 @@ fun FoodListPage(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
-                        enabled = uiState.value !is MutationState.Pending,
+                        enabled = uiState.value.second !is MutationState.Pending,
                         onClick = {
                             val selectableItemsId =
                                 selectableState.items.toList().map { it.id }
@@ -229,7 +215,7 @@ fun FoodListPage(
                             viewModel.addAllFoodsToConsumeLog(consumeMeals = selectedMealType)
                         }
                     ) {
-                        if (uiState.value is MutationState.Pending) {
+                        if (uiState.value.second is MutationState.Pending) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         } else {
                             Text(stringResource(R.string.add_foods_to_consume_logs))
@@ -240,6 +226,26 @@ fun FoodListPage(
                             )
                         }
                     }
+
+                    if (uiState.value.second is MutationState.Error) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.ErrorOutline,
+                                contentDescription = "bulk_mutation_error",
+                                tint = colorScheme.extended.error
+                            )
+                            (uiState.value.second as MutationState.Error).error.message?.let {
+                                Text(
+                                    it,
+                                    style = typography.labelMedium.copy(color = colorScheme.extended.error)
+                                )
+                            }
+                        }
+                    }
+
                 }
             }
         }
@@ -249,6 +255,7 @@ fun FoodListPage(
 @Composable
 fun FoodListMealSelections(
     modifier: Modifier = Modifier,
+    selectedMeals: List<MealType> = emptyList(),
     onMealsChanged: (List<MealType>) -> Unit = {},
 ) {
     MultiSelectOptions(
@@ -256,6 +263,7 @@ fun FoodListMealSelections(
             .fillMaxWidth()
             .padding(horizontal = Spacing.m, vertical = Spacing.xs),
         items = MealType.entries.filter { it != MealType.UNSPECIFIED },
+        initialSelectedValues = selectedMeals,
         onValuesChanged = onMealsChanged
     ) { mealType, selected ->
         SelectionChip(
@@ -266,11 +274,52 @@ fun FoodListMealSelections(
     }
 }
 
+
+@Composable
+fun FoodListHeader(
+    selectionMode: SelectionMode,
+    onSelectionModeChanged: (SelectionMode) -> Unit = {}
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.m, vertical = Spacing.xs),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Selection Mode",
+                    style = typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.onSurface
+                    )
+                )
+                Text(
+                    text = stringResource(R.string.food_list_subtitle),
+                    style = typography.labelSmall.copy(
+                        color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                )
+            }
+
+            SelectionModeDropdown(
+                selectionMode = selectionMode
+            ) { newMode ->
+                onSelectionModeChanged(newMode)
+            }
+        }
+    }
+}
+
 @Composable
 fun FoodList(
     modifier: Modifier = Modifier,
     foodItems: Flow<PagingData<FoodUiState>>,
     selectableState: SelectableState<Food>,
+    selectedMeals: List<MealType> = emptyList(),
+    selectedMealType: MealType = MealType.UNSPECIFIED,
     onMealsChanged: (List<MealType>) -> Unit = {},
     onSelectableModeItemClick: (Int) -> Unit = {},
     onAddFoodToConsumeLogs: (food: Food, mealType: MealType) -> Unit = { _, _ -> },
@@ -284,6 +333,7 @@ fun FoodList(
         itemKey = { foodStateHolder -> foodStateHolder.food.id },
         headerProps = (false to {
             FoodListMealSelections(
+                selectedMeals = selectedMeals,
                 onMealsChanged = onMealsChanged
             )
         }),
@@ -302,11 +352,11 @@ fun FoodList(
                 modifier = Modifier.padding(horizontal = Spacing.s),
                 food = foodStateHolder.food,
                 isLoading = foodStateHolder.isLoading,
-                onAddClick = if (selectableState.isSelectableMode) {
+                onAddClick = if (selectableState.selectionMode == SelectionMode.BULK) {
                     null
                 } else {
                     {
-                        onAddFoodToConsumeLogs(foodStateHolder.food, MealType.UNSPECIFIED)
+                        onAddFoodToConsumeLogs(foodStateHolder.food, selectedMealType)
                     }
                 }
             )

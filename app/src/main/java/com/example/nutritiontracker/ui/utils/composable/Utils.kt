@@ -102,29 +102,29 @@ internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(
     )
 }
 
+
 @Composable
-fun <T> MutationEffect(
-    mutationState: MutationState<T>,
+fun MutationEffect(
+    vararg mutationStates: MutationState<*>,
     activeWhen: Boolean = true,
-    onSuccess: ((T) -> Unit)? = null,
+    onSuccess: (suspend (Any) -> Unit)? = null,
     onFailure: suspend (Throwable) -> Unit,
-    coroutineScope: CoroutineScope = rememberCoroutineScope()
 ) {
     if (!activeWhen) return
-
-    LaunchedEffect(mutationState) {
-        when (mutationState) {
-            is MutationState.Success -> {
-                onSuccess?.invoke(mutationState.data)
-            }
-
-            is MutationState.Error -> {
-                coroutineScope.launch {
-                    onFailure(mutationState.error)
+    val onFailureState by rememberUpdatedState(onFailure)
+    LaunchedEffect(mutationStates) {
+        mutationStates.forEach { state ->
+            when (state) {
+                is MutationState.Success -> {
+                    onSuccess?.invoke( state.data ?: Unit)
                 }
-            }
 
-            else -> {}
+                is MutationState.Error -> {
+                    onFailureState(state.error)
+                }
+
+                else -> {}
+            }
         }
     }
 }
@@ -157,7 +157,7 @@ fun NavigationListener(
     onNavigationChange: ((Boolean) -> Unit)? = null
 ) {
 
-   val currentCallback by rememberUpdatedState(onNavigationChange)
+    val currentCallback by rememberUpdatedState(onNavigationChange)
 
     DisposableEffect(Unit) {
         val listener = NavController.OnDestinationChangedListener { controller, destination, _ ->

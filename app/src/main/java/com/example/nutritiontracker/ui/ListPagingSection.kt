@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +28,7 @@ fun <T : Any> ListPagingSection(
     paddingValues: PaddingValues = PaddingValues.Zero,
     pagingItems: LazyPagingItems<T>,
     headerProps: HeaderProps? = null,
+    state: LazyListState = rememberLazyListState(),
     key: (Int) -> Any,
     initialDataError: (@Composable (Throwable) -> Unit)? = null,
     emptyDataContent: (@Composable () -> Unit)? = null,
@@ -52,6 +55,7 @@ fun <T : Any> ListPagingSection(
             // Initial load is done; now safe to render LazyColumn and check item count
             LazyColumn(
                 modifier = modifier,
+                state = state,
                 contentPadding = paddingValues,
                 verticalArrangement = Arrangement.spacedBy(Spacing.m)
             ) {
@@ -109,6 +113,7 @@ fun <T : Any> ListPagingSection(
     modifier: Modifier = Modifier,
     paddingValues: PaddingValues = PaddingValues(horizontal = Spacing.m),
     pagingItems: LazyPagingItems<T>,
+    state: LazyListState = rememberLazyListState(),
     headerProps: HeaderProps? = null,
     itemKey: ((@JvmSuppressWildcards T) -> Any), // Overload for item-based key selector
     initialDataError: (@Composable (Throwable) -> Unit)? = null,
@@ -116,9 +121,12 @@ fun <T : Any> ListPagingSection(
     itemContent: @Composable (T) -> Unit,
 ) {
     // Delegate to the primary implementation, wrapping the item key with pagingItems.itemKey
+
+    //TODO: Add Side effect when user scrolls later
     ListPagingSection(
         modifier = modifier,
         paddingValues = paddingValues,
+        state = state,
         pagingItems = pagingItems,
         headerProps = headerProps,
         key = pagingItems.itemKey(itemKey),
