@@ -102,30 +102,29 @@ internal inline fun <reified VM : ViewModel, reified VMF> AssistedUserViewModel(
     )
 }
 
+
 @Composable
-fun <T> MutationEffect(
-    mutationState: MutationState<T>,
+fun MutationEffect(
+    vararg mutationStates: MutationState<*>,
     activeWhen: Boolean = true,
-    onSuccess:  (suspend (T) -> Unit)? = null,
+    onSuccess: (suspend (Any) -> Unit)? = null,
     onFailure: suspend (Throwable) -> Unit,
-    coroutineScope: CoroutineScope = rememberCoroutineScope()
 ) {
     if (!activeWhen) return
     val onFailureState by rememberUpdatedState(onFailure)
-    LaunchedEffect(mutationState) {
-        when (mutationState) {
-            is MutationState.Success -> {
-                coroutineScope.launch{
-                    onSuccess?.invoke(mutationState.data)
+    LaunchedEffect(mutationStates) {
+        mutationStates.forEach { state ->
+            when (state) {
+                is MutationState.Success -> {
+                    onSuccess?.invoke( state.data ?: Unit)
                 }
-            }
-            is MutationState.Error -> {
-                coroutineScope.launch {
-                    onFailureState(mutationState.error)
-                }
-            }
 
-            else -> {}
+                is MutationState.Error -> {
+                    onFailureState(state.error)
+                }
+
+                else -> {}
+            }
         }
     }
 }
