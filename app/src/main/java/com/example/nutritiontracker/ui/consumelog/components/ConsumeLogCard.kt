@@ -2,10 +2,12 @@ package com.example.nutritiontracker.ui.consumelog.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,13 +70,28 @@ private fun MealType.properties(): MealTypeProperties = when (this) {
     )
 }
 
+
+@Composable
+private fun IdleBoxPlaceholder(content: (@Composable () -> Unit)? = null) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(72.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        content?.invoke()
+    }
+}
+
 @Composable
 internal fun ConsumeLogSurface(
     personalConsumeLogState: Map<MealType, QueryState<List<ConsumeLog>>> = emptyMap(),
     onNavigateToConsumeLogDetail: () -> Unit = {}
 ) {
     Column(
-        modifier = Modifier.background(colorScheme.surface).fillMaxWidth(),
+        modifier = Modifier
+            .background(colorScheme.surface)
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
@@ -90,7 +107,9 @@ internal fun ConsumeLogSurface(
 
             when (personalConsumeLogMealType) {
                 is QueryState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    IdleBoxPlaceholder {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    }
                 }
 
                 is QueryState.Success -> {
@@ -104,12 +123,13 @@ internal fun ConsumeLogSurface(
                         ),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
                         if (consumeLog.isEmpty()) {
-                            Text(
-                                "No Data",
-                                style = typography.labelMedium.copy(color = colorScheme.onSurface)
-                            )
+                            IdleBoxPlaceholder {
+                                Text(
+                                    "No Data",
+                                    style = typography.labelMedium.copy(color = colorScheme.onSurface)
+                                )
+                            }
                         } else {
                             consumeLog.forEach { log -> FoodCard(food = log.food) }
                         }

@@ -267,6 +267,7 @@ private fun MainLayout(
                             HomePage(
                                 onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
                                 onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+                                pickedDate = pickedDate,
                                 onDateChanged = { date ->
                                     if (pickedDate != date) {
                                         onPickedDateChanged(date)
@@ -345,6 +346,7 @@ private fun MainLayout(
                 Spacer(modifier = Modifier.weight(.5f))
                 HomePage(
                     modifier = Modifier.weight(2f),
+                    pickedDate = pickedDate
                 )
                 Spacer(modifier = Modifier.width(Spacing.m))
 

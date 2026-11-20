@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.home.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.ConsumeLog
@@ -7,6 +8,8 @@ import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.consumelog.GetPersonalConsumeLogListUseCase
 import com.example.nutritiontracker.ui.utils.composable.QueryState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,39 +31,35 @@ class HomeViewModel @Inject constructor(private val getPersonalConsumeLogListUse
 
     val personalConsumeLogState = _personalConsumeLogState.asStateFlow()
 
-    init{
-        getPersonalConsumeLogList(MealType.BREAKFAST, "")
-        getPersonalConsumeLogList(MealType.LUNCH, "")
-        getPersonalConsumeLogList(MealType.DINNER, "")
-    }
-    fun getPersonalConsumeLogList(mealType: MealType, consumedAt: String) {
-        viewModelScope.launch {
-            _personalConsumeLogState.update { previous ->
-                buildMap {
-                    putAll(previous)
-                    put(mealType, QueryState.Loading)
+    suspend fun getPersonalConsumeLogList(
+        mealType: MealType,
+        consumedAt: String,
+    ) {
+        _personalConsumeLogState.update { previous ->
+            buildMap {
+                putAll(previous)
+                put(mealType, QueryState.Loading)
+            }
+        }
+
+        delay(300)
+        getPersonalConsumeLogListUseCase(mealType = mealType, consumedAt = consumedAt).fold(
+            onSuccess = { data ->
+                _personalConsumeLogState.update { previous ->
+                    buildMap {
+                        putAll(previous)
+                        put(mealType, QueryState.Success(data))
+                    }
+                }
+            },
+            onFailure = { error ->
+                _personalConsumeLogState.update { previous ->
+                    buildMap {
+                        putAll(previous)
+                        put(mealType, QueryState.Error(error))
+                    }
                 }
             }
-
-            delay(300)
-            getPersonalConsumeLogListUseCase(mealType = mealType, consumedAt = consumedAt).fold(
-                onSuccess = { data ->
-                    _personalConsumeLogState.update { previous ->
-                        buildMap {
-                            putAll(previous)
-                            put(mealType, QueryState.Success(data))
-                        }
-                    }
-                },
-                onFailure = { error ->
-                    _personalConsumeLogState.update { previous ->
-                        buildMap {
-                            putAll(previous)
-                            put(mealType, QueryState.Error(error))
-                        }
-                    }
-                }
-            )
-        }
+        )
     }
 }

@@ -61,7 +61,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                             ).toMap()
                         )
                         put("meal_type", mealType.ordinal)
-//                        put("consumed_at", consumedAt)
+                        put("consumed_at", consumedAt)
                     }
                 )
             },
@@ -84,7 +84,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                         ).toMap()
                     )
                     put("meal_type", mealType.ordinal)
-//                    put("consumed_at", consumedAt)
+                    put("consumed_at", consumedAt)
                 }
             )
         }.fold(

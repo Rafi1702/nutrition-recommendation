@@ -13,6 +13,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -20,6 +21,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
 import com.example.nutritiontracker.domain.model.MacroType
+import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.ui.components.DatePicker
 import com.example.nutritiontracker.ui.consumelog.components.ConsumeLogSurface
 import com.example.nutritiontracker.ui.home.components.MacroNutrientsNeed
@@ -29,16 +31,29 @@ import com.example.nutritiontracker.ui.home.viewmodel.HomeViewModel
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import kotlinx.coroutines.launch
 
-@Preview(showBackground = true)
 @Composable
 internal fun HomePage(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
+    pickedDate: String,
     onDateChanged: (String) -> Unit = {},
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
+
+    LaunchedEffect(pickedDate) {
+        MealType.entries.forEach { mealType ->
+            if (mealType == MealType.UNSPECIFIED) return@forEach
+            launch {
+                viewModel.getPersonalConsumeLogList(
+                    mealType, pickedDate,
+                )
+            }
+        }
+    }
+
     val uiState = viewModel.personalConsumeLogState.collectAsStateWithLifecycle()
     Surface(
         modifier = modifier,
@@ -46,7 +61,9 @@ internal fun HomePage(
     ) {
         LazyColumn(contentPadding = PaddingValues(horizontal = Spacing.m)) {
             item {
-                DatePicker(onDateChanged = onDateChanged)
+                DatePicker(onDateChanged = { newDate ->
+                    onDateChanged(newDate)
+                })
             }
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))
@@ -79,7 +96,7 @@ internal fun HomePage(
 private fun RecommendedFoodSection(
     modifier: Modifier = Modifier,
     onNavigateToRecommendedFoodList: () -> Unit = {}
-) { 
+) {
 
     Row(modifier = modifier.fillMaxWidth()) {
         Column(
