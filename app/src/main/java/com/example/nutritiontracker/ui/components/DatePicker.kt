@@ -112,6 +112,11 @@ private fun LocalDate.createDatePicker(): DatePickerHolder {
     )
 }
 
+private fun String.createDatePicker(): DatePickerHolder {
+    val formattedDate = LocalDate.parse(this)
+    return formattedDate.createDatePicker()
+}
+
 fun nowYyyyMMDD(): String {
     return Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
         .format(formatDate(serviceFormatter))
@@ -128,17 +133,37 @@ private fun String.toMillisEpoch(): Long? {
     }
 }
 
+
 @Composable
 private fun rememberDateBuild(
+    day: Int = 1,
     year: Int = 2026,
     month: Int = 1,
 ): List<DatePickerHolder> {
-    return remember(year, month) {
+    return remember(day, year, month) {
         LocalDate.of(year, month, 1)
             .datesUntil(LocalDate.of(year + 1, month, 1))
             .map { it.createDatePicker() }
             .toList()
     }
+}
+
+
+@Composable
+private fun rememberDateBuild(
+    /**
+     * @param initialDate the String used ISO(yyyy-MM-dd)
+     */
+    initialDate: String,
+): List<DatePickerHolder> {
+    if (initialDate.isEmpty()) return emptyList()
+
+    val date = initialDate.split("-")
+    return rememberDateBuild(
+        day = date[2].toIntOrNull() ?: 1,
+        year = date[0].toIntOrNull() ?: 2026,
+        month = date[1].toIntOrNull() ?: 1,
+    )
 }
 
 private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
@@ -161,15 +186,14 @@ fun DatePicker(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues.Zero,
     onDateChanged: (String) -> Unit = {},
-    year: Int = 2026,
-    month: Int = 1,
+    initialValue: String = nowYyyyMMDD(),
 ) {
-    val dates = rememberDateBuild(year = year, month = month)
+    val dates = rememberDateBuild(initialValue)
     val listState = rememberLazyListState()
     val snapFlingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
     var selectedDate by rememberSaveable(stateSaver = DatePickerHolderSaver) {
         mutableStateOf(
-            Instant.now().atZone(ZoneId.systemDefault()).toLocalDate().createDatePicker()
+            initialValue.createDatePicker()
         )
     }
     val trackedMonth = rememberSaveable(selectedDate, stateSaver = DatePickerHolderSaver) {
