@@ -1,7 +1,8 @@
 package com.example.nutritiontracker.ui.home.page
 
+import android.os.Build
 import android.util.Log
-import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -48,11 +49,12 @@ import androidx.navigation.navArgument
 import com.example.nutritiontracker.data.model.consumelog.toMealType
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.ui.components.nowYyyyMMDD
+import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogDetail
+import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogNav
+import com.example.nutritiontracker.ui.consumelog.viewmodel.ConsumeLogDetailViewModel
 import com.example.nutritiontracker.ui.food.page.FoodListPage
 import com.example.nutritiontracker.ui.food.page.FoodPath
-import com.example.nutritiontracker.ui.food.page.FoodRecommendationsPage
 import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
-import com.example.nutritiontracker.ui.food.viewmodel.FoodRecommendationViewModel
 import com.example.nutritiontracker.ui.home.components.DialogEvent
 import com.example.nutritiontracker.ui.home.components.FoodSelectionConfirmation
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
@@ -87,12 +89,14 @@ fun MainPage(
     val isPreview = LocalInspectionMode.current
     val user = LocalUserProfile.current.value
     Log.d("[USER]", "$user")
-    BackHandler { onNavigateBack() }
+
     val bottomBarNavController: NavHostController? = when {
         isPreview -> null
         screenSize == ScreenSize.MOBILE -> rememberNavController()
         else -> null
     }
+
+    var pickedDate by remember { mutableStateOf(nowYyyyMMDD()) }
 
     when (screenSize) {
         ScreenSize.MOBILE -> {
@@ -101,6 +105,8 @@ fun MainPage(
                 bottomNavController = bottomBarNavController,
                 onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
                 onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
+                onPickedDateChanged = { pickedDate = it },
+                pickedDate = pickedDate,
             )
         }
 
@@ -127,7 +133,9 @@ fun MainPage(
                     bottomNavController = bottomBarNavController,
                     drawerProps = drawerRequirementProps,
                     onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
-                    onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList
+                    onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
+                    onPickedDateChanged = { pickedDate = it },
+                    pickedDate = pickedDate,
                 )
             }
         }
@@ -139,6 +147,8 @@ private fun MainScaffold(
     modifier: Modifier = Modifier,
     bottomNavController: NavHostController? = null,
     drawerProps: DrawerRequirementProps? = null,
+    pickedDate: String = nowYyyyMMDD(),
+    onPickedDateChanged: (String) -> Unit = {},
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
@@ -146,7 +156,7 @@ private fun MainScaffold(
     //This state passed to FoodList composable (not ViewModel)
     var isSelectedFoodsNotEmpty by remember { mutableStateOf<Boolean?>(null) }
     var pendingRoute by remember { mutableStateOf<String?>(null) }
-    val pickedDate = remember { mutableStateOf(nowYyyyMMDD()) }
+
 
     val showFoodConfirmationDialog =
         isSelectedFoodsNotEmpty == true && pendingRoute != null
@@ -156,7 +166,7 @@ private fun MainScaffold(
             bottomNavController?.currentBackStackEntry?.destination?.route?.let { route ->
                 when {
                     route.startsWith(FoodPath.FOOD_LIST_BASE) -> FoodPath.createFoodListRoute(
-                        consumedAt = pickedDate.value,
+                        consumedAt = pickedDate,
                         mealType = MealType.UNSPECIFIED.label
                     )
 
@@ -167,7 +177,7 @@ private fun MainScaffold(
         val targetRoute = when {
             route.startsWith(FoodPath.FOOD_LIST_BASE) ->
                 FoodPath.createFoodListRoute(
-                    consumedAt = pickedDate.value,
+                    consumedAt = pickedDate,
                     mealType = MealType.UNSPECIFIED.label
                 )
 
@@ -216,10 +226,8 @@ private fun MainScaffold(
             bottomNavController = bottomNavController,
             onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
             showFoodConfirmationDialog = showFoodConfirmationDialog,
-            pickedDate = pickedDate.value,
-            onPickedDateChanged = { newDate ->
-                pickedDate.value = newDate
-            },
+            pickedDate = pickedDate,
+            onPickedDateChanged = onPickedDateChanged,
             confirmationDialogEvent = object : DialogEvent {
                 override fun onDismissRequest() {
                     pendingRoute = null
@@ -237,6 +245,7 @@ private fun MainScaffold(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MainLayout(
     padding: PaddingValues = PaddingValues(Spacing.none),
@@ -263,10 +272,10 @@ private fun MainLayout(
                         startDestination = HomePath.HOME,
                         modifier = Modifier.padding(padding),
                     ) {
-                        composable(route = HomePath.HOME) {
+                        composable(MainNavigation.HOME.route) {
                             HomePage(
                                 onNavigateToRecommendedFoodList = onNavigateToRecommendedFoodList,
-                                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+
                                 pickedDate = pickedDate,
                                 onDateChanged = { date ->
                                     if (pickedDate != date) {
@@ -276,7 +285,7 @@ private fun MainLayout(
                             )
                         }
 
-                        composable(ProfileNav.USER_PROFILE) {
+                        composable(MainNavigation.USER_PROFILE.route) {
                             val userProfileViewModel =
                                 AssistedUserViewModel<UserProfileViewModel, UserProfileViewModel.Factory> { factory, userProfile ->
                                     factory.create(userProfile = userProfile)
@@ -284,14 +293,18 @@ private fun MainLayout(
                             UserProfilePageRoute(viewModel = userProfileViewModel)
                         }
 
-                        composable(route = FoodPath.FOOD_RECOMMENDATIONS) {
-                            val foodRecommendationViewModel: FoodRecommendationViewModel =
+                        composable(
+                            route = MainNavigation.CONSUME_LOG_LIST.route,
+                        ) {
+                            val consumeLogDetailViewModel: ConsumeLogDetailViewModel =
                                 hiltViewModel()
-                            FoodRecommendationsPage(viewModel = foodRecommendationViewModel)
+                            ConsumeLogDetail(
+                                viewModel = consumeLogDetailViewModel,
+                                onNavigateBack = {})
                         }
 
                         composable(
-                            route = FoodPath.FOOD_LIST_ROUTE,
+                            route = MainNavigation.FOOD_LIST.route,
                             arguments = listOf(
                                 navArgument("consumedAt") {
                                     type = NavType.StringType
@@ -389,6 +402,12 @@ private fun AdaptiveTopBar(
         currentRoute == ProfileNav.USER_PROFILE -> TopAppBarComponents(title = {
             Text(
                 "Profile"
+            )
+        })
+
+        currentRoute == ConsumeLogNav.CONSUME_LIST -> TopAppBarComponents(title = {
+            Text(
+                "Consume Logs"
             )
         })
 

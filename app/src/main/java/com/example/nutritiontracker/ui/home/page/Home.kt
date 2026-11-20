@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
@@ -39,7 +38,6 @@ internal fun HomePage(
     viewModel: HomeViewModel = hiltViewModel(),
     pickedDate: String,
     onDateChanged: (String) -> Unit = {},
-    onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
 ) {
 
@@ -61,9 +59,12 @@ internal fun HomePage(
     ) {
         LazyColumn(contentPadding = PaddingValues(horizontal = Spacing.m)) {
             item {
-                DatePicker(onDateChanged = { newDate ->
-                    onDateChanged(newDate)
-                })
+                DatePicker(
+                    onDateChanged = { newDate ->
+                        onDateChanged(newDate)
+                    },
+                    initialValue = pickedDate
+                )
             }
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))
@@ -82,16 +83,19 @@ internal fun HomePage(
 
             item {
                 Spacer(modifier = Modifier.height(Spacing.m))
+                Surface {}
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(Spacing.s))
                 ConsumeLogSurface(
                     personalConsumeLogState = uiState.value,
-                    onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail
                 )
             }
         }
     }
 }
 
-@Preview
 @Composable
 private fun RecommendedFoodSection(
     modifier: Modifier = Modifier,
@@ -115,7 +119,6 @@ private fun RecommendedFoodSection(
     }
 }
 
-@Preview
 @Composable
 private fun UserNeedSection(modifier: Modifier = Modifier) {
     Column(
