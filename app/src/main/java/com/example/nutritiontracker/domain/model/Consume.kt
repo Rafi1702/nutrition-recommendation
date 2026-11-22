@@ -24,14 +24,14 @@ data class ConsumeLog(
 )
 
 fun List<ConsumeLog>.nutrientsSubTotal(): NutrientsSubTotal {
-    val totalCalories = sumOf { it.food.totalCalories }
-    val totalCarbs = sumOf { it.food[MacroType.CARBS].serveValue }
-    val totalProteins = sumOf { it.food[MacroType.PROTEIN].serveValue }
-    val totalFats = sumOf { it.food[MacroType.FAT].serveValue }
+//    val totalCalories = sumOf { it.food.totalCalories }
+//    val totalCarbs = sumOf { it.food[MacroType.CARBS].serveValue }
+//    val totalProteins = sumOf { it.food[MacroType.PROTEIN].serveValue }
+//    val totalFats = sumOf { it.food[MacroType.FAT].serveValue }
     return NutrientsSubTotal(
-        calories = totalCalories,
-        carbs = totalCarbs.roundToInt(),
-        proteins = totalProteins.roundToInt(),
-        fats = totalFats.roundToInt()
+        calories = 0,
+        carbs = 0,
+        proteins = 0,
+        fats = 0,
     )
 }

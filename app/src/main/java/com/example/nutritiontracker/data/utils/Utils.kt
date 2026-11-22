@@ -26,21 +26,19 @@ data class PaginatedListResponse<out T>(
 
 data class CursorPaginate<out T>(
     @SerializedName("next_cursor")
-    val nextCursor: Int,
+    val nextCursor: String? = null,
     @SerializedName("has_more")
     val hasMore: Boolean,
     val items: List<T>
 )
 
-data class CursorPaginateQuery(
-    val cursor: Int? = null,
+data class CursorPaginateQuery<out K : Any>(
+    val cursor: K? = null,
     val limit: Int? = ITEMS_LIMIT,
 ) {
-    fun toMap(): Map<String, Int> {
-        return buildMap {
-            cursor?.let { put("cursor", it) }
-            limit?.let { put("limit", it) }
-        }
+    fun toMap(): Map<String, Any> = buildMap {
+        cursor?.let { put("cursor", it) }
+        limit?.let { put("limit", it) }
     }
 }
 

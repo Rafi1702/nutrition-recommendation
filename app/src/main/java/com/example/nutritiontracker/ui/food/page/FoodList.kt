@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,12 +46,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,6 +71,7 @@ import com.example.nutritiontracker.ui.components.SelectableItemsWrapper
 import com.example.nutritiontracker.ui.components.SelectableState
 import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.components.SelectionMode
+import com.example.nutritiontracker.ui.components.defaultCardElevation
 import com.example.nutritiontracker.ui.components.label
 import com.example.nutritiontracker.ui.components.rememberSelectableState
 import com.example.nutritiontracker.ui.food.components.FoodCard
@@ -112,9 +118,12 @@ fun FoodListPage(
             when (mutationState) {
                 is MutationState.Error -> {
                     if (selectableState.selectionMode == SelectionMode.SINGLE) {
-                        snackBarState.showSnackbar(message = mutationState.error.message ?: "Unknown")
+                        snackBarState.showSnackbar(
+                            message = mutationState.error.message ?: "Unknown"
+                        )
                     }
                 }
+
                 is MutationState.Success<*> -> {
                     if (selectableState.selectionMode == SelectionMode.BULK) {
                         showBottomSheet = false
@@ -122,6 +131,7 @@ fun FoodListPage(
                     }
                     snackBarState.showSnackbar(addFoodsToConsumeLogSuccessMessage)
                 }
+
                 else -> return@collectLatest
             }
         }
@@ -138,14 +148,7 @@ fun FoodListPage(
                 Text(stringResource(R.string.see_selected_items))
             }
         },
-        header = {
-            FoodListHeader(
-                selectableState.selectionMode,
-                onSelectionModeChanged = { newSelectionMode ->
-                    selectableState.onSelectionModeChange(newSelectionMode)
-                })
-        }) {
-
+    ) {
         LaunchedEffect(selectableState.isSelectableMode, selectableState.items) {
             onSelectedFoodPicked(selectableState.items.isNotEmpty() && selectableState.isSelectableMode)
         }
@@ -320,12 +323,48 @@ fun FoodListHeader(
 }
 
 @Composable
+fun FoodListHeaderSection(
+    selectionMode: SelectionMode,
+    selectedMeals: List<MealType>,
+    onSelectionModeChange: (SelectionMode) -> Unit,
+    onMealsChanged: (List<MealType>) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = Spacing.s, horizontal = Spacing.s)
+                .defaultCardElevation()
+                .background(color = colorScheme.surface, shape = RoundedCornerShape(8.dp)),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+        ) {
+            Spacer(modifier = Modifier.height(Spacing.xs))
+            FoodListHeader(
+                selectionMode = selectionMode,
+                onSelectionModeChanged = onSelectionModeChange
+            )
+            FoodListMealSelections(
+                selectedMeals = selectedMeals,
+                onMealsChanged = onMealsChanged
+            )
+            Spacer(modifier = Modifier.height(Spacing.xs))
+        }
+    }
+}
+
+@Composable
 fun FoodList(
     modifier: Modifier = Modifier,
     foodItems: Flow<PagingData<FoodUiState>>,
     selectableState: SelectableState<Food>,
     selectedMeals: List<MealType> = emptyList(),
     selectedMealType: MealType = MealType.UNSPECIFIED,
+    isHeaderSticky: Boolean = true,
     onMealsChanged: (List<MealType>) -> Unit = {},
     onSelectableModeItemClick: (Int) -> Unit = {},
     onAddFoodToConsumeLogs: (food: Food, mealType: MealType) -> Unit = { _, _ -> },
@@ -337,12 +376,16 @@ fun FoodList(
         paddingValues = PaddingValues(bottom = Spacing.m),
         pagingItems = foodLazyItems,
         itemKey = { foodStateHolder -> foodStateHolder.food.id },
-        headerProps = (false to {
-            FoodListMealSelections(
+        headerProps = isHeaderSticky to {
+            FoodListHeaderSection(
+                selectionMode = selectableState.selectionMode,
                 selectedMeals = selectedMeals,
+                onSelectionModeChange = { newMode ->
+                    selectableState.onSelectionModeChange(newMode)
+                },
                 onMealsChanged = onMealsChanged
             )
-        }),
+        },
         initialDataError = {
             Text(stringResource(R.string.initial_data_error))
         }) { foodStateHolder ->

@@ -8,17 +8,12 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 interface ConsumeLogRepository {
-    fun getConsumeLog(
-        currentTime: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString()
-    ): Flow<PagingData<ConsumeLog>>
-
     suspend fun addFoodsToConsumeLog(
         meals: Map<MealType, List<Int>>,
         consumedAt: String
     ): Result<Unit>
 
     fun getPersonalConsumeLog(
-        mealType: MealType,
         consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString()
     ): Flow<PagingData<ConsumeLog>>
 

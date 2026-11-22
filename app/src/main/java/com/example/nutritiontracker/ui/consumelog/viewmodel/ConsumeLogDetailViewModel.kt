@@ -7,15 +7,13 @@ import androidx.paging.map
 import com.example.nutritiontracker.domain.model.ConsumeLog
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.consumelog.GetConsumeLogUseCase
+import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
-data class ConsumeLogUiStatus(
-    val consumeLog: ConsumeLog,
-    val isLoading: Boolean = false,
-)
+
 
 @HiltViewModel
 class ConsumeLogDetailViewModel @Inject constructor(
@@ -24,7 +22,7 @@ class ConsumeLogDetailViewModel @Inject constructor(
 
     val consumeLogsFlow = getConsumeLogUseCase(mealType = MealType.BREAKFAST, consumedAt = "").map { consumeLogs ->
         consumeLogs.map { consumeLog ->
-            ConsumeLogUiStatus(consumeLog = consumeLog)
+            ConsumeLogUiState(consumeLog = consumeLog)
         }
     }.cachedIn(viewModelScope)
 

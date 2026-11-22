@@ -23,49 +23,41 @@ import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.utils.composable.plus
 
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.paging.PagingData
+import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConsumeLogDetail(
-    viewModel: ConsumeLogDetailViewModel? = if (LocalInspectionMode.current) null else hiltViewModel(),
+    viewModel: ConsumeLogDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
-    Scaffold(topBar = {
-        TopAppBar(
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            },
-            title = { Text("Consume Logs") }
-        )
-    }) { innerPadding ->
-        if (viewModel != null) {
-            val lazyConsumeLogs = viewModel.consumeLogsFlow.collectAsLazyPagingItems()
-            ListPagingSection(
-                modifier = Modifier.fillMaxSize(),
-                paddingValues = innerPadding + PaddingValues(horizontal = Spacing.m),
-                pagingItems = lazyConsumeLogs,
-                itemKey = { consumeLogStatus -> consumeLogStatus.consumeLog.id },
-                initialDataError = {
-                    Text("Initial Data Error")
-                }) { consumeLog ->
-                FoodCard(food = consumeLog.consumeLog.food)
-            }
-        }
+    PersonalConsumeList(consumeLogs = viewModel.consumeLogsFlow)
+}
+
+@Composable
+internal fun PersonalConsumeList(
+    innerPadding: PaddingValues = PaddingValues.Zero,
+    consumeLogs: Flow<PagingData<ConsumeLogUiState>>
+) {
+    val consumeLogLazyItems = consumeLogs.collectAsLazyPagingItems()
+
+    ListPagingSection(
+        modifier = Modifier.fillMaxSize(),
+        paddingValues = innerPadding + PaddingValues(horizontal = Spacing.m),
+        pagingItems = consumeLogLazyItems,
+        headerProps = (true to {
+
+        }),
+        itemKey = { consumeLogStatus -> consumeLogStatus.consumeLog.id },
+        initialDataError = {
+            Text("Initial Data Error")
+        }) { consumeLog ->
+        FoodCard(food = consumeLog.consumeLog.food)
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun ConsumeLogDetailPreview() {
-    NutritionTrackerTheme {
-        ConsumeLogDetail()
-    }
-}
 
 
 

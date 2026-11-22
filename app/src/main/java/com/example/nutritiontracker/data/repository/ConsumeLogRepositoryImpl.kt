@@ -7,6 +7,7 @@ import com.example.nutritiontracker.data.model.consumelog.toConsumeLog
 import com.example.nutritiontracker.data.remote.ConsumeLogRemoteDataSource
 import com.example.nutritiontracker.data.utils.CursorPaginateQuery
 import com.example.nutritiontracker.data.utils.ITEMS_LIMIT
+import com.example.nutritiontracker.data.utils.PageCursor
 import com.example.nutritiontracker.data.utils.defaultPagerCreation
 import com.example.nutritiontracker.data.utils.safeCall
 import com.example.nutritiontracker.domain.model.ConsumeLog
@@ -18,11 +19,6 @@ import javax.inject.Inject
 class ConsumeLogRepositoryImpl @Inject constructor(
     private val consumeLogRemoteDataSource: ConsumeLogRemoteDataSource
 ) : ConsumeLogRepository {
-
-    override fun getConsumeLog(currentTime: String): Flow<PagingData<ConsumeLog>> {
-        throw NotImplementedError()
-    }
-
     override suspend fun addFoodsToConsumeLog(
         meals: Map<MealType, List<Int>>,
         consumedAt: String
@@ -47,10 +43,10 @@ class ConsumeLogRepositoryImpl @Inject constructor(
     }
 
     override fun getPersonalConsumeLog(
-        mealType: MealType,
         consumedAt: String
     ): Flow<PagingData<ConsumeLog>> {
         return defaultPagerCreation(
+            initialCursor = PageCursor.Cursor(value = null),
             ioCall = { cursor ->
                 consumeLogRemoteDataSource.getConsumeLog(
                     buildMap {
@@ -60,7 +56,6 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                                 limit = ITEMS_LIMIT
                             ).toMap()
                         )
-                        put("meal_type", mealType.ordinal)
                         put("consumed_at", consumedAt)
                     }
                 )
@@ -78,11 +73,6 @@ class ConsumeLogRepositoryImpl @Inject constructor(
         return safeCall {
             consumeLogRemoteDataSource.getPersonalConsumeLogs(
                 buildMap {
-                    putAll(
-                        CursorPaginateQuery(
-                            limit = 3
-                        ).toMap()
-                    )
                     put("meal_type", mealType.ordinal)
                     put("consumed_at", consumedAt)
                 }

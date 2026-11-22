@@ -6,20 +6,24 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.map
-import com.example.nutritiontracker.data.model.food.toFood
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 import kotlinx.coroutines.flow.map
 
+sealed interface PageCursor {
+    data class Cursor(val value: String?) : PageCursor
+    data class Page(val value: Int = 0) : PageCursor
+}
+
 class PagingSource<T : Any>(
-    private val initialCursor: Int = 0,
+    private val initialCursor: PageCursor,
     private val maxItems: Int? = null,
-    val networkCall: suspend (Int) -> Result<PaginatedListResponse<T>>,
-) : PagingSource<Int, T>() {
+    val networkCall: suspend (PageCursor?) -> Result<PaginatedListResponse<T>>,
+) : PagingSource<PageCursor, T>() {
 
     private var loadedCount = 0
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, T> {
+    override suspend fun load(params: LoadParams<PageCursor>): LoadResult<PageCursor, T> {
         val currentCursor = params.key ?: initialCursor
 
         val response = networkCall.invoke(currentCursor)
@@ -38,10 +42,15 @@ class PagingSource<T : Any>(
                         null
                     }
 
+                val cursor = when (currentCursor) {
+                    is PageCursor.Cursor -> PageCursor.Cursor(nextKey)
+                    else -> PageCursor.Page(loadedCount)
+                }
+
                 LoadResult.Page(
                     data = res.data.items,
-                    prevKey = null, // Cursor-based pagination is forward-only
-                    nextKey = nextKey,
+                    prevKey = null,
+                    nextKey = cursor,
                 )
             },
             onFailure = { error ->
@@ -50,7 +59,7 @@ class PagingSource<T : Any>(
         )
     }
 
-    override fun getRefreshKey(state: PagingState<Int, T>): Int? {
+    override fun getRefreshKey(state: PagingState<PageCursor, T>): PageCursor? {
         return state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.let { page ->
                 page.prevKey ?: page.nextKey
@@ -72,7 +81,7 @@ fun <JSON : Any, DATA : Any> defaultPagerCreation(
     mapToData: (JSON) -> DATA,
     ioCall: suspend (cursor: Int) -> Response<PaginatedListResponse<JSON>>,
     pagingConfig: PagingConfig = defaultPageConfig(),
-    initialCursor: Int = 1
+    initialCursor: PageCursor.Page = PageCursor.Page()
 ): Flow<PagingData<DATA>> {
     return Pager(
         config = pagingConfig,
@@ -80,8 +89,13 @@ fun <JSON : Any, DATA : Any> defaultPagerCreation(
             PagingSource(
                 initialCursor = initialCursor,
                 networkCall = { cursor ->
+                    val targetPage = when (cursor) {
+                        is PageCursor.Page -> cursor.value
+                        else -> initialCursor.value
+                    }
+
                     safeCall {
-                        ioCall(cursor)
+                        ioCall(targetPage)
                     }
                 }
             )
@@ -92,3 +106,33 @@ fun <JSON : Any, DATA : Any> defaultPagerCreation(
         }
     }
 }
+
+fun <JSON : Any, DATA : Any> defaultPagerCreation(
+    mapToData: (JSON) -> DATA,
+    ioCall: suspend (nextCursor: String?) -> Response<PaginatedListResponse<JSON>>,
+    pagingConfig: PagingConfig = defaultPageConfig(),
+    initialCursor: PageCursor.Cursor = PageCursor.Cursor(value = null)
+): Flow<PagingData<DATA>> {
+    return Pager(
+        config = pagingConfig,
+        pagingSourceFactory = {
+            PagingSource(
+                initialCursor = initialCursor,
+                networkCall = { cursor ->
+                    val nextCursor = when(cursor){
+                        is PageCursor.Cursor -> cursor.value
+                        else -> null
+                    }
+                    safeCall {
+                        ioCall(nextCursor)
+                    }
+                }
+            )
+        }
+    ).flow.map { pagingData ->
+        pagingData.map { response ->
+            mapToData(response)
+        }
+    }
+}
+

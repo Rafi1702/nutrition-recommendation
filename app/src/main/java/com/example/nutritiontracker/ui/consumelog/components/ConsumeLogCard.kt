@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.ui.consumelog.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.model.NutrientsSubTotal
 import com.example.nutritiontracker.domain.model.nutrientsSubTotal
 import com.example.nutritiontracker.ui.food.components.FoodCard
+import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
@@ -86,7 +88,6 @@ private fun IdleBoxPlaceholder(content: (@Composable () -> Unit)? = null) {
 @Composable
 internal fun ConsumeLogSurface(
     personalConsumeLogState: Map<MealType, QueryState<List<ConsumeLog>>> = emptyMap(),
-    onNavigateToConsumeLogDetail: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -100,8 +101,7 @@ internal fun ConsumeLogSurface(
 
             val personalConsumeLogMealType = personalConsumeLogState[mealType]
             ConsumeLogHeader(
-                nutrientsSubTotal = if (personalConsumeLogMealType is QueryState.Success) personalConsumeLogMealType.data.nutrientsSubTotal() else null,
-                onNavigateToConsumeLogDetail = onNavigateToConsumeLogDetail,
+                nutrientsSubTotal = if (personalConsumeLogMealType is QueryState.Success) personalConsumeLogMealType.data.nutrientsSubTotal() else DUMMY_NUTRIENTS_SUB_TOTAL,
                 mealType = mealType
             )
 
@@ -150,7 +150,6 @@ internal fun ConsumeLogSurface(
 @Composable
 private fun ConsumeLogHeader(
     nutrientsSubTotal: NutrientsSubTotal? = null,
-    onNavigateToConsumeLogDetail: () -> Unit = {},
     mealType: MealType = MealType.UNSPECIFIED,
 
     ) {
@@ -200,8 +199,8 @@ private fun ConsumeLogHeader(
 
 
 private val DUMMY_NUTRIENTS_SUB_TOTAL = NutrientsSubTotal(
-    calories = 100,
-    proteins = 45
+    calories = 0,
+    proteins = 0
 )
 
 @Preview(showBackground = true)
