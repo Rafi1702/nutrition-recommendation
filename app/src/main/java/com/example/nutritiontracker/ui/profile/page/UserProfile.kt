@@ -40,9 +40,7 @@ fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
     val userProfileContract = object : UserProfileContract {
         override fun createUserProfile() {
             viewModel.createUserProfile()
-            navController?.let { nav ->
-                nav.navigate(HomePath.BASE_HOME_PATH)
-            }
+            navController?.navigate(HomePath.BASE_HOME_PATH)
         }
 
         override fun saveUserProfile() {
@@ -69,10 +67,9 @@ fun UserProfilePageRoute(viewModel: UserProfileViewModel = hiltViewModel()) {
                         Text("User Profile")
                     })
                 },
-            ) { innerPadding ->
+            ) { _ ->
                 UserProfileContent(
                     modifier = Modifier
-                        .padding(innerPadding)
                         .systemBarsPadding(),
                     userProfileContract = userProfileContract
                 )
@@ -96,10 +93,10 @@ fun UserProfileContent(
     Form(
         formBuilder = LocalUserProfileForm.current,
         modifier = modifier
-            .verticalScroll(scrollState)
-            .padding(horizontal = Spacing.m),
+            .padding(horizontal = Spacing.s)
+            .verticalScroll(scrollState),
         verticalSpacing = Spacing.m
-    ) { isValid ->
+    ) { _ ->
         DemographicSection()
         MeasurementSection()
         DailyActivitiesSection()

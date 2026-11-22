@@ -1,7 +1,6 @@
 package com.example.nutritiontracker.ui.consumelog.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,10 +32,10 @@ import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.model.NutrientsSubTotal
 import com.example.nutritiontracker.domain.model.nutrientsSubTotal
 import com.example.nutritiontracker.ui.food.components.FoodCard
-import com.example.nutritiontracker.ui.theme.LocalNavController
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
+import com.example.nutritiontracker.ui.theme.extendedColorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.QueryState
 
@@ -125,10 +125,21 @@ internal fun ConsumeLogSurface(
                     ) {
                         if (consumeLog.isEmpty()) {
                             IdleBoxPlaceholder {
-                                Text(
-                                    "No Data",
-                                    style = typography.labelMedium.copy(color = colorScheme.onSurface)
-                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_empty_state),
+                                        contentDescription = "No Data",
+                                        modifier = Modifier.size(24.dp),
+                                        tint = colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
+                                    Text(
+                                        "No Data",
+                                        style = typography.labelMedium.copy(color = colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
+                                    )
+                                }
                             }
                         } else {
                             consumeLog.forEach { log -> FoodCard(food = log.food) }
@@ -137,7 +148,23 @@ internal fun ConsumeLogSurface(
                 }
 
                 is QueryState.Error -> {
-                    Text("${personalConsumeLogMealType.error.message}")
+                    IdleBoxPlaceholder {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_error_system),
+                                contentDescription = "Error",
+                                modifier = Modifier.size(24.dp),
+                                tint = extendedColorScheme.error
+                            )
+                            Text(
+                                text = personalConsumeLogMealType.error.message ?: "Failed to load data",
+                                style = typography.labelMedium.copy(color = extendedColorScheme.error)
+                            )
+                        }
+                    }
                 }
 
                 else -> {}
@@ -216,5 +243,18 @@ private fun ConsumeLogHeaderPreview() {
 private fun ConsumeLogSurfacePreview() {
     NutritionTrackerTheme {
         ConsumeLogSurface()
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ConsumeLogSurfaceEmptyAndErrorPreview() {
+    NutritionTrackerTheme {
+        ConsumeLogSurface(
+            personalConsumeLogState = mapOf(
+                MealType.BREAKFAST to QueryState.Success(emptyList()),
+                MealType.LUNCH to QueryState.Error(Throwable("Failed to fetch logs"))
+            )
+        )
     }
 }
