@@ -32,6 +32,14 @@ private fun PersonalConsumeListPreview() {
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+private fun ConsumeLogDetailHeaderPreview(){
+    NutritionTrackerTheme {
+        ConsumeLogHeader()
+    }
+}
+
 
 
 @Preview(showBackground = true)
