@@ -30,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -46,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
@@ -471,7 +473,9 @@ internal fun SelectionModeDropdown(
         }
 
         DropdownMenu(
-            modifier = Modifier.width(surfaceWidth),
+            modifier = Modifier
+                .width(surfaceWidth)
+                .background(colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
             expanded = expanded,
             onDismissRequest = {
                 scope.launch {
@@ -483,8 +487,9 @@ internal fun SelectionModeDropdown(
                 expanded = false
             }
         ) {
-            DropdownMenuItem(
-                text = { Text(stringArrayResource(R.array.selection_mode_array)[0]) },
+            com.example.nutritiontracker.ui.food.components.DropdownMenuItem(
+                label = stringArrayResource(R.array.selection_mode_array)[0],
+                selected = selectionMode == SelectionMode.SINGLE,
                 onClick = {
                     onSelectionModeChange(SelectionMode.SINGLE)
                     scope.launch {
@@ -496,8 +501,10 @@ internal fun SelectionModeDropdown(
                     expanded = false
                 }
             )
-            DropdownMenuItem(
-                text = { Text(stringArrayResource(R.array.selection_mode_array)[1]) },
+
+            com.example.nutritiontracker.ui.food.components.DropdownMenuItem(
+                label = stringArrayResource(R.array.selection_mode_array)[1],
+                selected = selectionMode == SelectionMode.BULK,
                 onClick = {
                     onSelectionModeChange(SelectionMode.BULK)
                     scope.launch {
@@ -511,4 +518,13 @@ internal fun SelectionModeDropdown(
             )
         }
     }
+}
+
+
+@Composable
+private fun Modifier.selectedDropdownItemShape(selected: Boolean) = composed {
+    if (selected) this.background(
+        colorScheme.onSurfaceVariant,
+        RoundedCornerShape(8.dp)
+    ) else this
 }

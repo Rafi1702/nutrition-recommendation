@@ -17,10 +17,14 @@ data class NutrientsSubTotal(
 )
 
 data class ConsumeLog(
+    val mealType: MealType,
+    val consumeLogDetail: ConsumeLogDetail,
+)
+
+data class ConsumeLogDetail(
     val id: Int,
     val food: Food,
     val eatTime: String,
-    val mealType: MealType
 )
 
 fun List<ConsumeLog>.nutrientsSubTotal(): NutrientsSubTotal {

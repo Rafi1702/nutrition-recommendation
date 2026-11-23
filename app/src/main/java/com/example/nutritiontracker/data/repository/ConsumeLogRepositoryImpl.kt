@@ -48,7 +48,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
         return defaultPagerCreation(
             initialCursor = PageCursor.Cursor(value = null),
             ioCall = { cursor ->
-                consumeLogRemoteDataSource.getConsumeLog(
+                consumeLogRemoteDataSource.getPersonalConsumeLogs(
                     buildMap {
                         putAll(
                             CursorPaginateQuery(
@@ -57,6 +57,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                             ).toMap()
                         )
                         put("consumed_at", consumedAt)
+                        put("meal_type", 1)
                     }
                 )
             },

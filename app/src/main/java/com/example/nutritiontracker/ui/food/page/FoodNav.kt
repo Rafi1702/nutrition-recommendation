@@ -9,9 +9,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.nutritiontracker.data.model.consumelog.toMealType
 import com.example.nutritiontracker.domain.model.MealType
-import com.example.nutritiontracker.ui.components.nowYyyyMMDD
 import com.example.nutritiontracker.ui.food.viewmodel.FoodListViewModel
 import com.example.nutritiontracker.ui.food.viewmodel.FoodRecommendationViewModel
+import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
 
 object FoodPath {
     const val BASE_PATH = "/food"

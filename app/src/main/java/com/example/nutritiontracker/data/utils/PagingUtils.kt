@@ -42,9 +42,11 @@ class PagingSource<T : Any>(
                         null
                     }
 
-                val cursor = when (currentCursor) {
-                    is PageCursor.Cursor -> PageCursor.Cursor(nextKey)
-                    else -> PageCursor.Page(loadedCount)
+                val cursor = nextKey?.let {
+                    when (currentCursor) {
+                        is PageCursor.Cursor -> PageCursor.Cursor(nextKey)
+                        else -> PageCursor.Page(loadedCount)
+                    }
                 }
 
                 LoadResult.Page(
@@ -119,7 +121,7 @@ fun <JSON : Any, DATA : Any> defaultPagerCreation(
             PagingSource(
                 initialCursor = initialCursor,
                 networkCall = { cursor ->
-                    val nextCursor = when(cursor){
+                    val nextCursor = when (cursor) {
                         is PageCursor.Cursor -> cursor.value
                         else -> null
                     }

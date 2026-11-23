@@ -2,6 +2,7 @@ package com.example.nutritiontracker.data.model.consumelog
 
 import com.example.nutritiontracker.data.model.food.toFood
 import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.ConsumeLogDetail
 import com.example.nutritiontracker.domain.model.Food
 import com.example.nutritiontracker.domain.model.MealType
 
@@ -23,20 +24,25 @@ fun MealType.toLabel(): String {
     }
 }
 
-fun ConsumeLogResponseDto.toConsumeLog(mealType: MealType = MealType.UNSPECIFIED): ConsumeLog = ConsumeLog(
-    id = this.id,
-    food = this.food.toFood(),
-    eatTime = this.consumedAt,
-    mealType = mealType
-)
+fun ConsumeLogResponseDto.toConsumeLog(mealType: MealType = MealType.UNSPECIFIED): ConsumeLog =
+    ConsumeLog(
+        consumeLogDetail = ConsumeLogDetail(
+            id = this.id,
+            food = this.food.toFood(),
+            eatTime = this.consumedAt,
+        ),
+        mealType = mealType
+    )
 
 fun ConsumeMealLogResponseDto.toConsumeLog(): ConsumeLog {
     val parsedMealType = this.mealType.toMealType()
     val firstConsume = this.consumes.firstOrNull()
     return ConsumeLog(
-        id = firstConsume?.id ?: 0,
-        food = firstConsume?.food?.toFood() ?: Food(0, "", emptyList()),
-        eatTime = firstConsume?.consumedAt ?: "",
+        consumeLogDetail = ConsumeLogDetail(
+            id = firstConsume?.id ?: 0,
+            food = firstConsume?.food?.toFood() ?: Food(0, "", emptyList()),
+            eatTime = firstConsume?.consumedAt ?: "",
+        ),
         mealType = parsedMealType
     )
 }

@@ -6,12 +6,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
 import com.example.nutritiontracker.data.mocks.MOCK_CONSUME_LOGS
-import com.example.nutritiontracker.data.mocks.MOCK_FOODS
-import com.example.nutritiontracker.domain.model.ConsumeLog
-import com.example.nutritiontracker.domain.model.MealType
+
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
-import com.example.nutritiontracker.ui.food.model.FoodUiState
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
+import com.example.nutritiontracker.ui.utils.displayFormatter
+import com.example.nutritiontracker.ui.utils.instant
+import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Preview(showBackground = true)
@@ -34,16 +34,28 @@ private fun PersonalConsumeListPreview() {
 
 @Preview(showBackground = true)
 @Composable
-private fun ConsumeLogDetailHeaderPreview(){
+private fun ConsumeLogDetailHeaderPreview() {
     NutritionTrackerTheme {
         ConsumeLogHeader()
     }
 }
 
-
-
 @Preview(showBackground = true)
 @Composable
-private fun HeaderConsumePreview(){
+private fun ConsumeLogItemPreview() {
+    val dateFormat = nowYyyyMMDD(displayFormatter)
+    val dateDisplay = dateFormat.split("-")
 
+    if (dateDisplay.isNotEmpty()) {
+        ConsumeLogItem(
+            date = "${dateDisplay[2]} ${
+                dateDisplay[1].substring(
+                    0,
+                    3,
+                )
+            } ${dateDisplay[0]}", consumes = MOCK_CONSUME_LOGS
+        )
+    }
 }
+
+

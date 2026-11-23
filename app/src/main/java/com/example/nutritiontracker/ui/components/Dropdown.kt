@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -94,11 +95,13 @@ fun Dropdown(
         Surface(
             onClick = {
                 scope.launch {
-                    rotation.animateTo(
-                        targetValue = 180f,
-                        animationSpec = tween(100, easing = LinearEasing)
-                    )
-                    expanded = true
+                    if (items.isNotEmpty()) {
+                        rotation.animateTo(
+                            targetValue = 180f,
+                            animationSpec = tween(100, easing = LinearEasing)
+                        )
+                        expanded = true
+                    }
                 }
             },
             shape = surfaceStyle.shape,
@@ -129,29 +132,33 @@ fun Dropdown(
             }
         }
 
-        DropdownMenu(
-            modifier = Modifier.width(surfaceWidth),
-            expanded = expanded,
-            onDismissRequest = {
-                scope.launch {
-                    rotation.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(100, easing = LinearEasing)
+        if (items.isNotEmpty()) {
+            DropdownMenu(
+                modifier = Modifier
+                    .width(surfaceWidth)
+                    .background(color = surfaceStyle.backgroundColor),
+                expanded = expanded,
+                onDismissRequest = {
+                    scope.launch {
+                        rotation.animateTo(
+                            targetValue = 0f,
+                            animationSpec = tween(100, easing = LinearEasing)
+                        )
+                    }
+                    expanded = false
+                }
+            ) {
+                items.forEach { props ->
+                    DropdownMenuItem(
+                        text = { Text(props.itemLabel) },
+                        onClick = {
+                            props.onClick?.let {
+                                it()
+                                expanded = !props.autoClose
+                            }
+                        }
                     )
                 }
-                expanded = false
-            }
-        ) {
-            items.forEach { props ->
-                DropdownMenuItem(
-                    text = { Text(props.itemLabel) },
-                    onClick = {
-                        props.onClick?.let {
-                            it()
-                            expanded = !props.autoClose
-                        }
-                    }
-                )
             }
         }
     }

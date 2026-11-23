@@ -194,6 +194,7 @@ internal fun <T> MultiSelectOptions(
     modifier: Modifier = Modifier,
     items: List<T> = emptyList(),
     initialSelectedValues: List<T> = emptyList(),
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(Spacing.s),
     onValuesChanged: (List<T>) -> Unit = {},
     content: @Composable ((item: T, selected: Boolean) -> Unit) = { _, _ -> }
 ) {
@@ -202,13 +203,14 @@ internal fun <T> MultiSelectOptions(
 
     FlowRow(
         modifier = modifier,
+        verticalArrangement = verticalArrangement,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
         content = {
             items.forEach { item ->
                 Box(modifier = Modifier.clickable {
-                    if(initialItemsSelected.value.contains(item)){
+                    if (initialItemsSelected.value.contains(item)) {
                         initialItemsSelected.value -= item
-                    }else{
+                    } else {
                         initialItemsSelected.value += item
                     }
 

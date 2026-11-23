@@ -9,6 +9,6 @@ import javax.inject.Inject
 
 class GetConsumeLogUseCase @Inject constructor(private val consumeLogRepository: ConsumeLogRepository) {
     operator fun invoke(mealType: MealType, consumedAt: String): Flow<PagingData<ConsumeLog>> {
-        return consumeLogRepository.getPersonalConsumeLog()
+        return consumeLogRepository.getPersonalConsumeLog(consumedAt = consumedAt)
     }
 }

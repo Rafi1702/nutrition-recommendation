@@ -142,7 +142,7 @@ internal fun ConsumeLogSurface(
                                 }
                             }
                         } else {
-                            consumeLog.forEach { log -> FoodCard(food = log.food) }
+                            consumeLog.forEach { log -> FoodCard(food = log.consumeLogDetail.food) }
                         }
                     }
                 }

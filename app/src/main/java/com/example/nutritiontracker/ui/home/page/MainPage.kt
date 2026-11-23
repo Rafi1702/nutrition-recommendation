@@ -48,7 +48,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.nutritiontracker.data.model.consumelog.toMealType
 import com.example.nutritiontracker.domain.model.MealType
-import com.example.nutritiontracker.ui.components.nowYyyyMMDD
 import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogDetail
 import com.example.nutritiontracker.ui.consumelog.page.ConsumeLogNav
 import com.example.nutritiontracker.ui.consumelog.viewmodel.ConsumeLogDetailViewModel
@@ -68,6 +67,7 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
 import com.example.nutritiontracker.ui.utils.composable.AssistedUserViewModel
 import com.example.nutritiontracker.ui.utils.composable.NavigationListener
+import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.material3.NavigationBarItem as M3NavigationBarItem

@@ -138,6 +138,7 @@ internal fun SelectionChip(
     selectedColors: ChipColorStyle = FilledChipStyle.defaultColor(),
     unselectedColors: ChipColorStyle = OutlinedChipStyle.defaultColor(),
     border: ChipBorder? = if (!selected) OutlinedChipStyle.defaultBorder() else null,
+    prefixIcon: (@Composable () -> Unit) ? = null,
     content: @Composable () -> Unit,
 ) {
     val colors = if (selected) selectedColors else unselectedColors
@@ -154,17 +155,21 @@ internal fun SelectionChip(
         border = borderStroke,
         content = {
             Row(
-                modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+                modifier = modifier.padding(vertical = Spacing.xs, horizontal = Spacing.s),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
-                if (selected) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "selected_option",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
+                (
+                    prefixIcon ?: {
+                        if (selected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "selected_option",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                ).invoke()
                 content()
             }
         }

@@ -59,12 +59,15 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import com.example.nutritiontracker.ui.utils.displayFormatter
+import com.example.nutritiontracker.ui.utils.formatDate
+import com.example.nutritiontracker.ui.utils.instant
+import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
+import com.example.nutritiontracker.ui.utils.serviceFormatter
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.reflect.KProperty1
 import androidx.compose.material3.DatePicker as M3DatePicker
 
@@ -90,16 +93,6 @@ private data class DatePickerHolder(
     val yyMMDD: String,
 )
 
-const val displayFormatter = "yyyy-MMMM-dd-EEEE"
-const val serviceFormatter = "yyyy-MM-dd"
-
-private fun formatDate(
-    formatter: String = displayFormatter,
-    locale: Locale = Locale.forLanguageTag("id-ID")
-): DateTimeFormatter {
-    return DateTimeFormatter.ofPattern(formatter, locale)
-}
-
 private fun LocalDate.createDatePicker(): DatePickerHolder {
     val currentDateyyMMDD = this.format(formatDate(serviceFormatter))
     val formattedDate = this.format(formatDate(displayFormatter)).split("-")
@@ -117,10 +110,6 @@ private fun String.createDatePicker(): DatePickerHolder {
     return formattedDate.createDatePicker()
 }
 
-fun nowYyyyMMDD(): String {
-    return Instant.now().atZone(ZoneId.systemDefault()).toLocalDate()
-        .format(formatDate(serviceFormatter))
-}
 
 private fun String.toMillisEpoch(): Long? {
     return try {
