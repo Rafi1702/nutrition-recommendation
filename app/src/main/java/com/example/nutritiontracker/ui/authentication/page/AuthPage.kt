@@ -7,14 +7,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -25,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Dangerous
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -52,10 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
@@ -64,7 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.nutritiontracker.R
@@ -76,21 +69,15 @@ import com.example.nutritiontracker.ui.authentication.viewmodel.AuthenticationVi
 import com.example.nutritiontracker.ui.authentication.viewmodel.SignInForm
 import com.example.nutritiontracker.ui.authentication.viewmodel.SignUpForm
 import com.example.nutritiontracker.ui.components.CheckBoxForm
-import com.example.nutritiontracker.ui.components.CheckRequiredValidator
 import com.example.nutritiontracker.ui.components.EmailValidator
 import com.example.nutritiontracker.ui.components.FieldProperties
 import com.example.nutritiontracker.ui.components.Form
 import com.example.nutritiontracker.ui.components.FormBuilder
 import com.example.nutritiontracker.ui.components.textfield.TextFormField
-import com.example.nutritiontracker.ui.profile.page.ProfileNav
-import com.example.nutritiontracker.ui.theme.LocalUserProfile
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
-import com.example.nutritiontracker.ui.theme.ScreenSize
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
-import com.example.nutritiontracker.ui.theme.screenSize
 import com.example.nutritiontracker.ui.theme.typography
-import com.example.nutritiontracker.ui.theme.userProfile
 
 
 @Composable
@@ -148,7 +135,6 @@ internal fun AuthPage(
                     verticalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
                     Surface(
-                        shadowElevation = 6.dp,
                         shape = CircleShape,
                         color = colorScheme.primaryContainer.copy(alpha = 0.35f)
                     ) {
@@ -191,6 +177,7 @@ internal fun AuthPage(
                                 authCallback.signIn()
                             },
                             isLoading = uiState.isLoading,
+                            isSuccess = uiState.success
                         )
                     }
 
@@ -378,6 +365,7 @@ private fun SignInContent(
     onSignUpPressed: (AuthContentType) -> Unit = {},
     onSignInButtonPressed: () -> Unit = {},
     isLoading: Boolean = false,
+    isSuccess: Boolean? = null,
     errorMessage: String? = null,
     formBuilder: FormBuilder<SignInForm>? = null
 ) {
@@ -479,7 +467,7 @@ private fun SignInContent(
                     .fillMaxWidth()
                     .height(50.dp),
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                enabled = isValid && !isLoading,
+                enabled = isValid && (!isLoading && isSuccess == false),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.primary,
                     contentColor = colorScheme.onPrimary,
