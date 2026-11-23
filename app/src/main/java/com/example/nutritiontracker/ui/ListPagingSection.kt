@@ -87,27 +87,16 @@ fun <T : Any> ListPagingSection(
 
         is LoadState.NotLoading -> {
             // Initial load is done; now safe to render LazyColumn and check item count
-            Box(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(
-                    modifier = modifier,
-                    state = state,
-                    contentPadding = paddingValues,
-                    verticalArrangement = Arrangement.spacedBy(Spacing.m)
-                ) {
-
-                    if (pagingItems.itemCount < 1) {
-                        // List is genuinely empty after loading finished
-                        item {
-                            emptyDataContent?.invoke() ?: Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(Spacing.l),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("Tidak ada data makanan ditemukan.")
-                            }
-                        }
-                    } else {
+            Box(modifier = modifier, contentAlignment = Alignment.Center) {
+                if (pagingItems.itemCount < 1) {
+                    emptyDataContent?.invoke() ?: Text("Tidak ada data ditemukan.")
+                } else {
+                    LazyColumn(
+                        modifier = modifier,
+                        state = state,
+                        contentPadding = paddingValues,
+                        verticalArrangement = Arrangement.spacedBy(Spacing.m)
+                    ) {
                         // Render items
                         headerProps?.let { (isSticky, component) ->
                             if (isSticky) stickyHeader { component() } else item { component() }
@@ -135,29 +124,32 @@ fun <T : Any> ListPagingSection(
                             }
                         }
                     }
-                }
-                AnimatedVisibility(
-                    visible = scrollToTopButtonVisible.value,
-                    enter = fadeIn() + scaleIn(),
-                    exit = fadeOut() + scaleOut(),
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(Spacing.m)
-                ) {
-                    IconButton(
-                        modifier = Modifier.background(colorScheme.primaryContainer, CircleShape),
-                        shape = CircleShape,
-                        onClick = {
-                            scope.launch {
-                                state.animateScrollToItem(index = 0)
-                            }
-                        }
+                    AnimatedVisibility(
+                        visible = scrollToTopButtonVisible.value,
+                        enter = fadeIn() + scaleIn(),
+                        exit = fadeOut() + scaleOut(),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(Spacing.m)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowUpward,
-                            tint = colorScheme.onPrimaryContainer,
-                            contentDescription = "scroll_to_first_index"
-                        )
+                        IconButton(
+                            modifier = Modifier.background(
+                                colorScheme.primaryContainer,
+                                CircleShape
+                            ),
+                            shape = CircleShape,
+                            onClick = {
+                                scope.launch {
+                                    state.animateScrollToItem(index = 0)
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowUpward,
+                                tint = colorScheme.onPrimaryContainer,
+                                contentDescription = "scroll_to_first_index"
+                            )
+                        }
                     }
                 }
             }
