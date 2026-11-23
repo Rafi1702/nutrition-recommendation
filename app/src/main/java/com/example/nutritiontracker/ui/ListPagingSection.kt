@@ -52,6 +52,7 @@ fun <T : Any> ListPagingSection(
     key: (Int) -> Any,
     initialDataError: (@Composable (Throwable) -> Unit)? = null,
     emptyDataContent: (@Composable () -> Unit)? = null,
+    loadingContent: (@Composable () -> Unit)? = null,
     itemContent: @Composable (T) -> Unit,
 ) {
 
@@ -72,7 +73,7 @@ fun <T : Any> ListPagingSection(
         is LoadState.Loading -> {
             // Show full-screen loader during initial fetch
             Box(modifier = modifier, contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                (loadingContent ?: { CircularProgressIndicator() }).invoke()
             }
         }
 
@@ -169,6 +170,7 @@ fun <T : Any> ListPagingSection(
     itemKey: ((@JvmSuppressWildcards T) -> Any), // Overload for item-based key selector
     initialDataError: (@Composable (Throwable) -> Unit)? = null,
     emptyDataContent: (@Composable () -> Unit)? = null,
+    loadingContent: (@Composable () -> Unit)? = null,
     itemContent: @Composable (T) -> Unit,
 ) {
     // Delegate to the primary implementation, wrapping the item key with pagingItems.itemKey
@@ -183,6 +185,7 @@ fun <T : Any> ListPagingSection(
         key = pagingItems.itemKey(itemKey),
         initialDataError = initialDataError,
         emptyDataContent = emptyDataContent,
+        loadingContent = loadingContent,
         itemContent = itemContent
     )
 }

@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Adb
+import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -39,36 +41,36 @@ import com.example.nutritiontracker.ui.theme.extendedColorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.QueryState
 
-private data class MealTypeProperties(
+data class MealTypeProperties(
     val containerColor: Color,
     val contentColor: Color,
     val icon: ImageVector? = null,
 )
 
 @Composable
-private fun MealType.properties(): MealTypeProperties = when (this) {
+fun MealType.properties(): MealTypeProperties = when (this) {
     MealType.BREAKFAST -> MealTypeProperties(
         containerColor = colorScheme.secondaryContainer,
         contentColor = colorScheme.onSecondaryContainer,
-        icon = Icons.Default.Adb
+        icon = Icons.Default.WbTwilight,
     )
 
     MealType.LUNCH -> MealTypeProperties(
         containerColor = colorScheme.primaryContainer,
         contentColor = colorScheme.onPrimaryContainer,
-        icon = Icons.Default.Adb
+        icon = Icons.Default.WbSunny,
     )
 
     MealType.DINNER -> MealTypeProperties(
         containerColor = colorScheme.tertiaryContainer,
         contentColor = colorScheme.onTertiaryContainer,
-        icon = Icons.Default.Adb
+        icon = Icons.Default.NightsStay,
     )
 
     else -> MealTypeProperties(
         containerColor = Color.Unspecified,
         contentColor = Color.Unspecified,
-        icon = null
+        icon = null,
     )
 }
 

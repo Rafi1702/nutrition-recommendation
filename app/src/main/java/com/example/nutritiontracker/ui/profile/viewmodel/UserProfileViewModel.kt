@@ -1,6 +1,7 @@
 package com.example.nutritiontracker.ui.profile.viewmodel
 
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nutritiontracker.domain.model.Allergens
@@ -76,7 +77,7 @@ class UserProfileViewModel @AssistedInject constructor(
         fun create(userProfile: UserProfileData<UserProfile>? = null): UserProfileViewModel
     }
 
-    val userProfileForm = FormBuilder<UserProfileForm>().apply {
+    val userProfileForm = FormBuilder<UserProfileForm>(persist = true).apply {
         addField(
             UserProfileForm::gender, FieldProperties(
                 validator = CannotEmptyValidator(),

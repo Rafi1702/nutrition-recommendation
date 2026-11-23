@@ -1,6 +1,9 @@
 package com.example.nutritiontracker.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -205,6 +209,54 @@ internal fun <T> MultiSelectOptions(
         modifier = modifier,
         verticalArrangement = verticalArrangement,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        content = {
+            items.forEach { item ->
+                Box(modifier = Modifier.clickable {
+                    if (initialItemsSelected.value.contains(item)) {
+                        initialItemsSelected.value -= item
+                    } else {
+                        initialItemsSelected.value += item
+                    }
+
+                    onValuesChanged(initialItemsSelected.value)
+                }) {
+                    content(item, initialItemsSelected.value.contains(item))
+                }
+            }
+        })
+}
+
+
+@Composable
+private fun Modifier.conditionalScroll(
+    scrollable: Boolean,
+): Modifier {
+    return if (scrollable) {
+        val scrollState = rememberScrollState()
+        this.horizontalScroll(
+            state = scrollState,
+        )
+    } else {
+        this
+    }
+}
+
+@Composable
+internal fun <T> MultiSelectOptions(
+    modifier: Modifier = Modifier,
+    items: List<T> = emptyList(),
+    initialSelectedValues: List<T> = emptyList(),
+    scrollable: Boolean = false,
+    horizontalArrangement: Arrangement.Horizontal = Arrangement.spacedBy(Spacing.s),
+    onValuesChanged: (List<T>) -> Unit = {},
+    content: @Composable ((item: T, selected: Boolean) -> Unit) = { _, _ -> }
+) {
+    val initialItemsSelected =
+        remember(initialSelectedValues) { mutableStateOf(initialSelectedValues) }
+
+    Row(
+        modifier = modifier.conditionalScroll(scrollable),
+        horizontalArrangement = horizontalArrangement,
         content = {
             items.forEach { item ->
                 Box(modifier = Modifier.clickable {

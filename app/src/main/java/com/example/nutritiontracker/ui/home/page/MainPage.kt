@@ -1,7 +1,6 @@
 package com.example.nutritiontracker.ui.home.page
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -84,11 +83,9 @@ fun MainPage(
     modifier: Modifier = Modifier,
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {},
-    onNavigateBack: () -> Unit = {},
 ) {
     val isPreview = LocalInspectionMode.current
     val user = LocalUserProfile.current.value
-    Log.d("[USER]", "$user")
 
     val bottomBarNavController: NavHostController? = when {
         isPreview -> null
