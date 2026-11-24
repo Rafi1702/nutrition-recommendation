@@ -6,6 +6,7 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import androidx.paging.map
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 import kotlinx.coroutines.flow.map
@@ -18,6 +19,7 @@ sealed interface PageCursor {
 class PagingSource<T : Any>(
     private val initialCursor: PageCursor,
     private val maxItems: Int? = null,
+    private val networkCallDelay: Long? = null,
     val networkCall: suspend (PageCursor?) -> Result<PaginatedListResponse<T>>,
 ) : PagingSource<PageCursor, T>() {
 
@@ -27,6 +29,10 @@ class PagingSource<T : Any>(
         val currentCursor = params.key ?: initialCursor
 
         val response = networkCall.invoke(currentCursor)
+
+        networkCallDelay?.let {
+            delay(networkCallDelay)
+        }
 
         return response.fold(
             onSuccess = { res ->
@@ -82,6 +88,7 @@ fun defaultPageConfig(): PagingConfig {
 fun <JSON : Any, DATA : Any> defaultPagerCreation(
     mapToData: (JSON) -> DATA,
     ioCall: suspend (cursor: Int) -> Response<PaginatedListResponse<JSON>>,
+    networkCallDelay: Long? = null,
     pagingConfig: PagingConfig = defaultPageConfig(),
     initialCursor: PageCursor.Page = PageCursor.Page()
 ): Flow<PagingData<DATA>> {
@@ -90,6 +97,7 @@ fun <JSON : Any, DATA : Any> defaultPagerCreation(
         pagingSourceFactory = {
             PagingSource(
                 initialCursor = initialCursor,
+                networkCallDelay = networkCallDelay,
                 networkCall = { cursor ->
                     val targetPage = when (cursor) {
                         is PageCursor.Page -> cursor.value
@@ -113,6 +121,7 @@ fun <JSON : Any, DATA : Any> defaultPagerCreation(
     mapToData: (JSON) -> DATA,
     ioCall: suspend (nextCursor: String?) -> Response<PaginatedListResponse<JSON>>,
     pagingConfig: PagingConfig = defaultPageConfig(),
+    networkCallDelay: Long? = null,
     initialCursor: PageCursor.Cursor = PageCursor.Cursor(value = null)
 ): Flow<PagingData<DATA>> {
     return Pager(
@@ -120,6 +129,7 @@ fun <JSON : Any, DATA : Any> defaultPagerCreation(
         pagingSourceFactory = {
             PagingSource(
                 initialCursor = initialCursor,
+                networkCallDelay = networkCallDelay,
                 networkCall = { cursor ->
                     val nextCursor = when (cursor) {
                         is PageCursor.Cursor -> cursor.value

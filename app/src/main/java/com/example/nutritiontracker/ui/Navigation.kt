@@ -100,7 +100,6 @@ fun AppNavigation(
                 composable(route = HomePath.BASE_HOME_PATH) {
                     MainPage(
                         modifier = modifier,
-                        onNavigateBack = { },
                         onNavigateToConsumeLogDetail = {
                             navController.navigate(ConsumeLogNav.createDetailRoute("0"))
                         },

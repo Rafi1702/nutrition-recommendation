@@ -47,6 +47,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
     ): Flow<PagingData<ConsumeLog>> {
         return defaultPagerCreation(
             initialCursor = PageCursor.Cursor(value = null),
+            networkCallDelay = 500,
             ioCall = { cursor ->
                 consumeLogRemoteDataSource.getPersonalConsumeLogs(
                     buildMap {

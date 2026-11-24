@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import coil3.compose.SubcomposeAsyncImage
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.example.nutritiontracker.R
@@ -70,8 +72,9 @@ fun LocalDate.consumeLogHeaderDisplay(): String? {
 }
 
 private const val TOTAL_DAY_IN_MONTH = 30
+private val TimeRangeFilter = listOf(30, 15, 1800)
 
-private fun Int.textDateDropdownLabel(): String {
+fun Int.text(): String {
     //TODO: Replace the Time Unit (day/month/year) with Resource String
     return when {
         this > 365 -> "${this / 365} Year"
@@ -80,26 +83,42 @@ private fun Int.textDateDropdownLabel(): String {
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConsumeLogDetail(
     viewModel: ConsumeLogDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
+    val personalConsumeLogsFilter =
+        viewModel.personalConsumeLogsFilter.collectAsStateWithLifecycle()
+
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        ConsumeLogHeader(modifier = Modifier.padding(Spacing.s))
+        ConsumeLogHeader(
+            modifier = Modifier.padding(Spacing.s),
+            selectedFilterValues = 30.text(),
+            onTimeRangeFilterChange = { updatedValue ->
+
+            },
+            onSelectedMealTypeValuesChange = { updatedMealTypes ->
+                if (updatedMealTypes.isEmpty()) return@ConsumeLogHeader
+
+                viewModel.onSelectedMealTypesChange(updatedMealTypes)
+            }
+        )
         PersonalConsumeList(consumeLogs = viewModel.consumeLogsFlow)
     }
 }
 
 @Composable
-internal fun ConsumeLogHeader(modifier: Modifier = Modifier) {
-    val filterValues = remember { listOf(30, 15) }
-    var selectedFilterValues by remember {
-        mutableStateOf(
-            filterValues.first().textDateDropdownLabel()
-        )
-    }
+internal fun ConsumeLogHeader(
+    modifier: Modifier = Modifier,
+    selectedFilterValues: String = TimeRangeFilter.first().text(),
+    selectedMealTypeValues: List<MealType> = emptyList(),
+    onSelectedMealTypeValuesChange: (List<MealType>) -> Unit = {},
+    onTimeRangeFilterChange: (String) -> Unit = {}
+) {
+
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
@@ -113,11 +132,11 @@ internal fun ConsumeLogHeader(modifier: Modifier = Modifier) {
             Dropdown(
                 modifier = Modifier.weight(1f),
                 selectedLabel = selectedFilterValues,
-                items = filterValues.map { day ->
+                items = TimeRangeFilter.map { day ->
                     DropdownItemProps(
-                        itemLabel = day.textDateDropdownLabel(),
+                        itemLabel = day.text(),
                         onClick = {
-                            selectedFilterValues = day.textDateDropdownLabel()
+                            onTimeRangeFilterChange(day.text())
                         }
                     )
                 },
@@ -128,7 +147,8 @@ internal fun ConsumeLogHeader(modifier: Modifier = Modifier) {
         }
         MultiSelectOptions(
             items = MealType.entries,
-            initialSelectedValues = listOf(MealType.UNSPECIFIED),
+            initialSelectedValues = selectedMealTypeValues,
+            onValuesChanged = onSelectedMealTypeValuesChange,
             scrollable = true,
         ) { mealType, selected ->
             val defaultSelectedChipColor = FilledChipStyle.defaultColor()
