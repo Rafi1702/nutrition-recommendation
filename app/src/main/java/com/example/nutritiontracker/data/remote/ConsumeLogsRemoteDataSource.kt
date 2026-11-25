@@ -2,6 +2,7 @@ package com.example.nutritiontracker.data.remote
 
 import com.example.nutritiontracker.data.model.consumelog.ConsumeLogRequestDto
 import com.example.nutritiontracker.data.model.consumelog.ConsumeMealLogResponseDto
+import com.example.nutritiontracker.data.model.consumelog.GroupedConsumeLogResponseDto
 import com.example.nutritiontracker.data.utils.PaginatedListResponse
 import com.example.nutritiontracker.ui.utils.network.AuthorizationPolicy
 import com.example.nutritiontracker.ui.utils.network.ContentType
@@ -26,4 +27,7 @@ interface ConsumeLogRemoteDataSource {
     @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
     suspend fun getPersonalConsumeLogs(@QueryMap(encoded = true) query: Map<String, @JvmSuppressWildcards Any?>): Response<PaginatedListResponse<ConsumeMealLogResponseDto>>
 
+    @GET("/consume/me")
+    @CustomHeader(authPolicy = [AuthorizationPolicy.BEARER], contentType = ContentType.JSON)
+    suspend fun getGroupedPersonalConsumeLogs(@QueryMap(encoded = true) query: Map<String, @JvmSuppressWildcards Any?>): Response<PaginatedListResponse<GroupedConsumeLogResponseDto>>
 }

@@ -41,6 +41,7 @@ import com.example.nutritiontracker.ui.consumelog.components.properties
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
 import com.example.nutritiontracker.ui.consumelog.viewmodel.ConsumeLogDetailViewModel
 import com.example.nutritiontracker.ui.consumelog.viewmodel.TimeRangeFilterInDays
+import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
@@ -54,14 +55,15 @@ import kotlinx.datetime.format
 
 //This only works for
 fun LocalDate.consumeLogHeaderDisplay(): String? {
-    val dateFormat = this.formatWith()
-    val dateDisplay = dateFormat.split("-")
-    return if (dateDisplay.isNotEmpty()) "${dateDisplay[2]} ${
-        dateDisplay[1].substring(
-            0,
-            3,
-        )
-    } ${dateDisplay[0]}" else null
+//    val dateFormat = this.formatWith()
+//    val dateDisplay = dateFormat.split("-")
+//    return if (dateDisplay.isNotEmpty()) "${dateDisplay[2]} ${
+//        dateDisplay[1].substring(
+//            0,
+//            3,
+//        )
+//    } ${dateDisplay[0]}" else null
+    return null
 }
 
 private const val TOTAL_DAY_IN_MONTH = 30
@@ -175,7 +177,7 @@ internal fun PersonalConsumeList(
 
     ListPagingSection(
         modifier = Modifier.fillMaxSize(),
-        paddingValues = innerPadding + PaddingValues(vertical = Spacing.s),
+        paddingValues = innerPadding + PaddingValues(Spacing.s),
         pagingItems = consumeLogLazyItems,
         itemKey = { consumeLogStatus -> consumeLogStatus.consumeLog.consumeLogDetail.id },
         loadingContent = {
@@ -197,7 +199,7 @@ internal fun ConsumeLogItem(
     consumes: List<ConsumeLog>,
     nutrients: NutrientsSubTotal = consumes.nutrientsSubTotal()
 ) {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = buildAnnotatedString {
                 withStyle(
@@ -229,8 +231,9 @@ internal fun ConsumeLogItem(
                 )
             }
         }
-        Column {
-
+        consumes.forEach { consume ->
+            val food = consume.consumeLogDetail.food
+            FoodCard(food = food)
         }
     }
 }

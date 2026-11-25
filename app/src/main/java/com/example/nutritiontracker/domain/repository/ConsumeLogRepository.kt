@@ -14,7 +14,7 @@ interface ConsumeLogRepository {
     ): Result<Unit>
 
     fun getPersonalConsumeLog(
-        consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString(),
+        consumedAt: String? = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString(),
         startDate: String? = null,
         endDate: String? = null,
         groupBy: String? = null,

@@ -43,7 +43,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
     }
 
     override fun getPersonalConsumeLog(
-        consumedAt: String,
+        consumedAt: String?,
         startDate: String?,
         endDate: String?,
         groupBy: String?,
@@ -52,7 +52,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
             initialCursor = PageCursor.Cursor(value = null),
             networkCallDelay = 500,
             ioCall = { cursor ->
-                consumeLogRemoteDataSource.getPersonalConsumeLogs(
+                consumeLogRemoteDataSource.getGroupedPersonalConsumeLogs(
                     buildMap {
                         putAll(
                             CursorPaginateQuery(
@@ -60,8 +60,9 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                                 limit = ITEMS_LIMIT
                             ).toMap()
                         )
-                        put("consumed_at", consumedAt)
-                        put("meal_type", 1)
+                        consumedAt?.let{
+                            put("consumed_at", consumedAt)
+                        }
                         groupBy?.let {
                             put("group_by", groupBy)
                         }

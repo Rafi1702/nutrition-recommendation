@@ -7,7 +7,6 @@ data class ConsumeLogResponseDto(
     @SerializedName("id")
     val id: Int,
 
-    @SerializedName("food")
     val food: FoodResponseDto,
 
     @SerializedName("consumed_at")

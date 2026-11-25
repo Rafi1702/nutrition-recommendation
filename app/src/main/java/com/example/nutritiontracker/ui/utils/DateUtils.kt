@@ -1,11 +1,14 @@
 package com.example.nutritiontracker.ui.utils
 
+import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.DateTimeFormat
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -62,6 +65,32 @@ fun LocalDate.rangeToFormattedRange(
         endDate = end.formatWith(formatter),
     )
 }
+
+fun LocalDate.minusDays(days: Int): LocalDate =
+    this.minus(DatePeriod(days = days))
+
+fun LocalDate.plusDays(days: Int): LocalDate =
+    this.plus(DatePeriod(days = days))
+
+@OptIn(ExperimentalTime::class)
+fun daysAgo(
+    days: Int,
+    timeZone: TimeZone = TimeZone.currentSystemDefault(),
+    clock: Clock = Clock.System,
+): LocalDate = clock.now()
+    .toLocalDateTime(timeZone)
+    .date
+    .minusDays(days)
+
+@OptIn(ExperimentalTime::class)
+fun daysAfter(
+    days: Int,
+    timeZone: TimeZone = TimeZone.currentSystemDefault(),
+    clock: Clock = Clock.System,
+): LocalDate = clock.now()
+    .toLocalDateTime(timeZone)
+    .date
+    .plusDays(days)
 
 fun String.rangeToFormattedRange(
     other: String,

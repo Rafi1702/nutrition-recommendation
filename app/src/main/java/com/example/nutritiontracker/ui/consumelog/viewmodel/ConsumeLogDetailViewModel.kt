@@ -8,8 +8,12 @@ import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.consumelog.GetConsumeLogUseCase
 import com.example.nutritiontracker.domain.usecase.consumelog.GetPersonalConsumeLogFlowUseCase
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
+import com.example.nutritiontracker.ui.utils.DateRange
 import com.example.nutritiontracker.ui.utils.currentLocalDate
+import com.example.nutritiontracker.ui.utils.daysAfter
+import com.example.nutritiontracker.ui.utils.daysAgo
 import com.example.nutritiontracker.ui.utils.formatWith
+import com.example.nutritiontracker.ui.utils.rangeToFormattedRange
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +30,21 @@ internal val TimeRangeFilterInDays = listOf(30, 15, 1800)
 data class PersonalConsumeLogsFilter(
     val selectedTimeFilterValues: Int = TimeRangeFilterInDays.first(),
     val selectedMealTypes: List<MealType> = listOf(MealType.UNSPECIFIED)
-)
+) {
+//    @OptIn(ExperimentalTime::class)
+//    val dateRange: DateRange
+//        get() = DateRange(
+//            currentLocalDate().formatWith(),
+//            daysAfter(selectedTimeFilterValues).formatWith()
+//        )
+
+    @OptIn(ExperimentalTime::class)
+    val dateRange: DateRange
+        get() = DateRange(
+            "2026-11-24",
+            "2026-11-25"
+        )
+}
 
 @HiltViewModel
 class ConsumeLogDetailViewModel @Inject constructor(
@@ -41,7 +59,8 @@ class ConsumeLogDetailViewModel @Inject constructor(
         .flatMapLatest { filter ->
             getPersonalConsumeLogFlowUseCase(
                 mealType = filter.selectedMealTypes.first(),
-                consumedAt = currentLocalDate().formatWith(),
+                startDate = filter.dateRange.startDate,
+                endDate = filter.dateRange.endDate,
                 groupBy = "consumed_at"
             ).map { pagingData ->
                 pagingData.map { consumeLog ->
