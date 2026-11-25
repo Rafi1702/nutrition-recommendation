@@ -189,22 +189,30 @@ private fun EntryScreenError() {
 }
 
 
-private const val DOT = "."
-
 @Preview(showBackground = true)
 @Composable
 private fun EntryLoading() {
 
     var textDot by remember { mutableStateOf("") }
+    var clearing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit){
-        while(isActive){
-            if(textDot.length < 3){
-                textDot += DOT
-            }else{
-                textDot = ""
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            while (isActive) {
+                delay(500L)
+                if (!clearing) {
+                    textDot += "."
+                    if (textDot.length >= 3) {
+                        clearing = true
+                    }
+                } else {
+                    textDot = textDot.dropLast(1)
+                    if (textDot.isEmpty()) {
+                        clearing = false
+                    }
+                }
             }
-            delay(100L)
+            delay(300L)
         }
     }
 

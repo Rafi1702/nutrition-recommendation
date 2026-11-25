@@ -15,6 +15,8 @@ interface ConsumeLogRepository {
 
     fun getPersonalConsumeLog(
         consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString(),
+        startDate: String? = null,
+        endDate: String? = null,
         groupBy: String? = null,
     ): Flow<PagingData<ConsumeLog>>
 

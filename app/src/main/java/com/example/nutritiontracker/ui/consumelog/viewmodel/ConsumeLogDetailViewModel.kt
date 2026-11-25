@@ -6,8 +6,10 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.consumelog.GetConsumeLogUseCase
+import com.example.nutritiontracker.domain.usecase.consumelog.GetPersonalConsumeLogFlowUseCase
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
-import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
+import com.example.nutritiontracker.ui.utils.currentLocalDate
+import com.example.nutritiontracker.ui.utils.formatWith
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,26 +19,30 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
+
+internal val TimeRangeFilterInDays = listOf(30, 15, 1800)
 
 data class PersonalConsumeLogsFilter(
-    val selectedTimeFilterValues: Int = 0,
+    val selectedTimeFilterValues: Int = TimeRangeFilterInDays.first(),
     val selectedMealTypes: List<MealType> = listOf(MealType.UNSPECIFIED)
 )
 
 @HiltViewModel
 class ConsumeLogDetailViewModel @Inject constructor(
-    getConsumeLogUseCase: GetConsumeLogUseCase,
+    getPersonalConsumeLogFlowUseCase: GetPersonalConsumeLogFlowUseCase
 ) : ViewModel() {
 
     private val _personalConsumeLogFilterState = MutableStateFlow(PersonalConsumeLogsFilter())
     val personalConsumeLogsFilter = _personalConsumeLogFilterState.asStateFlow()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class, ExperimentalTime::class)
     val consumeLogsFlow = _personalConsumeLogFilterState
         .flatMapLatest { filter ->
-            getConsumeLogUseCase(
+            getPersonalConsumeLogFlowUseCase(
                 mealType = filter.selectedMealTypes.first(),
-                consumedAt = nowYyyyMMDD()
+                consumedAt = currentLocalDate().formatWith(),
+                groupBy = "consumed_at"
             ).map { pagingData ->
                 pagingData.map { consumeLog ->
                     ConsumeLogUiState(consumeLog = consumeLog)

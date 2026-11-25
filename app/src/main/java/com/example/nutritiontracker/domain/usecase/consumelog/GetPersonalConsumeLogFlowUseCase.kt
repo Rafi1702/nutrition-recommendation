@@ -5,10 +5,13 @@ import com.example.nutritiontracker.domain.model.ConsumeLog
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.repository.ConsumeLogRepository
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class GetPersonalConsumeLogFlowUseCase constructor(private val consumeLogRepository: ConsumeLogRepository) {
+class GetPersonalConsumeLogFlowUseCase @Inject constructor(private val consumeLogRepository: ConsumeLogRepository) {
     operator fun invoke(
         mealType: MealType,
+        startDate: String? = null,
+        endDate: String? = null,
         consumedAt: String,
         groupBy: String? = null,
     ): Flow<PagingData<ConsumeLog>> {

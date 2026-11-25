@@ -66,9 +66,11 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.screenSize
 import com.example.nutritiontracker.ui.utils.composable.AssistedUserViewModel
 import com.example.nutritiontracker.ui.utils.composable.NavigationListener
-import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
+import com.example.nutritiontracker.ui.utils.   currentLocalDate
+import com.example.nutritiontracker.ui.utils.formatWith
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlin.time.ExperimentalTime
 import androidx.compose.material3.NavigationBarItem as M3NavigationBarItem
 
 data class DrawerRequirementProps(
@@ -76,7 +78,8 @@ data class DrawerRequirementProps(
     val coroutineScope: CoroutineScope,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
 @Preview
 @Composable
 fun MainPage(
@@ -93,7 +96,7 @@ fun MainPage(
         else -> null
     }
 
-    var pickedDate by remember { mutableStateOf(nowYyyyMMDD()) }
+    var pickedDate by remember { mutableStateOf(currentLocalDate().formatWith()) }
 
     when (screenSize) {
         ScreenSize.MOBILE -> {
@@ -139,12 +142,14 @@ fun MainPage(
     }
 }
 
+@OptIn(ExperimentalTime::class)
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MainScaffold(
     modifier: Modifier = Modifier,
     bottomNavController: NavHostController? = null,
     drawerProps: DrawerRequirementProps? = null,
-    pickedDate: String = nowYyyyMMDD(),
+    pickedDate: String = currentLocalDate().formatWith(),
     onPickedDateChanged: (String) -> Unit = {},
     onNavigateToConsumeLogDetail: () -> Unit = {},
     onNavigateToRecommendedFoodList: () -> Unit = {}
@@ -242,6 +247,7 @@ private fun MainScaffold(
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MainLayout(
@@ -251,7 +257,7 @@ private fun MainLayout(
     showFoodConfirmationDialog: Boolean? = null,
     isSelectedFoodsNotEmpty: Boolean? = null,
     confirmationDialogEvent: DialogEvent,
-    pickedDate: String = nowYyyyMMDD(),
+    pickedDate: String = currentLocalDate().formatWith(),
     onPickedDateChanged: (String) -> Unit = {},
     onSelectedFoodPicked: (Boolean) -> Unit = {},
     bottomNavController: NavHostController? = null,
@@ -320,7 +326,7 @@ private fun MainLayout(
                                 hiltViewModel<FoodListViewModel, FoodListViewModel.Factory>(
                                     creationCallback = { factory ->
                                         factory.create(
-                                            consumedAt = returnedConsumedAt ?: nowYyyyMMDD(),
+                                            consumedAt = returnedConsumedAt ?: currentLocalDate().formatWith(),
                                             mealType = returnedMealType?.toMealType()
                                                 ?: MealType.UNSPECIFIED
                                         )

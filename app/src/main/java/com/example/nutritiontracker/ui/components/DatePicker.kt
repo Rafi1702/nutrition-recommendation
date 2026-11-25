@@ -55,9 +55,9 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import com.example.nutritiontracker.ui.utils.currentLocalDate
 import com.example.nutritiontracker.ui.utils.formatDate
-import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
-import com.example.nutritiontracker.ui.utils.serviceFormatter
+import com.example.nutritiontracker.ui.utils.formatWith
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -66,6 +66,7 @@ import kotlinx.datetime.format
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.reflect.KProperty1
+import kotlin.time.ExperimentalTime
 import androidx.compose.material3.DatePicker as M3DatePicker
 
 object DatePickerDefaults {
@@ -91,7 +92,7 @@ private data class DatePickerHolder(
 )
 
 private fun LocalDate.createDatePicker(): DatePickerHolder {
-    val currentDateyyMMDD = this.format(formatDate(serviceFormatter))
+    val currentDateyyMMDD = this.formatWith()
     val monthFormatted = this.month.name.lowercase().replaceFirstChar { it.uppercase() }
     val dayNameFormatted = this.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
     return DatePickerHolder(
@@ -173,12 +174,13 @@ private val DatePickerHolderSaver = listSaver<DatePickerHolder, Any>(
     }
 )
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun DatePicker(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues.Zero,
     onDateChanged: (String) -> Unit = {},
-    initialValue: String = nowYyyyMMDD(),
+    initialValue: String = currentLocalDate().formatWith(),
 ) {
     val dates = rememberDateBuild(initialValue)
     val listState = rememberLazyListState()
@@ -325,7 +327,7 @@ fun <T : Any> DatePickerField(
 
     val existingField = remember {
         formBuilder.getField(fieldName)?.copy(
-            initialValue = selectedDateString ?: nowYyyyMMDD()
+            initialValue = selectedDateString ?: currentLocalDate().formatWith()
         ) ?: FieldProperties(validator = listOf())
     }
 

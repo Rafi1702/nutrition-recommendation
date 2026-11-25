@@ -44,6 +44,8 @@ class ConsumeLogRepositoryImpl @Inject constructor(
 
     override fun getPersonalConsumeLog(
         consumedAt: String,
+        startDate: String?,
+        endDate: String?,
         groupBy: String?,
     ): Flow<PagingData<ConsumeLog>> {
         return defaultPagerCreation(
@@ -60,8 +62,14 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                         )
                         put("consumed_at", consumedAt)
                         put("meal_type", 1)
-                        groupBy?.let{
+                        groupBy?.let {
                             put("group_by", groupBy)
+                        }
+                        startDate?.let {
+                            put("start_date", startDate)
+                        }
+                        endDate?.let {
+                            put("end_date", endDate)
                         }
                     }
                 )

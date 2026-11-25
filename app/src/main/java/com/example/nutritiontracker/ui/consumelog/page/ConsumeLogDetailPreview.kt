@@ -8,9 +8,10 @@ import androidx.paging.PagingData
 import com.example.nutritiontracker.data.mocks.MOCK_CONSUME_LOGS
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
-import com.example.nutritiontracker.ui.utils.displayFormatter
-import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
+import com.example.nutritiontracker.ui.utils.currentLocalDate
+import com.example.nutritiontracker.ui.utils.formatWith
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.time.ExperimentalTime
 
 @Preview(showBackground = true)
 @Composable
@@ -38,10 +39,11 @@ private fun ConsumeLogDetailHeaderPreview() {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @Preview(showBackground = true)
 @Composable
 private fun ConsumeLogItemPreview() {
-    val dateFormat = nowYyyyMMDD(displayFormatter)
+    val dateFormat = currentLocalDate().formatWith()
     val dateDisplay = dateFormat.split("-")
 
     if (dateDisplay.isNotEmpty()) {

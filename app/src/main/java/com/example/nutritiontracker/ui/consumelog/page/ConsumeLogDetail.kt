@@ -40,13 +40,13 @@ import com.example.nutritiontracker.ui.components.defaultColor
 import com.example.nutritiontracker.ui.consumelog.components.properties
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
 import com.example.nutritiontracker.ui.consumelog.viewmodel.ConsumeLogDetailViewModel
+import com.example.nutritiontracker.ui.consumelog.viewmodel.TimeRangeFilterInDays
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.plus
 import com.example.nutritiontracker.ui.utils.composable.withStyle
-import com.example.nutritiontracker.ui.utils.displayFormatter
-import com.example.nutritiontracker.ui.utils.formatDate
+import com.example.nutritiontracker.ui.utils.formatWith
 import com.example.nutritiontracker.ui.utils.instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
@@ -54,7 +54,7 @@ import kotlinx.datetime.format
 
 //This only works for
 fun LocalDate.consumeLogHeaderDisplay(): String? {
-    val dateFormat = this.format(formatDate(displayFormatter))
+    val dateFormat = this.formatWith()
     val dateDisplay = dateFormat.split("-")
     return if (dateDisplay.isNotEmpty()) "${dateDisplay[2]} ${
         dateDisplay[1].substring(
@@ -65,7 +65,6 @@ fun LocalDate.consumeLogHeaderDisplay(): String? {
 }
 
 private const val TOTAL_DAY_IN_MONTH = 30
-private val TimeRangeFilterInDays = listOf(30, 15, 1800)
 
 fun Int.text(): String {
     //TODO: Replace the Time Unit (day/month/year) with Resource String
@@ -89,9 +88,9 @@ fun ConsumeLogDetail(
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         ConsumeLogHeader(
             modifier = Modifier.padding(Spacing.s),
-            selectedFilterValues = 30.text(),
+            selectedFilterValues = personalConsumeLogsFilter.value.selectedTimeFilterValues.text(),
             onTimeRangeFilterChange = { updatedValue ->
-
+                viewModel.onSelectedTimeFilterValues(updatedValue)
             },
             onSelectedMealTypeValuesChange = { updatedMealTypes ->
                 if (updatedMealTypes.isEmpty()) return@ConsumeLogHeader
@@ -109,7 +108,7 @@ internal fun ConsumeLogHeader(
     selectedFilterValues: String = TimeRangeFilterInDays.first().text(),
     selectedMealTypeValues: List<MealType> = emptyList(),
     onSelectedMealTypeValuesChange: (List<MealType>) -> Unit = {},
-    onTimeRangeFilterChange: (String) -> Unit = {}
+    onTimeRangeFilterChange: (Int) -> Unit = {}
 ) {
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
@@ -129,7 +128,7 @@ internal fun ConsumeLogHeader(
                     DropdownItemProps(
                         itemLabel = day.text(),
                         onClick = {
-                            onTimeRangeFilterChange(day.text())
+                            onTimeRangeFilterChange(day)
                         }
                     )
                 },
