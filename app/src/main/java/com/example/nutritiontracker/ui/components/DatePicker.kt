@@ -123,11 +123,10 @@ private fun String.toMillisEpoch(): Long? {
 
 @Composable
 private fun rememberDateBuild(
-    day: Int = 1,
     year: Int = 2026,
     month: Int = 1,
 ): List<DatePickerHolder> {
-    return remember(day, year, month) {
+    return remember(year, month) {
         val start = LocalDate(year, month, 1)
         val end = LocalDate(year + 1, month, 1)
         val datesList = mutableListOf<DatePickerHolder>()
@@ -151,10 +150,11 @@ private fun rememberDateBuild(
     if (initialDate.isEmpty()) return emptyList()
 
     val date = initialDate.split("-")
+    val year = date.getOrNull(0)?.toIntOrNull() ?: 2026
+    val month = date.getOrNull(1)?.toIntOrNull() ?: 1
     return rememberDateBuild(
-        day = date[2].toIntOrNull() ?: 1,
-        year = date[0].toIntOrNull() ?: 2026,
-        month = date[1].toIntOrNull() ?: 1,
+        year = year,
+        month = month,
     )
 }
 
@@ -188,23 +188,27 @@ fun DatePicker(
             initialValue.createDatePicker()
         )
     }
-    val trackedMonth = rememberSaveable(selectedDate, stateSaver = DatePickerHolderSaver) {
+    val trackedMonth = rememberSaveable(stateSaver = DatePickerHolderSaver) {
         mutableStateOf(selectedDate)
     }
 
-    LaunchedEffect(Unit) {
-        val firstDateIndex = dates.indexOfFirst { selectedDate == it }
-        if (firstDateIndex != -1) {
-            listState.scrollToItem(firstDateIndex)
+    LaunchedEffect(initialValue) {
+        if (initialValue.isNotEmpty()) {
+            val dateHolder = initialValue.createDatePicker()
+            selectedDate = dateHolder
+            trackedMonth.value = dateHolder
+            val index = dates.indexOfFirst { it.yyMMDD == dateHolder.yyMMDD }
+            if (index != -1) {
+                listState.scrollToItem(index)
+            }
         }
+    }
 
-        snapshotFlow { listState.isScrollInProgress }
-            .collect { isScrolling ->
-                if (!isScrolling) {
-                    val currentDate = dates.getOrNull(listState.firstVisibleItemIndex)
-                    currentDate?.let {
-                        trackedMonth.value = it
-                    }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { index ->
+                dates.getOrNull(index)?.let { currentDate ->
+                    trackedMonth.value = currentDate
                 }
             }
     }
@@ -275,22 +279,25 @@ fun DatePicker(
             contentPadding = contentPadding,
             flingBehavior = snapFlingBehavior,
         ) {
-            items(dates) { date ->
+            items(
+                items = dates,
+                key = { date -> date.yyMMDD }
+            ) { date ->
                 DateTimePickerCard(
                     dayName = date.dayName,
                     day = date.day,
                     monthName = date.month.take(3),
                     onTap = {
                         selectedDate = date
+                        trackedMonth.value = date
                         onDateChanged(date.yyMMDD)
                     },
-                    isActive = selectedDate == date
+                    isActive = selectedDate.yyMMDD == date.yyMMDD
                 )
             }
         }
     }
 }
-
 
 
 @OptIn(kotlin.time.ExperimentalTime::class)

@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -15,10 +17,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -43,6 +51,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.net.ConnectException
 import javax.inject.Inject
@@ -79,13 +88,12 @@ class EntryScreenViewModel @Inject constructor(
             _entryNavigationState.update { EntryScreenUiState.Initial }
             val (accessToken, refreshToken) = localTokenDataSource.getUserToken()
 
-            delay(3000)
             if (accessToken == null || refreshToken == null) {
                 return@launch _entryNavigationState.update { EntryScreenUiState.Navigate(AuthPath.AUTH) }
             }
 
             val userProfile = getUserProfileWithAllergensUseCase()
-
+            delay(3000L)
             userProfile.fold(
                 onSuccess = { profileWithAllergens ->
                     profileWithAllergens?.let {
@@ -181,24 +189,48 @@ private fun EntryScreenError() {
 }
 
 
+private const val DOT = "."
+
 @Preview(showBackground = true)
 @Composable
 private fun EntryLoading() {
+
+    var textDot by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit){
+        while(isActive){
+            if(textDot.length < 3){
+                textDot += DOT
+            }else{
+                textDot = ""
+            }
+            delay(100L)
+        }
+    }
+
     Box(
         modifier = Modifier
             .background(
                 colorScheme.inverseSurface.copy(alpha = .7f),
                 shape = RoundedCornerShape(8.dp)
-            ),
+            )
+            .size(96.dp),
 
         ) {
         Column(
-            modifier = Modifier.padding(Spacing.s),
+            modifier = Modifier
+                .padding(Spacing.s)
+                .fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(Spacing.xxs, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             LoadingLottieAnimation(resId = R.raw.entry_loading, modifier = Modifier.size(48.dp))
-            Text("Tunggu ya..", style = typography.labelMedium.copy(color = colorScheme.surface))
+            Text(
+                "Loading$textDot",
+                style = typography.labelMedium.copy(color = colorScheme.surface),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
