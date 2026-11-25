@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,8 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.nutritiontracker.ui.theme.Spacing
 import kotlin.collections.listOf
 import kotlin.reflect.KProperty1
@@ -242,6 +246,18 @@ private fun Modifier.conditionalScroll(
 }
 
 @Composable
+private fun Modifier.click(
+    shape: Shape? = null,
+    onClick: (() -> Unit)? = null,
+): Modifier {
+    return if (onClick != null) this
+        .clip(shape ?: RoundedCornerShape(8.dp))
+        .clickable {
+            onClick()
+        } else this
+}
+
+@Composable
 internal fun <T> MultiSelectOptions(
     modifier: Modifier = Modifier,
     items: List<T> = emptyList(),
@@ -259,7 +275,7 @@ internal fun <T> MultiSelectOptions(
         horizontalArrangement = horizontalArrangement,
         content = {
             items.forEach { item ->
-                Box(modifier = Modifier.clickable {
+                Box(modifier = Modifier.click {
                     if (initialItemsSelected.value.contains(item)) {
                         initialItemsSelected.value -= item
                     } else {

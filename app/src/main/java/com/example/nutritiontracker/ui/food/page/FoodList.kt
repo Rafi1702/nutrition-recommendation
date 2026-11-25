@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
@@ -99,7 +101,6 @@ fun FoodListPage(
 ) {
 
     val uiState = viewModel.uiState.collectAsStateWithLifecycle()
-
 
     val selectedMealType = remember { mutableStateMapOf<MealType, List<Int>>() }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -291,18 +292,36 @@ fun FoodListHeader(
     selectionMode: SelectionMode,
     onSelectionModeChanged: (SelectionMode) -> Unit = {}
 ) {
-    Column {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Spacing.m, vertical = Spacing.s),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Spacing.m, vertical = Spacing.xs),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
-            Column {
+            Surface(
+                shape = CircleShape,
+                color = colorScheme.primaryContainer,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Default.FilterList,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = colorScheme.primary
+                    )
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = "Selection Mode",
-                    style = typography.titleMedium.copy(
+                    style = typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = colorScheme.onSurface
                     )
@@ -314,13 +333,12 @@ fun FoodListHeader(
                     )
                 )
             }
-
-            SelectionModeDropdown(
-                selectionMode = selectionMode
-            ) { newMode ->
-                onSelectionModeChanged(newMode)
-            }
         }
+
+        SelectionModeDropdown(
+            selectionMode = selectionMode,
+            onSelectionModeChange = onSelectionModeChanged
+        )
     }
 }
 
@@ -332,29 +350,37 @@ fun FoodListHeaderSection(
     onMealsChanged: (List<MealType>) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
-            .background(colorScheme.surface)
+            .padding(horizontal = Spacing.s, vertical = Spacing.xs),
+        shape = RoundedCornerShape(16.dp),
+        color = colorScheme.surface,
+        tonalElevation = 2.dp,
+        shadowElevation = 3.dp,
+        border = BorderStroke(1.dp, colorScheme.primary.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = Spacing.s, horizontal = Spacing.s)
-                .defaultCardElevation()
-                .background(color = colorScheme.surface, shape = RoundedCornerShape(8.dp)),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+                .padding(vertical = Spacing.xs),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xxs)
         ) {
-            Spacer(modifier = Modifier.height(Spacing.xs))
             FoodListHeader(
                 selectionMode = selectionMode,
                 onSelectionModeChanged = onSelectionModeChange
             )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = Spacing.m),
+                thickness = 1.dp,
+                color = colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+
             FoodListMealSelections(
                 selectedMeals = selectedMeals,
                 onMealsChanged = onMealsChanged
             )
-            Spacer(modifier = Modifier.height(Spacing.xs))
         }
     }
 }

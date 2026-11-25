@@ -14,7 +14,8 @@ interface ConsumeLogRepository {
     ): Result<Unit>
 
     fun getPersonalConsumeLog(
-        consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString()
+        consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString(),
+        groupBy: String? = null,
     ): Flow<PagingData<ConsumeLog>>
 
     suspend fun getPersonalConsumeLogList(

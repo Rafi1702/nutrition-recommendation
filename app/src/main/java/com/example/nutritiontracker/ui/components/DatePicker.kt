@@ -1,7 +1,4 @@
 package com.example.nutritiontracker.ui.components
-
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -36,7 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.getSelectedDate
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,15 +55,16 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
-import com.example.nutritiontracker.ui.utils.displayFormatter
 import com.example.nutritiontracker.ui.utils.formatDate
-import com.example.nutritiontracker.ui.utils.instant
 import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
 import com.example.nutritiontracker.ui.utils.serviceFormatter
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZoneOffset
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.format
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import kotlin.reflect.KProperty1
 import androidx.compose.material3.DatePicker as M3DatePicker
 
@@ -95,12 +92,13 @@ private data class DatePickerHolder(
 
 private fun LocalDate.createDatePicker(): DatePickerHolder {
     val currentDateyyMMDD = this.format(formatDate(serviceFormatter))
-    val formattedDate = this.format(formatDate(displayFormatter)).split("-")
+    val monthFormatted = this.month.name.lowercase().replaceFirstChar { it.uppercase() }
+    val dayNameFormatted = this.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
     return DatePickerHolder(
-        year = formattedDate[0],
-        month = formattedDate[1],
-        day = formattedDate[2],
-        dayName = formattedDate[3],
+        year = this.year.toString(),
+        month = monthFormatted,
+        day = this.day.toString().padStart(2, '0'),
+        dayName = dayNameFormatted,
         yyMMDD = currentDateyyMMDD
     )
 }
@@ -111,12 +109,12 @@ private fun String.createDatePicker(): DatePickerHolder {
 }
 
 
+@OptIn(kotlin.time.ExperimentalTime::class)
 private fun String.toMillisEpoch(): Long? {
     return try {
         LocalDate.parse(this)
-            .atStartOfDay(ZoneOffset.UTC)
-            .toInstant()
-            .toEpochMilli()
+            .atStartOfDayIn(TimeZone.UTC)
+            .toEpochMilliseconds()
     } catch (_: Exception) {
         null
     }
@@ -130,10 +128,15 @@ private fun rememberDateBuild(
     month: Int = 1,
 ): List<DatePickerHolder> {
     return remember(day, year, month) {
-        LocalDate.of(year, month, 1)
-            .datesUntil(LocalDate.of(year + 1, month, 1))
-            .map { it.createDatePicker() }
-            .toList()
+        val start = LocalDate(year, month, 1)
+        val end = LocalDate(year + 1, month, 1)
+        val datesList = mutableListOf<DatePickerHolder>()
+        var curr = start
+        while (curr < end) {
+            datesList.add(curr.createDatePicker())
+            curr = curr.plus(DatePeriod(days = 1))
+        }
+        datesList
     }
 }
 
@@ -290,8 +293,15 @@ fun DatePicker(
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(kotlin.time.ExperimentalTime::class)
+private fun Long.toLocalDateString(): String {
+    return kotlin.time.Instant.fromEpochMilliseconds(this)
+        .toLocalDateTime(TimeZone.UTC)
+        .date
+        .toString()
+}
+
+@OptIn(ExperimentalMaterial3Api::class, kotlin.time.ExperimentalTime::class)
 @Composable
 fun <T : Any> DatePickerField(
     fieldName: KProperty1<T, String>,
@@ -302,17 +312,19 @@ fun <T : Any> DatePickerField(
     val formBuilder = currentForm<T>()
     val datePickerState = rememberDatePickerState()
 
+    val selectedDateString = remember(datePickerState.selectedDateMillis) {
+        datePickerState.selectedDateMillis?.toLocalDateString()
+    }
+
     val existingField = remember {
         formBuilder.getField(fieldName)?.copy(
-            initialValue = datePickerState.getSelectedDate()?.toString() ?: Instant.now()
-                .atZone(ZoneId.systemDefault()).toLocalDate().toString()
+            initialValue = selectedDateString ?: nowYyyyMMDD()
         ) ?: FieldProperties(validator = listOf())
     }
 
     val isDirty = remember {
         derivedStateOf {
-            (existingField.state.value != datePickerState.getSelectedDate()
-                .toString()) && datePickerState.getSelectedDate() != null
+            (existingField.state.value != selectedDateString) && selectedDateString != null
         }
     }
 
@@ -350,8 +362,8 @@ fun <T : Any> DatePickerField(
                     Button(
                         enabled = isDirty.value,
                         onClick = {
-                            datePickerState.getSelectedDate()?.let { selectedDateState ->
-                                existingField.onValueStateChange(selectedDateState.toString())
+                            selectedDateString?.let { selectedDateState ->
+                                existingField.onValueStateChange(selectedDateState)
                                 showDatePicker = false
                             }
                         }) { Text("Submit") }

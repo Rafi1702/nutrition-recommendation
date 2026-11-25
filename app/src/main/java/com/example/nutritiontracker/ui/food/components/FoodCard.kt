@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.food.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
@@ -95,25 +97,33 @@ internal fun FoodCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
+            containerColor = colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, colorScheme.outlineVariant.copy(alpha = 0.4f))
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 SubcomposeAsyncImage(
                     model = name,
                     contentDescription = name,
                     modifier = Modifier
-                        .size(96.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .sizeIn(
+                            minWidth = 64.dp,
+                            minHeight = 64.dp,
+                            maxWidth = 76.dp,
+                            maxHeight = 76.dp
+                        )
+                        .clip(RoundedCornerShape(10.dp)),
                     contentScale = ContentScale.Crop,
                     loading = {
                         Box(
@@ -146,7 +156,7 @@ internal fun FoodCard(
                 )
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         text = name,
@@ -171,27 +181,36 @@ internal fun FoodCard(
                 FilledTonalButton(
                     onClick = onAddClick,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = colorScheme.primary,
-                        contentColor = colorScheme.onPrimary
+                        containerColor = colorScheme.primaryContainer,
+                        contentColor = colorScheme.onPrimaryContainer
                     )
                 ) {
-                    if (isLoading) CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = colorScheme.onPrimary
-                    ) else Row(
-                        horizontalArrangement = Arrangement.spacedBy(
-                            8.dp,
-                            Alignment.CenterHorizontally
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddCircleOutline,
-                            contentDescription = "add"
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = colorScheme.onPrimaryContainer,
+                            strokeWidth = 2.dp
                         )
-                        Text(text = stringResource(R.string.add_to_consume_log))
+                    } else {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(
+                                8.dp,
+                                Alignment.CenterHorizontally
+                            ),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AddCircleOutline,
+                                contentDescription = "add",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.add_to_consume_log),
+                                style = typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+                            )
+                        }
                     }
                 }
             }

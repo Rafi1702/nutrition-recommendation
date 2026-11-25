@@ -6,11 +6,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
 import com.example.nutritiontracker.data.mocks.MOCK_CONSUME_LOGS
-
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.utils.displayFormatter
-import com.example.nutritiontracker.ui.utils.instant
 import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
 import kotlinx.coroutines.flow.MutableStateFlow
 

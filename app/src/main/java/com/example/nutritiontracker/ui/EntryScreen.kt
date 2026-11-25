@@ -1,9 +1,14 @@
 package com.example.nutritiontracker.ui
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,10 +31,12 @@ import com.example.nutritiontracker.domain.model.UserProfileData
 import com.example.nutritiontracker.domain.model.UserProfileWithAllergens
 import com.example.nutritiontracker.domain.usecase.user_profile.GetUserProfileWithAllergensUseCase
 import com.example.nutritiontracker.ui.authentication.page.AuthPath
+import com.example.nutritiontracker.ui.components.LoadingLottieAnimation
 import com.example.nutritiontracker.ui.home.page.HomePath
 import com.example.nutritiontracker.ui.profile.page.ProfileNav
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
+import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -159,7 +166,7 @@ fun EntryScreen(
             }
 
             else -> {
-                CircularProgressIndicator()
+                EntryLoading()
             }
         }
     }
@@ -170,5 +177,28 @@ fun EntryScreen(
 private fun EntryScreenError() {
     NutritionTrackerTheme {
         EntryScreen(EntryScreenUiState.Error(ConnectException("...")))
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun EntryLoading() {
+    Box(
+        modifier = Modifier
+            .background(
+                colorScheme.inverseSurface.copy(alpha = .7f),
+                shape = RoundedCornerShape(8.dp)
+            ),
+
+        ) {
+        Column(
+            modifier = Modifier.padding(Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xxs, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            LoadingLottieAnimation(resId = R.raw.entry_loading, modifier = Modifier.size(48.dp))
+            Text("Tunggu ya..", style = typography.labelMedium.copy(color = colorScheme.surface))
+        }
     }
 }

@@ -7,21 +7,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Pending
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import coil3.compose.SubcomposeAsyncImage
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,7 +49,8 @@ import com.example.nutritiontracker.ui.utils.displayFormatter
 import com.example.nutritiontracker.ui.utils.formatDate
 import com.example.nutritiontracker.ui.utils.instant
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.format
 
 //This only works for
 fun LocalDate.consumeLogHeaderDisplay(): String? {
@@ -72,7 +65,7 @@ fun LocalDate.consumeLogHeaderDisplay(): String? {
 }
 
 private const val TOTAL_DAY_IN_MONTH = 30
-private val TimeRangeFilter = listOf(30, 15, 1800)
+private val TimeRangeFilterInDays = listOf(30, 15, 1800)
 
 fun Int.text(): String {
     //TODO: Replace the Time Unit (day/month/year) with Resource String
@@ -113,7 +106,7 @@ fun ConsumeLogDetail(
 @Composable
 internal fun ConsumeLogHeader(
     modifier: Modifier = Modifier,
-    selectedFilterValues: String = TimeRangeFilter.first().text(),
+    selectedFilterValues: String = TimeRangeFilterInDays.first().text(),
     selectedMealTypeValues: List<MealType> = emptyList(),
     onSelectedMealTypeValuesChange: (List<MealType>) -> Unit = {},
     onTimeRangeFilterChange: (String) -> Unit = {}
@@ -132,7 +125,7 @@ internal fun ConsumeLogHeader(
             Dropdown(
                 modifier = Modifier.weight(1f),
                 selectedLabel = selectedFilterValues,
-                items = TimeRangeFilter.map { day ->
+                items = TimeRangeFilterInDays.map { day ->
                     DropdownItemProps(
                         itemLabel = day.text(),
                         onClick = {

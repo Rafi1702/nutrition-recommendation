@@ -7,9 +7,9 @@ import androidx.paging.map
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.consumelog.GetConsumeLogUseCase
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
+import com.example.nutritiontracker.ui.utils.nowYyyyMMDD
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class PersonalConsumeLogsFilter(
-    val selectedTimeFilterValues: String = "",
+    val selectedTimeFilterValues: Int = 0,
     val selectedMealTypes: List<MealType> = listOf(MealType.UNSPECIFIED)
 )
 
@@ -36,7 +36,7 @@ class ConsumeLogDetailViewModel @Inject constructor(
         .flatMapLatest { filter ->
             getConsumeLogUseCase(
                 mealType = filter.selectedMealTypes.first(),
-                consumedAt = ""
+                consumedAt = nowYyyyMMDD()
             ).map { pagingData ->
                 pagingData.map { consumeLog ->
                     ConsumeLogUiState(consumeLog = consumeLog)
@@ -51,5 +51,9 @@ class ConsumeLogDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _personalConsumeLogFilterState.update { it.copy(selectedMealTypes = mealTypes) }
         }
+    }
+
+    fun onSelectedTimeFilterValues(timeRange: Int) {
+        _personalConsumeLogFilterState.update { it.copy(selectedTimeFilterValues = timeRange) }
     }
 }
