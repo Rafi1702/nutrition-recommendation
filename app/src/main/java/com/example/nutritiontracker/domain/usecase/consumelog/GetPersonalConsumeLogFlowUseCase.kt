@@ -2,6 +2,7 @@ package com.example.nutritiontracker.domain.usecase.consumelog
 
 import androidx.paging.PagingData
 import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.GroupedConsumeLog
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.repository.ConsumeLogRepository
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ class GetPersonalConsumeLogFlowUseCase @Inject constructor(private val consumeLo
         endDate: String? = null,
         consumedAt: String? = null,
         groupBy: String? = null,
-    ): Flow<PagingData<ConsumeLog>> {
+    ): Flow<PagingData<GroupedConsumeLog>> {
         return consumeLogRepository.getPersonalConsumeLog(
             consumedAt = consumedAt,
             groupBy = groupBy,

@@ -53,7 +53,7 @@ fun <T : Any> ListPagingSection(
     initialDataError: (@Composable (Throwable) -> Unit)? = null,
     emptyDataContent: (@Composable () -> Unit)? = null,
     loadingContent: (@Composable () -> Unit)? = null,
-    itemContent: @Composable (T) -> Unit,
+    itemContent: @Composable (Int, T) -> Unit,
 ) {
 
     var hasAppendedOnce by remember(pagingItems) { mutableStateOf(false) }
@@ -108,7 +108,7 @@ fun <T : Any> ListPagingSection(
                         ) { index ->
                             val item = pagingItems[index]
                             if (item != null) {
-                                itemContent(item)
+                                itemContent(index, item)
                             }
                         }
                         // Append loading indicator at the bottom when loading more pages
@@ -171,7 +171,7 @@ fun <T : Any> ListPagingSection(
     initialDataError: (@Composable (Throwable) -> Unit)? = null,
     emptyDataContent: (@Composable () -> Unit)? = null,
     loadingContent: (@Composable () -> Unit)? = null,
-    itemContent: @Composable (T) -> Unit,
+    itemContent: @Composable (Int, T) -> Unit,
 ) {
     // Delegate to the primary implementation, wrapping the item key with pagingItems.itemKey
 

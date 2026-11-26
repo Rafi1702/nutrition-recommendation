@@ -20,6 +20,8 @@ interface ConsumeLogRepository {
         groupBy: String? = null,
     ): Flow<PagingData<ConsumeLog>>
 
+    fun getGroupedPersonalConsumeLog()
+
     suspend fun getPersonalConsumeLogList(
         mealType: MealType,
         consumedAt: String = ZonedDateTime.now(ZoneId.systemDefault()).toInstant().toString()

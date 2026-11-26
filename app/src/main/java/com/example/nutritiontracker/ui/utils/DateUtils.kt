@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.utils
 
+import android.content.Context
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -10,8 +11,11 @@ import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.format.MonthNames
+import kotlinx.datetime.format.char
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import java.text.DateFormatSymbols
 
 enum class DateFormatter(
     val stringFormat: String,
@@ -25,11 +29,6 @@ data class DateRange(
     val startDate: String,
     val endDate: String
 )
-
-@OptIn(ExperimentalTime::class)
-val instant: LocalDate = Clock.System.now()
-    .toLocalDateTime(TimeZone.currentSystemDefault())
-    .date
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun formatDate(
@@ -53,6 +52,8 @@ fun currentLocalDate(
 fun LocalDate.formatWith(
     formatter: DateFormatter = DateFormatter.SERVICE_FORMATTER,
 ): String = format(dateTimeFormat(formatter))
+
+fun String.toLocalDate(): LocalDate = LocalDate.parse(this)
 
 fun LocalDate.rangeToFormattedRange(
     other: LocalDate,
@@ -112,6 +113,52 @@ fun String.rangeToFormattedRange(
         startDate = start.formatWith(outputFormat),
         endDate = end.formatWith(outputFormat),
     )
+}
+
+fun LocalDate.formatCurrentDateWithContext(context: Context): String {
+    val locale = context.resources.configuration.locales[0]
+    val symbols = DateFormatSymbols.getInstance(locale)
+
+    val localizedMonths = MonthNames(symbols.months.filter { it.isNotEmpty() })
+
+    val customFormat = LocalDate.Format {
+        day()
+        char(' ')
+        monthName(localizedMonths)
+        char(' ')
+        year()
+    }
+
+    return this.format(customFormat)
+}
+
+
+// DatePickerHolder is just model for displaying
+data class DatePickerHolder(
+    val year: String,
+    val month: String,
+    val day: String,
+    val dayName: String,
+    val yyMMDD: String,
+)
+
+fun LocalDate.createDatePicker(): DatePickerHolder {
+    val currentDateyyMMDD = this.formatWith()
+    val monthFormatted = this.month.name.lowercase().replaceFirstChar { it.uppercase() }
+    val dayNameFormatted =
+        this.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
+    return DatePickerHolder(
+        year = this.year.toString(),
+        month = monthFormatted,
+        day = this.day.toString().padStart(2, '0'),
+        dayName = dayNameFormatted,
+        yyMMDD = currentDateyyMMDD
+    )
+}
+
+fun String.createDatePicker(): DatePickerHolder {
+    val formattedDate = LocalDate.parse(this)
+    return formattedDate.createDatePicker()
 }
 
 

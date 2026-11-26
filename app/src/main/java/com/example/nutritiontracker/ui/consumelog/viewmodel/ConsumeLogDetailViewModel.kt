@@ -41,8 +41,8 @@ data class PersonalConsumeLogsFilter(
     @OptIn(ExperimentalTime::class)
     val dateRange: DateRange
         get() = DateRange(
-            "2026-11-24",
-            "2026-11-25"
+            "2026-10-27",
+            "2026-11-26"
         )
 }
 

@@ -55,6 +55,8 @@ import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.theme.Spacing
 import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
+import com.example.nutritiontracker.ui.utils.DatePickerHolder
+import com.example.nutritiontracker.ui.utils.createDatePicker
 import com.example.nutritiontracker.ui.utils.currentLocalDate
 import com.example.nutritiontracker.ui.utils.formatDate
 import com.example.nutritiontracker.ui.utils.formatWith
@@ -83,31 +85,7 @@ object DatePickerDefaults {
     }
 }
 
-private data class DatePickerHolder(
-    val year: String,
-    val month: String,
-    val day: String,
-    val dayName: String,
-    val yyMMDD: String,
-)
 
-private fun LocalDate.createDatePicker(): DatePickerHolder {
-    val currentDateyyMMDD = this.formatWith()
-    val monthFormatted = this.month.name.lowercase().replaceFirstChar { it.uppercase() }
-    val dayNameFormatted = this.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }.take(3)
-    return DatePickerHolder(
-        year = this.year.toString(),
-        month = monthFormatted,
-        day = this.day.toString().padStart(2, '0'),
-        dayName = dayNameFormatted,
-        yyMMDD = currentDateyyMMDD
-    )
-}
-
-private fun String.createDatePicker(): DatePickerHolder {
-    val formattedDate = LocalDate.parse(this)
-    return formattedDate.createDatePicker()
-}
 
 
 @OptIn(kotlin.time.ExperimentalTime::class)

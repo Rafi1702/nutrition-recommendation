@@ -1,5 +1,6 @@
 package com.example.nutritiontracker.ui.consumelog.page
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,23 +49,18 @@ import com.example.nutritiontracker.ui.theme.colorScheme
 import com.example.nutritiontracker.ui.theme.typography
 import com.example.nutritiontracker.ui.utils.composable.plus
 import com.example.nutritiontracker.ui.utils.composable.withStyle
-import com.example.nutritiontracker.ui.utils.formatWith
-import com.example.nutritiontracker.ui.utils.instant
+import com.example.nutritiontracker.ui.utils.formatCurrentDateWithContext
+import com.example.nutritiontracker.ui.utils.toLocalDate
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.format
 
-//This only works for
-fun LocalDate.consumeLogHeaderDisplay(): String? {
-//    val dateFormat = this.formatWith()
-//    val dateDisplay = dateFormat.split("-")
-//    return if (dateDisplay.isNotEmpty()) "${dateDisplay[2]} ${
-//        dateDisplay[1].substring(
-//            0,
-//            3,
-//        )
-//    } ${dateDisplay[0]}" else null
-    return null
+@Composable
+fun String.consumeLogHeaderDisplay(context: Context = LocalContext.current): String? {
+    if (this.isBlank()) return null
+    return try {
+        this.toLocalDate().formatCurrentDateWithContext(context)
+    } catch (_: Exception) {
+        null
+    }
 }
 
 private const val TOTAL_DAY_IN_MONTH = 30
@@ -89,7 +86,7 @@ fun ConsumeLogDetail(
 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         ConsumeLogHeader(
-            modifier = Modifier.padding(Spacing.s),
+            modifier = Modifier.padding(Spacing.m),
             selectedFilterValues = personalConsumeLogsFilter.value.selectedTimeFilterValues.text(),
             onTimeRangeFilterChange = { updatedValue ->
                 viewModel.onSelectedTimeFilterValues(updatedValue)
@@ -100,7 +97,10 @@ fun ConsumeLogDetail(
                 viewModel.onSelectedMealTypesChange(updatedMealTypes)
             }
         )
-        PersonalConsumeList(consumeLogs = viewModel.consumeLogsFlow)
+        PersonalConsumeList(
+            consumeLogs = viewModel.consumeLogsFlow,
+            selectedFilterValues = personalConsumeLogsFilter.value.selectedTimeFilterValues
+        )
     }
 }
 
@@ -171,6 +171,7 @@ internal fun ConsumeLogHeader(
 @Composable
 internal fun PersonalConsumeList(
     innerPadding: PaddingValues = PaddingValues.Zero,
+    selectedFilterValues: Int,
     consumeLogs: Flow<PagingData<ConsumeLogUiState>>
 ) {
     val consumeLogLazyItems = consumeLogs.collectAsLazyPagingItems()
@@ -185,10 +186,14 @@ internal fun PersonalConsumeList(
         },
         initialDataError = {
             Text("Initial Data Error")
-        }) { consumeLog ->
+        }) { index, consumeLog ->
+        val consumeLogDetail = consumeLog.consumeLog.consumeLogDetail
+        val leadingItemText =
+            "Hari ${if (index > 0) "ke - ${selectedFilterValues - index}" else "ini"}"
         ConsumeLogItem(
-            date = instant.consumeLogHeaderDisplay(),
-            consumes = listOf(consumeLog.consumeLog)
+            date = consumeLogDetail.eatTime.consumeLogHeaderDisplay(),
+            consumes = listOf(consumeLog.consumeLog),
+            leadingText = leadingItemText
         )
     }
 }
@@ -197,6 +202,7 @@ internal fun PersonalConsumeList(
 internal fun ConsumeLogItem(
     date: String?,
     consumes: List<ConsumeLog>,
+    leadingText: String,
     nutrients: NutrientsSubTotal = consumes.nutrientsSubTotal()
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
@@ -206,11 +212,11 @@ internal fun ConsumeLogItem(
                     style = typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = colorScheme.primary
                 ) {
-                    append("Hari Ini\t\t")
+                    append("$leadingText\t\t")
                 }
                 date?.let {
                     withStyle(
-                        style = typography.labelSmall,
+                        style = typography.titleMedium,
                         color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     ) {
                         append(date)

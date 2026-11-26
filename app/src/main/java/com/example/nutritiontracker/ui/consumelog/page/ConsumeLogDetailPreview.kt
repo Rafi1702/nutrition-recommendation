@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
 import com.example.nutritiontracker.data.mocks.MOCK_CONSUME_LOGS
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
+import com.example.nutritiontracker.ui.consumelog.viewmodel.TimeRangeFilterInDays
 import com.example.nutritiontracker.ui.theme.NutritionTrackerTheme
 import com.example.nutritiontracker.ui.utils.currentLocalDate
 import com.example.nutritiontracker.ui.utils.formatWith
@@ -26,7 +27,8 @@ private fun PersonalConsumeListPreview() {
     NutritionTrackerTheme {
         PersonalConsumeList(
             innerPadding = PaddingValues(horizontal = 16.dp),
-            consumeLogs = fakeDataFlow
+            consumeLogs = fakeDataFlow,
+            selectedFilterValues = TimeRangeFilterInDays.first(),
         )
     }
 }
@@ -53,7 +55,8 @@ private fun ConsumeLogItemPreview() {
                     0,
                     3,
                 )
-            } ${dateDisplay[0]}", consumes = MOCK_CONSUME_LOGS
+            } ${dateDisplay[0]}", consumes = MOCK_CONSUME_LOGS,
+            leadingText = "Hari"
         )
     }
 }

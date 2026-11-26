@@ -91,7 +91,7 @@ internal fun FoodRecommendationsContent(
                 "placeholder_$index"
             }
         },
-        itemContent = { item ->
+        itemContent = { _, item ->
             item.food?.let { food ->
                 FoodCard(food = food)
             }

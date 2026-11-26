@@ -416,7 +416,7 @@ fun FoodList(
         },
         initialDataError = {
             Text(stringResource(R.string.initial_data_error))
-        }) { foodStateHolder ->
+        }) { _, foodStateHolder ->
         SelectableItem(
             item = foodStateHolder.food,
             selectableState = selectableState,
