@@ -7,6 +7,7 @@ import androidx.paging.map
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.usecase.consumelog.GetConsumeLogUseCase
 import com.example.nutritiontracker.domain.usecase.consumelog.GetPersonalConsumeLogFlowUseCase
+import com.example.nutritiontracker.domain.usecase.consumelog.GetPersonalGroupedConsumeLogUseCase
 import com.example.nutritiontracker.ui.consumelog.model.ConsumeLogUiState
 import com.example.nutritiontracker.ui.utils.DateRange
 import com.example.nutritiontracker.ui.utils.currentLocalDate
@@ -48,7 +49,7 @@ data class PersonalConsumeLogsFilter(
 
 @HiltViewModel
 class ConsumeLogDetailViewModel @Inject constructor(
-    getPersonalConsumeLogFlowUseCase: GetPersonalConsumeLogFlowUseCase
+    getPersonalConsumeLogFlowUseCase: GetPersonalGroupedConsumeLogUseCase
 ) : ViewModel() {
 
     private val _personalConsumeLogFilterState = MutableStateFlow(PersonalConsumeLogsFilter())
@@ -63,8 +64,8 @@ class ConsumeLogDetailViewModel @Inject constructor(
                 endDate = filter.dateRange.endDate,
                 groupBy = "consumed_at"
             ).map { pagingData ->
-                pagingData.map { consumeLog ->
-                    ConsumeLogUiState(consumeLog = consumeLog)
+                pagingData.map { groupedConsumeLog ->
+                    ConsumeLogUiState(consumeLogs = groupedConsumeLog.consumes)
                 }
             }
         }

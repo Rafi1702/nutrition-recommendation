@@ -4,6 +4,7 @@ import androidx.paging.PagingData
 import com.example.nutritiontracker.data.model.consumelog.ConsumeLogRequestDto
 import com.example.nutritiontracker.data.model.consumelog.ConsumeMealRequestDto
 import com.example.nutritiontracker.data.model.consumelog.toConsumeLog
+import com.example.nutritiontracker.data.model.consumelog.toGroupedConsumeLog
 import com.example.nutritiontracker.data.remote.ConsumeLogRemoteDataSource
 import com.example.nutritiontracker.data.utils.CursorPaginateQuery
 import com.example.nutritiontracker.data.utils.ITEMS_LIMIT
@@ -11,6 +12,7 @@ import com.example.nutritiontracker.data.utils.PageCursor
 import com.example.nutritiontracker.data.utils.defaultPagerCreation
 import com.example.nutritiontracker.data.utils.safeCall
 import com.example.nutritiontracker.domain.model.ConsumeLog
+import com.example.nutritiontracker.domain.model.GroupedConsumeLog
 import com.example.nutritiontracker.domain.model.MealType
 import com.example.nutritiontracker.domain.repository.ConsumeLogRepository
 import kotlinx.coroutines.flow.Flow
@@ -46,8 +48,17 @@ class ConsumeLogRepositoryImpl @Inject constructor(
         consumedAt: String?,
         startDate: String?,
         endDate: String?,
-        groupBy: String?,
+        groupBy: String?
     ): Flow<PagingData<ConsumeLog>> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getGroupedPersonalConsumeLog(
+        consumedAt: String?,
+        startDate: String?,
+        endDate: String?,
+        groupBy: String?,
+    ): Flow<PagingData<GroupedConsumeLog>> {
         return defaultPagerCreation(
             initialCursor = PageCursor.Cursor(value = null),
             networkCallDelay = 500,
@@ -76,7 +87,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                 )
             },
             mapToData = { json ->
-                json.toConsumeLog()
+                json.toGroupedConsumeLog()
             }
         )
     }
