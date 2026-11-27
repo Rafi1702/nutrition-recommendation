@@ -65,7 +65,7 @@ class ConsumeLogDetailViewModel @Inject constructor(
                 groupBy = "consumed_at"
             ).map { pagingData ->
                 pagingData.map { groupedConsumeLog ->
-                    ConsumeLogUiState(consumeLogs = groupedConsumeLog.consumes)
+                    ConsumeLogUiState(groupedConsumeLog = groupedConsumeLog)
                 }
             }
         }

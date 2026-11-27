@@ -88,7 +88,6 @@ fun MainPage(
     onNavigateToRecommendedFoodList: () -> Unit = {},
 ) {
     val isPreview = LocalInspectionMode.current
-    val user = LocalUserProfile.current.value
 
     val bottomBarNavController: NavHostController? = when {
         isPreview -> null

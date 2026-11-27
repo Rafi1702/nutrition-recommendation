@@ -77,6 +77,7 @@ import com.example.nutritiontracker.ui.components.SelectionChip
 import com.example.nutritiontracker.ui.components.SelectionMode
 import com.example.nutritiontracker.ui.components.defaultCardElevation
 import com.example.nutritiontracker.ui.components.label
+import com.example.nutritiontracker.ui.components.rememberAnimatedState
 import com.example.nutritiontracker.ui.components.rememberSelectableState
 import com.example.nutritiontracker.ui.food.components.FoodCard
 import com.example.nutritiontracker.ui.food.model.FoodUiState
@@ -448,8 +449,7 @@ internal fun SelectionModeDropdown(
     onSelectionModeChange: (SelectionMode) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val rotation = remember { Animatable(0f) }
-    val scope = rememberCoroutineScope()
+    val animatedState = rememberAnimatedState()
     var surfaceWidth by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
 
@@ -460,13 +460,8 @@ internal fun SelectionModeDropdown(
     ) {
         Surface(
             onClick = {
-                scope.launch {
-                    rotation.animateTo(
-                        targetValue = 180f,
-                        animationSpec = tween(100, easing = LinearEasing)
-                    )
-                    expanded = true
-                }
+                animatedState.onClick.invoke()
+                expanded = true
             },
             shape = RoundedCornerShape(12.dp),
             color = colorScheme.surfaceVariant,
@@ -493,7 +488,7 @@ internal fun SelectionModeDropdown(
                     contentDescription = "selection_mode_dropdown_icon",
                     modifier = Modifier
                         .size(18.dp)
-                        .rotate(rotation.value)
+                        .rotate(animatedState.degrees)
                 )
             }
         }
@@ -504,12 +499,7 @@ internal fun SelectionModeDropdown(
                 .background(colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
             expanded = expanded,
             onDismissRequest = {
-                scope.launch {
-                    rotation.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(100, easing = LinearEasing)
-                    )
-                }
+                animatedState.onClick.invoke()
                 expanded = false
             }
         ) {
@@ -518,12 +508,7 @@ internal fun SelectionModeDropdown(
                 selected = selectionMode == SelectionMode.SINGLE,
                 onClick = {
                     onSelectionModeChange(SelectionMode.SINGLE)
-                    scope.launch {
-                        rotation.animateTo(
-                            targetValue = 0f,
-                            animationSpec = tween(100, easing = LinearEasing)
-                        )
-                    }
+                    animatedState.onClick.invoke()
                     expanded = false
                 }
             )
@@ -533,12 +518,7 @@ internal fun SelectionModeDropdown(
                 selected = selectionMode == SelectionMode.BULK,
                 onClick = {
                     onSelectionModeChange(SelectionMode.BULK)
-                    scope.launch {
-                        rotation.animateTo(
-                            targetValue = 0f,
-                            animationSpec = tween(100, easing = LinearEasing)
-                        )
-                    }
+                    animatedState.onClick.invoke()
                     expanded = false
                 }
             )

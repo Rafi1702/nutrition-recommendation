@@ -15,6 +15,11 @@ class GetPersonalGroupedConsumeLogUseCase @Inject constructor(private val consum
         consumedAt: String? = null,
         groupBy: String? = null,
     ): Flow<PagingData<GroupedConsumeLog>> {
-        return consumeLogRepository.getGroupedPersonalConsumeLog()
+        return consumeLogRepository.getGroupedPersonalConsumeLog(
+            startDate = startDate,
+            endDate = endDate,
+            groupBy = groupBy,
+            mealType = mealType
+        )
     }
 }

@@ -180,19 +180,20 @@ internal fun PersonalConsumeList(
         modifier = Modifier.fillMaxSize(),
         paddingValues = innerPadding + PaddingValues(Spacing.s),
         pagingItems = consumeLogLazyItems,
-        itemKey = { consumeLogStatus -> consumeLogStatus.consumeLog.consumeLogDetail.id },
+        itemKey = { consumeLogStatus -> consumeLogStatus.id},
         loadingContent = {
             LoadingLottieAnimation(resId = R.raw.food_loading)
         },
         initialDataError = {
             Text("Initial Data Error")
         }) { index, consumeLog ->
-        val consumeLogDetail = consumeLog.consumeLog.consumeLogDetail
+        val consumeLogs = consumeLog.groupedConsumeLog
         val leadingItemText =
             "Hari ${if (index > 0) "ke - ${selectedFilterValues - index}" else "ini"}"
+
         ConsumeLogItem(
-            date = consumeLogDetail.eatTime.consumeLogHeaderDisplay(),
-            consumes = listOf(consumeLog.consumeLog),
+            date = consumeLogs.consumedAt.consumeLogHeaderDisplay(),
+            consumes = consumeLogs.consumes,
             leadingText = leadingItemText
         )
     }

@@ -58,6 +58,7 @@ class ConsumeLogRepositoryImpl @Inject constructor(
         startDate: String?,
         endDate: String?,
         groupBy: String?,
+        mealType: MealType,
     ): Flow<PagingData<GroupedConsumeLog>> {
         return defaultPagerCreation(
             initialCursor = PageCursor.Cursor(value = null),
@@ -71,9 +72,6 @@ class ConsumeLogRepositoryImpl @Inject constructor(
                                 limit = ITEMS_LIMIT
                             ).toMap()
                         )
-                        consumedAt?.let{
-                            put("consumed_at", consumedAt)
-                        }
                         groupBy?.let {
                             put("group_by", groupBy)
                         }

@@ -26,6 +26,7 @@ interface ConsumeLogRepository {
         startDate: String? = null,
         endDate: String? = null,
         groupBy: String? = null,
+        mealType: MealType,
     ): Flow<PagingData<GroupedConsumeLog>>
 
     suspend fun getPersonalConsumeLogList(
